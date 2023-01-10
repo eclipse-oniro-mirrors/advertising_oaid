@@ -1,3 +1,0 @@
-# oaid_open
-
-null
