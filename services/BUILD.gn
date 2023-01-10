@@ -1,0 +1,82 @@
+# Copyright (C) 2022 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//domains/cloud/oaid/oaid.gni")
+
+config("oaid_service_config") {
+  visibility = [ ":*" ]
+  include_dirs = [
+    "//domains/cloud/oaid/interfaces/innerkits/include",
+    "../utils/native/include",
+    "oaid_manager/include",
+    "//utils/system/safwk/native/include",
+    "//third_party/json/include",
+    "//base/hiviewdfx/hilog/interfaces/native/innerkits/include",
+    "//foundation/distributeddatamgr/appdatamgr/interfaces/inner_api/native/rdb/include/",
+    "//foundation/distributeddatamgr/appdatamgr/interfaces/inner_api/native/appdatafwk/include/",
+    "//foundation/ability/ability_runtime/interfaces/inner_api/ability_manager/include",
+    "//foundation/bundlemanager/bundle_framework/interfaces/inner_api/appexecfwk_core/include",
+    "//third_party/openssl",
+    "//third_party/openssl/include",
+  ]
+}
+
+ohos_shared_library("oaid_service") {
+  configs = [ "${oaid_utils_path}:utils_config" ]
+
+  public_configs = [
+    "//commonlibrary/c_utils/base:utils_config",
+    "//third_party/jsoncpp:jsoncpp_public_config",
+    ":oaid_service_config",
+  ]
+
+  sources = [
+    "oaid_manager/src/oaid_service.cpp",
+    "oaid_manager/src/oaid_service_stub.cpp",
+  ]
+
+  deps = [
+    "${aafwk_kits_path}/ability/native:abilitykit_native",
+    "${oaid_utils_path}:oaid_utils",
+    "//foundation/communication/netmanager_base/interfaces/innerkits/netconnclient:net_conn_manager_if",
+    "//foundation/ability/ability_runtime/interfaces/inner_api/ability_manager:ability_manager",
+    "//third_party/jsoncpp:jsoncpp",
+    "//third_party/openssl:libcrypto_static",
+  ]
+  external_deps = [
+    "ability_base:want",
+    "ability_runtime:runtime",
+    "ability_runtime:ability_manager",
+    "ability_runtime:wantagent_innerkits",
+    "common_event_service:cesfwk_innerkits",
+    "eventhandler:libeventhandler",
+    "hiviewdfx_hilog_native:libhilog",
+    "ipc:ipc_core",
+    "relational_store:native_appdatafwk",
+    "relational_store:native_rdb",
+    "safwk:system_ability_fwk",
+    "samgr:samgr_proxy",
+    "bundle_framework:appexecfwk_core",
+    "bundle_framework:appexecfwk_base",
+    "c_utils:utilsbase",
+  ]
+  part_name = "oaid"
+  subsystem_name = "cloud"
+}
+
+ohos_prebuilt_etc("oaid_service_config_json") {
+  source = "oaid_manager/resource/oaid_service_config.json"
+  relative_install_dir = "cloud/oaid"
+  part_name = "oaid"
+  subsystem_name = "cloud"
+}
