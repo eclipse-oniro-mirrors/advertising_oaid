@@ -52,8 +52,16 @@ namespace OHOS {
 namespace Cloud {
 namespace {
 static const int32_t OAID_SYSTME_ID = 6101;  // The system component ID of the OAID is 6101.
+static constexpr uint32_t KVSTORE_CONNECT_RETRY_COUNT = 5;
+static constexpr uint32_t KVSTORE_CONNECT_RETRY_DELAY_TIME = 3000;
+
 const std::string OAID_JSON_PATH = "/data/service/el1/public/oaid/ohos_oaid.json";
 const std::string OAID_NULL_STR = "00000000-0000-0000-0000-000000000000";
+
+const std::string OAID_DATA_BASE_DIR = "/data/service/el1/public/database/";
+const std::string OAID_DATA_BASE_APP_ID = "oaid_service_manager";
+const std::string OAID_DATA_BASE_STORE_ID = "oaidservice";
+const std::string OAID_KVSTORE_KEY = "oaid_key";
 
 char HexToChar(uint8_t hex)
 {
@@ -110,54 +118,6 @@ std::string GetUUID()
     }
     return formatUuid;
 }
-
-std::string GetOAIDFromFile(const std::string &filePath)
-{
-    std::string oaid = OAID_NULL_STR;
-    std::ifstream ifs;
-    ifs.open(filePath.c_str());
-    if (!ifs) {
-        OAID_HILOGE(OAID_MODULE_SERVICE, "Get oaid, open file error->%{public}d", errno);
-        return oaid;
-    }
-
-    Json::Value jsonValue;
-    Json::CharReaderBuilder builder;
-    builder["collectComments"] = true;
-    std::string errs;
-    if (!parseFromStream(builder, ifs, &jsonValue, &errs)) {
-        ifs.close();
-        OAID_HILOGE(OAID_MODULE_SERVICE, "Read file failed %{public}s.", errs.c_str());
-        return oaid;
-    }
-
-    oaid = jsonValue["oaid"].asString();
-    ifs.close();
-
-    OAID_HILOGI(OAID_MODULE_SERVICE, "Read oaid from file, length is %{public}zu.", oaid.size());
-    return oaid;
-}
-
-bool SaveOAIDToFile(const std::string &filePath, std::string oaid)
-{
-    Json::Value jsonValue;
-    std::ofstream ofs;
-
-    ofs.open(filePath.c_str());
-    if (!ofs) {
-        OAID_HILOGE(OAID_MODULE_SERVICE, "Save oaid, open file error->%{public}d", errno);
-        return false;
-    }
-
-    jsonValue["oaid"] = oaid;
-    Json::StreamWriterBuilder builder;
-    const std::string jsonStr = Json::writeString(builder, jsonValue);
-    ofs << jsonStr;
-    ofs.close();
-    OAID_HILOGI(OAID_MODULE_SERVICE, "Save oaid, length is %{public}zu.", oaid.size());
-
-    return true;
-}
 }  // namespace
 
 REGISTER_SYSTEM_ABILITY_BY_ID(OAIDService, OAID_SYSTME_ID, true);
@@ -198,6 +158,7 @@ void OAIDService::OnStart()
         OAID_HILOGE(OAID_MODULE_SERVICE, "Init failed, Try again 10s later.");
         return;
     }
+    AddSystemAbilityListener(OAID_SYSTME_ID);
 
     OAID_HILOGI(OAID_MODULE_SERVICE, "Start OAID service success.");
     return;
@@ -226,60 +187,215 @@ void OAIDService::OnStop()
     OAID_HILOGI(OAID_MODULE_SERVICE, "Stop success.");
 }
 
+std::string OAIDService::GetOAIDFromFile(const std::string &filePath)
+{
+    std::string oaid = OAID_NULL_STR;
+    std::ifstream ifs;
+    ifs.open(filePath.c_str());
+    if (!ifs) {
+        OAID_HILOGE(OAID_MODULE_SERVICE, "Get oaid, open file error->%{public}d", errno);
+        return oaid;
+    }
+
+    Json::Value jsonValue;
+    Json::CharReaderBuilder builder;
+    builder["collectComments"] = true;
+    std::string errs;
+    if (!parseFromStream(builder, ifs, &jsonValue, &errs)) {
+        ifs.close();
+        OAID_HILOGE(OAID_MODULE_SERVICE, "Read file failed %{public}s.", errs.c_str());
+        return oaid;
+    }
+
+    oaid = jsonValue["oaid"].asString();
+    ifs.close();
+
+    OAID_HILOGI(OAID_MODULE_SERVICE, "Read oaid from file, length is %{public}zu.", oaid.size());
+    return oaid;
+}
+
+bool OAIDService::SaveOAIDToFile(const std::string &filePath, std::string oaid)
+{
+    Json::Value jsonValue;
+    std::ofstream ofs;
+
+    ofs.open(filePath.c_str());
+    if (!ofs) {
+        OAID_HILOGE(OAID_MODULE_SERVICE, "Save oaid, open file error->%{public}d", errno);
+        return false;
+    }
+
+    jsonValue["oaid"] = oaid;
+    Json::StreamWriterBuilder builder;
+    const std::string jsonStr = Json::writeString(builder, jsonValue);
+    ofs << jsonStr;
+    ofs.close();
+    OAID_HILOGI(OAID_MODULE_SERVICE, "Save oaid, length is %{public}zu.", oaid.size());
+
+    return true;
+}
+
+bool OAIDService::InitOaidKvStore()
+{
+    DistributedKv::DistributedKvDataManager manager;
+    DistributedKv::Options options;
+
+    DistributedKv::AppId appId;
+    appId.appId = OAID_DATA_BASE_APP_ID;
+
+    options.createIfMissing = true;
+    options.encrypt = false;
+    options.autoSync = false;
+    options.kvStoreType = DistributedKv::KvStoreType::SINGLE_VERSION;
+    options.area = DistributedKv::EL1;
+    options.baseDir = OAID_DATA_BASE_DIR + appId.appId;
+
+    DistributedKv::StoreId storeId;
+    storeId.storeId = OAID_DATA_BASE_STORE_ID;
+    DistributedKv::Status status = DistributedKv::Status::SUCCESS;
+
+    if (oaidKvStore_ == nullptr) {
+        uint32_t retries = 0;
+        do {
+            OAID_HILOGI(OAID_MODULE_SERVICE, "InitOaidKvStore: retries=%{public}u!", retries);
+            status = manager.GetSingleKvStore(options, appId, storeId, oaidKvStore_);
+            if (status == DistributedKv::Status::STORE_NOT_FOUND) {
+                OAID_HILOGE(OAID_MODULE_SERVICE, "InitOaidKvStore: STORE_NOT_FOUND!");
+            }
+
+            if ((status == DistributedKv::Status::SUCCESS) || (status == DistributedKv::Status::STORE_NOT_FOUND)) {
+                break;
+            } else {
+                OAID_HILOGE(OAID_MODULE_SERVICE, "Kvstore Connect failed! Retrying.");
+                retries++;
+                usleep(KVSTORE_CONNECT_RETRY_DELAY_TIME);
+            }
+        } while (retries <= KVSTORE_CONNECT_RETRY_COUNT);
+    }
+
+    if (oaidKvStore_ == nullptr) {
+        if (status == DistributedKv::Status::STORE_NOT_FOUND) {
+            OAID_HILOGI(OAID_MODULE_SERVICE, "First Boot: Create OaidKvStore");
+            options.createIfMissing = true;
+            // [create and] open and initialize kvstore instance.
+            status = manager.GetSingleKvStore(options, appId, storeId, oaidKvStore_);
+            if (status == DistributedKv::Status::SUCCESS) {
+                OAID_HILOGE(OAID_MODULE_SERVICE, "Create OaidKvStore success!");
+            } else {
+                OAID_HILOGE(OAID_MODULE_SERVICE, "Create OaidKvStore Failed!");
+            }
+        }
+    }
+
+    if (oaidKvStore_ == nullptr) {
+        OAID_HILOGE(OAID_MODULE_SERVICE, "InitOaidKvStore: Failed!");
+        return false;
+    }
+
+    return true;
+}
+
+void OAIDService::OnAddSystemAbility(int32_t systemAbilityId, const std::string& deviceId)
+{
+    OAID_HILOGI(OAID_MODULE_SERVICE, "OnAddSystemAbility OAIDService");
+    bool result = false;
+    switch (systemAbilityId) {
+        case OAID_SYSTME_ID:
+            OAID_HILOGI(OAID_MODULE_SERVICE, "OnAddSystemAbility kv data service start");
+            result = InitOaidKvStore();
+            OAID_HILOGI(OAID_MODULE_SERVICE, "OnAddSystemAbility InitOaidKvStore is %{public}d", result);
+            break;
+        default:
+            OAID_HILOGI(OAID_MODULE_SERVICE, "OnAddSystemAbility unhandled sysabilityId:%{public}d", systemAbilityId);
+            break;
+    }
+}
+
+bool OAIDService::CheckKvStore()
+{
+    if (oaidKvStore_ != nullptr) {
+        return true;
+    }
+
+    bool result = InitOaidKvStore();
+    OAID_HILOGI(OAID_MODULE_SERVICE, "InitOaidKvStore: success!");
+    return result;
+}
+
+bool OAIDService::ReadValueFromKvStore(const std::string &kvStoreKey, std::string &kvStoreValue)
+{
+    if (!CheckKvStore()) {
+        OAID_HILOGE(OAID_MODULE_SERVICE, "ReadValueFromKvStore:oaidKvStore_ is nullptr");
+        return false;
+    }
+
+    DistributedKv::Key key(kvStoreKey);
+    DistributedKv::Value value;
+    DistributedKv::Status status = oaidKvStore_->Get(key, value);
+    if (status == DistributedKv::Status::SUCCESS) {
+        OAID_HILOGI(OAID_MODULE_SERVICE, "%{public}d get value from kvStore", status);
+    } else {
+        OAID_HILOGE(OAID_MODULE_SERVICE, "%{public}d get value from kvStore failed", status);
+        return false;
+    }
+    kvStoreValue = value.ToString();
+
+    return true;
+}
+
+bool OAIDService::WriteValueToKvStore(const std::string &kvStoreKey, const std::string &kvStoreValue)
+{
+    if (!CheckKvStore()) {
+        OAID_HILOGE(OAID_MODULE_SERVICE, "WriteValueToKvStore:oaidKvStore_ is nullptr");
+        return false;
+    }
+
+    DistributedKv::Key key(kvStoreKey);
+    DistributedKv::Value value(kvStoreValue);
+    DistributedKv::Status status = oaidKvStore_->Put(key, value);
+    if (status == DistributedKv::Status::SUCCESS) {
+        OAID_HILOGI(OAID_MODULE_SERVICE, "%{public}d updated to kvStore", status);
+    } else {
+        OAID_HILOGE(OAID_MODULE_SERVICE, "%{public}d update to kvStore failed", status);
+        return false;
+    }
+
+    return true;
+}
+
 std::string OAIDService::GetOAID()
 {
     std::string path = OAID_JSON_PATH;
-    std::string oaid = OAID_NULL_STR;
+    std::string oaid;
 
     OAID_HILOGI(OAID_MODULE_SERVICE, "Begin.");
 
-    if (!oaid_.empty()) {
-        oaid = oaid_;
-        OAID_HILOGW(OAID_MODULE_SERVICE, "The Oaid in the memory is not empty");
-    }
+    std::string oaidKvStoreStr = OAID_NULL_STR;
 
-    bool isReSaveOaidToFile = false;
-    bool isReGenerateOaid = false;
+    bool result = ReadValueFromKvStore(OAID_KVSTORE_KEY, oaidKvStoreStr);
+    OAID_HILOGI(OAID_MODULE_SERVICE, "ReadValueFromKvStore %{public}s", result == true ? "success" : "failed");
 
-    std::string oaidFromFile = GetOAIDFromFile(path);
-    if (!oaidFromFile.empty() && oaidFromFile != OAID_NULL_STR) {
+    if (oaidKvStoreStr != OAID_NULL_STR) {
         if (!oaid_.empty()) {
-            if (oaid_.compare(oaidFromFile)) {
-                OAID_HILOGW(OAID_MODULE_SERVICE, "get oaid from file successfully, but oaidFromFile is incorrect");
-                oaidFromFile = oaid_;
-                isReSaveOaidToFile = true;
-            } else {
-                OAID_HILOGW(OAID_MODULE_SERVICE, "get oaid from file successfully");
-                return oaid;
-            }
+            oaid = oaid_;
+            OAID_HILOGI(OAID_MODULE_SERVICE, "get oaid from file successfully");
         } else {
-            oaid = oaidFromFile;
-            oaid_ = oaidFromFile;
-            OAID_HILOGW(OAID_MODULE_SERVICE, "The Oaid in the memory is empty,But it get oaid from file successfully");
-            return oaid;
+            oaid = oaidKvStoreStr;
+            oaid_ = oaidKvStoreStr;
+            OAID_HILOGW(OAID_MODULE_SERVICE, "The Oaid in the memory is empty,it get oaid from file successfully");
         }
+        return oaid;
     } else {
-        if (!oaid_.empty()) {
-            OAID_HILOGW(OAID_MODULE_SERVICE, "The Oaid in the file is empty.");
-            oaidFromFile = oaid_;
-            isReSaveOaidToFile = true;
-        } else {
-            isReGenerateOaid = true;
+        if (oaid_.empty()) {
+            oaid_ = GetUUID();
+            OAID_HILOGI(OAID_MODULE_SERVICE, "The oaid has been regenerated.");
         }
     }
 
-    if (isReGenerateOaid) {
-        OAID_HILOGW(OAID_MODULE_SERVICE, "The oaid needs to be regenerated.");
-        oaid = GetUUID();
-        oaid_ = oaid;
-    } else {
-        oaid = oaidFromFile;
-    }
+    oaid = oaid_;
 
-    bool ret = SaveOAIDToFile(path, oaid);
-    if (!ret) {
-        OAID_HILOGE(OAID_MODULE_SERVICE, "Save oaid failed");
-    }
+    result = WriteValueToKvStore(OAID_KVSTORE_KEY, oaid);
+    OAID_HILOGI(OAID_MODULE_SERVICE, "WriteValueToKvStore %{public}s", result == true ? "success" : "failed");
 
     OAID_HILOGI(OAID_MODULE_SERVICE, "End.");
     return oaid;

@@ -24,6 +24,7 @@ config("oaid_service_config") {
     "//base/hiviewdfx/hilog/interfaces/native/innerkits/include",
     "//foundation/distributeddatamgr/appdatamgr/interfaces/inner_api/native/rdb/include/",
     "//foundation/distributeddatamgr/appdatamgr/interfaces/inner_api/native/appdatafwk/include/",
+    "//foundation/distributeddatamgr/kv_store/interfaces/innerkits/distributeddata/include",
     "//foundation/ability/ability_runtime/interfaces/inner_api/ability_manager/include",
     "//foundation/bundlemanager/bundle_framework/interfaces/inner_api/appexecfwk_core/include",
     "//third_party/openssl",
@@ -50,6 +51,7 @@ ohos_shared_library("oaid_service") {
     "${oaid_utils_path}:oaid_utils",
     "//foundation/communication/netmanager_base/interfaces/innerkits/netconnclient:net_conn_manager_if",
     "//foundation/ability/ability_runtime/interfaces/inner_api/ability_manager:ability_manager",
+    "//foundation/distributeddatamgr/kv_store/interfaces/innerkits/distributeddata:distributeddata_inner",
     "//third_party/jsoncpp:jsoncpp",
     "//third_party/openssl:libcrypto_static",
   ]

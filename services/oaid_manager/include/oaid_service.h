@@ -23,6 +23,7 @@
 #include "oaid_service_stub.h"
 #include "bundle_mgr_interface.h"
 #include "iremote_proxy.h"
+#include "distributed_kv_data_manager.h"
 #include "securec.h"
 #include "system_ability.h"
 #include "time.h"
@@ -41,6 +42,7 @@ public:
     DISALLOW_COPY_AND_MOVE(OAIDService);
     OAIDService(int32_t systemAbilityId, bool runOnCreate);
     OAIDService();
+    bool InitOaidKvStore();
     virtual ~OAIDService() override;
 
     /**
@@ -53,14 +55,21 @@ public:
 protected:
     void OnStart() override;
     void OnStop() override;
-
+    void OnAddSystemAbility(int32_t systemAbilityId, const std::string& deviceId) override;
 private:
     int32_t Init();
     static sptr<OAIDService> GetInstance();
+    bool CheckKvStore();
+    bool ReadValueFromKvStore(const std::string &kvStoreKey, std::string &kvStoreValue);
+    bool WriteValueToKvStore(const std::string &kvStoreKey, const std::string &kvStoreValue);
+    std::string GetOAIDFromFile(const std::string &filePath);
+    bool SaveOAIDToFile(const std::string &filePath, std::string oaid);
+
     ServiceRunningState state_;
     static std::mutex instanceLock_;
     static sptr<OAIDService> instance_;
 
+    std::shared_ptr<DistributedKv::SingleKvStore> oaidKvStore_;
     std::string oaid_;
 };
 } // namespace Cloud
