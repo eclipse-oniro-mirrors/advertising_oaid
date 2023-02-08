@@ -18,6 +18,7 @@
 
 #include "oaid_common.h"
 #include "bundle_mgr_client.h"
+#include "oaid_service.h"
 
 namespace OHOS {
 namespace Cloud {
@@ -39,6 +40,13 @@ int32_t OAIDServiceStub::OnRemoteRequest(
     OAID_HILOGI(OAID_MODULE_SERVICE, "Start, code is %{public}u.", code);
     std::u16string myDescripter = OAIDServiceStub::GetDescriptor();
     std::u16string remoteDescripter = data.ReadInterfaceToken();
+    oaidServiceStubProxy_ = data.ReadRemoteObject();
+    if (oaidServiceStubProxy_ == nullptr) {
+        OAID_HILOGE(OAID_MODULE_SERVICE, "oaidServiceStubProxy is nullptr");
+    } else {
+        OAID_HILOGE(OAID_MODULE_SERVICE, "oaidServiceStubProxy is not nullptr");
+    }
+
     if (myDescripter != remoteDescripter) {
         OAID_HILOGE(OAID_MODULE_SERVICE, "Descriptor checked fail.");
         return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
@@ -77,6 +85,11 @@ int32_t OAIDServiceStub::OnGetOAID(MessageParcel& data, MessageParcel& reply)
     }
     OAID_HILOGI(OAID_MODULE_SERVICE, "End.");
     return ERR_OK;
+}
+
+sptr<IRemoteObject> OAIDServiceStub::GainOAIDServiceStubProxy()
+{
+    return oaidServiceStubProxy_;
 }
 } // namespace Cloud
 } // namespace OHOS

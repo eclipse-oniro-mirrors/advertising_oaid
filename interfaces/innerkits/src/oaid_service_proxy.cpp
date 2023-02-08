@@ -35,7 +35,7 @@ std::string OAIDServiceProxy::GetOAID()
         OAID_HILOGE(OAID_MODULE_CLIENT, "Failed to write parcelable");
         return "";
     }
-
+    data.WriteRemoteObject(Remote());
     int32_t result = Remote()->SendRequest(GET_OAID, data, reply, option);
     if (result != ERR_NONE) {
         OAID_HILOGE(OAID_MODULE_CLIENT, "Get OAID failed, error code is: %{public}d", result);

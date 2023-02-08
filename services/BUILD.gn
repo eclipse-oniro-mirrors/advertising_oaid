@@ -27,8 +27,10 @@ config("oaid_service_config") {
     "//foundation/distributeddatamgr/kv_store/interfaces/innerkits/distributeddata/include",
     "//foundation/ability/ability_runtime/interfaces/inner_api/ability_manager/include",
     "//foundation/bundlemanager/bundle_framework/interfaces/inner_api/appexecfwk_core/include",
+    "//foundation/bundlemanager/bundle_framework/interfaces/inner_api/appexecfwk_base/include",
     "//third_party/openssl",
     "//third_party/openssl/include",
+    "//base/customization/config_policy/interfaces/inner_api/include"
   ]
 }
 
