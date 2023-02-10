@@ -65,7 +65,7 @@ static const std::string DEPENDENCY_CONFIG_FILE_RELATIVE_PATH = "etc/cloud/oaid/
 static const std::string ADS_SA_SERVICE_ACTION = "com.ohos.cloudservice.identifier.oaid";
 
 const std::string OAID_JSON_PATH = "/data/service/el1/public/oaid/ohos_oaid.json";
-const std::string OAID_NULL_STR = "00000000-0000-0000-0000-000000000000";
+const std::string OAID_ALLZERO_STR = "00000000-0000-0000-0000-000000000000";
 
 const std::string OAID_DATA_BASE_DIR = "/data/service/el1/public/database/";
 const std::string OAID_DATA_BASE_APP_ID = "oaid_service_manager";
@@ -402,7 +402,7 @@ void OAIDService::OnStop()
 
 std::string OAIDService::GetOAIDFromFile(const std::string &filePath)
 {
-    std::string oaid = OAID_NULL_STR;
+    std::string oaid = OAID_ALLZERO_STR;
     std::ifstream ifs;
     ifs.open(filePath.c_str());
     if (!ifs) {
@@ -457,7 +457,7 @@ bool OAIDService::InitOaidKvStore()
     appId.appId = OAID_DATA_BASE_APP_ID;
 
     options.createIfMissing = true;
-    options.encrypt = false;
+    options.encrypt = true;
     options.autoSync = false;
     options.kvStoreType = DistributedKv::KvStoreType::SINGLE_VERSION;
     options.area = DistributedKv::EL1;
@@ -531,7 +531,7 @@ bool OAIDService::CheckKvStore()
     }
 
     bool result = InitOaidKvStore();
-    OAID_HILOGI(OAID_MODULE_SERVICE, "InitOaidKvStore: success!");
+    OAID_HILOGI(OAID_MODULE_SERVICE, "InitOaidKvStore: %{public}s", result == true ? "success" : "failed");
     return result;
 }
 
@@ -666,12 +666,12 @@ std::string OAIDService::GetOAID()
         OAID_HILOGW(OAID_MODULE_SERVICE, "SendOAIDSARemoteObjectToService ret=%{public}d", ret);
     }
 
-    std::string oaidKvStoreStr = OAID_NULL_STR;
+    std::string oaidKvStoreStr = OAID_ALLZERO_STR;
 
     bool result = ReadValueFromKvStore(OAID_KVSTORE_KEY, oaidKvStoreStr);
     OAID_HILOGI(OAID_MODULE_SERVICE, "ReadValueFromKvStore %{public}s", result == true ? "success" : "failed");
 
-    if (oaidKvStoreStr != OAID_NULL_STR) {
+    if (oaidKvStoreStr != OAID_ALLZERO_STR) {
         if (!oaid_.empty()) {
             oaid = oaid_;
             OAID_HILOGI(OAID_MODULE_SERVICE, "get oaid from kvdb successfully");
