@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,6 +18,7 @@
 
 #include <map>
 #include <string>
+#include <pthread.h>
 
 #include "oaid_service_interface.h"
 #include "ipc_skeleton.h"
@@ -43,9 +44,20 @@ public:
     sptr<IRemoteObject> GainOAIDServiceStubProxy();
 private:
     using OAIDServiceFunc = int32_t (OAIDServiceStub::*)(MessageParcel& data, MessageParcel& reply);
+
     int32_t OnGetOAID(MessageParcel& data, MessageParcel& reply);
+    int32_t OnClearOAID(MessageParcel& data, MessageParcel& reply);
+    int32_t OnHmsGainOAID(MessageParcel& data, MessageParcel& reply);
+
+    bool CheckPermission(const std::string &permissionName);
+    void CtrlOAIDByAdsTrackingPermissionsState(int32_t userId);
+    bool InitThread();
+    static void *StartThreadMain(void *arg);
+
     std::map<uint32_t, OAIDServiceFunc> memberFuncMap_;
     sptr<IRemoteObject> oaidServiceStubProxy_;
+    pthread_t oaidThreadId = 0;
+    bool isRunning_;
 };
 } // namespace Cloud
 } // namespace OHOS

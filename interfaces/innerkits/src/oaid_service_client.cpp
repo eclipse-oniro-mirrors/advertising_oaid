@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -86,7 +86,7 @@ sptr<OAIDServiceClient> OAIDServiceClient::GetInstance()
     return instance_;
 }
 
-bool OAIDServiceClient::LoadServcie()
+bool OAIDServiceClient::LoadService()
 {
     if (loadServiceReady_) {
         return true;
@@ -131,9 +131,10 @@ bool OAIDServiceClient::LoadServcie()
 std::string OAIDServiceClient::GetOAID()
 {
     OAID_HILOGI(OAID_MODULE_CLIENT, "Begin.");
-    if (!LoadServcie()) {
+
+    if (!LoadService()) {
         OAID_HILOGW(OAID_MODULE_CLIENT, "Redo load oaid service.");
-        LoadServcie();
+        LoadService();
     }
 
     if (oaidServiceProxy_ == nullptr) {

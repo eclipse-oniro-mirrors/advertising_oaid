@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -48,17 +48,28 @@ public:
     virtual ~OAIDService() override;
 
     /**
-     * Get open advertising id.
+     * Get open advertising id And connnect hms for send OaidServiceStub remoteObject to hms.
      *
      * @return std::string, OAID.
      */
     std::string GetOAID() override;
 
-     /**
-     * Notify cloud service connected.
-     *
-     * @param remoteObject Remote object.
+    /**
+     * Clear the open advertising id.
      */
+    void ClearOAID();
+
+    /**
+     * Hmscore Gain open advertising id.
+     *
+     * @return std::string, OAID.
+     */
+    std::string HmsGainOAID();
+    /**
+    * Notify cloud service connected.
+    *
+    * @param remoteObject Remote object.
+    */
     void notifyConnected(const AppExecFwk::ElementName& element, const sptr<IRemoteObject>& remoteObject);
 
     /**
@@ -92,6 +103,7 @@ private:
     bool BeginDisConnectCloud();
     void checkLastCloudServce(CloudServiceProvider& cloudServiceProvider);
     void clearConnect();
+    std::string GainOAID();
 
     ServiceRunningState state_;
     static std::mutex instanceLock_;

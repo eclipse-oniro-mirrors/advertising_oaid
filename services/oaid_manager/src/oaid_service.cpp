@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -48,30 +48,13 @@
 #include "system_ability_definition.h"
 #include "uri.h"
 #include "oaid_service_stub.h"
+#include "oaid_service_define.h"
 
 using namespace std::chrono;
 
 namespace OHOS {
 namespace Cloud {
 namespace {
-static const int32_t OAID_SYSTME_ID = 6101;  // The system component ID of the OAID is 6101.
-static constexpr uint32_t KVSTORE_CONNECT_RETRY_COUNT = 5;
-static constexpr uint32_t KVSTORE_CONNECT_RETRY_DELAY_TIME = 3000;
-static const int8_t CONNECT_TIME_OUT = 3;    // The connection timeout is 3s.
-static const int8_t INVOKE_CODE_SEND_REMOTE_OBJECT = 10;
-static const int SYSTEM_UERID = 100;
-
-static const std::string DEPENDENCY_CONFIG_FILE_RELATIVE_PATH = "etc/cloud/oaid/oaid_service_config.json";
-static const std::string ADS_SA_SERVICE_ACTION = "com.ohos.cloudservice.identifier.oaid";
-
-const std::string OAID_JSON_PATH = "/data/service/el1/public/oaid/ohos_oaid.json";
-const std::string OAID_ALLZERO_STR = "00000000-0000-0000-0000-000000000000";
-
-const std::string OAID_DATA_BASE_DIR = "/data/service/el1/public/database/";
-const std::string OAID_DATA_BASE_APP_ID = "oaid_service_manager";
-const std::string OAID_DATA_BASE_STORE_ID = "oaidservice";
-const std::string OAID_KVSTORE_KEY = "oaid_key";
-
 char HexToChar(uint8_t hex)
 {
     static const uint8_t maxSingleDigit = 9; // 9 is the largest single digit
@@ -166,6 +149,36 @@ bool SendOAIDSARemoteObjectToService(const sptr<IRemoteObject>& remoteObject,
     }
 
     int error = remoteObject->SendRequest(INVOKE_CODE_SEND_REMOTE_OBJECT, data, reply, option);
+    if (error != ERR_OK) {
+        OAID_HILOGE(OAID_MODULE_SERVICE, "SendRequest to cloud service failed.");
+        return false;
+    }
+
+    std::string retStr = Str16ToStr8(reply.ReadString16().c_str());
+    OAID_HILOGI(OAID_MODULE_SERVICE, "Service reply retStr is %{public}s.", retStr.c_str());
+    if (!strcmp(retStr.c_str(), "success")) {
+        return true;
+    }
+
+    return false;
+}
+
+bool SendOAIDToService(const sptr<IRemoteObject>& remoteObject, const std::string& oaid)
+{
+    if (remoteObject == nullptr) {
+        OAID_HILOGE(OAID_MODULE_SERVICE, "remoteObject is null.");
+        return false;
+    }
+
+    MessageParcel data, reply;
+    MessageOption option;
+
+    if (!data.WriteString16(to_utf16(oaid))) {
+        OAID_HILOGE(OAID_MODULE_SERVICE, "failed to write oaid");
+        return false;
+    }
+
+    int error = remoteObject->SendRequest(INVOKE_CODE_SEND_OAID, data, reply, option);
     if (error != ERR_OK) {
         OAID_HILOGE(OAID_MODULE_SERVICE, "SendRequest to cloud service failed.");
         return false;
@@ -275,7 +288,7 @@ bool CloudServiceExist(OAIDService::CloudServiceProvider& cloudServiceProvider)
     }
 
     OAID_HILOGI(
-        OAID_MODULE_SERVICE, "CloudServiceProvider Filter action size is %{public}lu", cloudServiceProviders.size());
+        OAID_MODULE_SERVICE, "CloudServiceProvider filter  action size is %{public}lu", cloudServiceProviders.size());
     if (cloudServiceProviders.size() > 1) {
         int64_t installTime = INT64_MAX;
         std::vector<OAIDService::CloudServiceProvider> minInstallTimeProviders;
@@ -295,7 +308,7 @@ bool CloudServiceExist(OAIDService::CloudServiceProvider& cloudServiceProvider)
     }
 
     OAID_HILOGI(
-        OAID_MODULE_SERVICE, "CloudServiceProvider Filter InstallTime size %{public}lu", cloudServiceProviders.size());
+        OAID_MODULE_SERVICE, "CloudServiceProvider filter InstallTime size %{public}lu", cloudServiceProviders.size());
     if (cloudServiceProviders.size() == 0) {
         OAID_HILOGE(OAID_MODULE_SERVICE, "Cloud Service provider is empty.");
         return false;
@@ -651,28 +664,17 @@ void OAIDService::checkLastCloudServce(CloudServiceProvider& cloudServiceProvide
     currCloudServiceProvider_ = cloudServiceProvider;
 }
 
-std::string OAIDService::GetOAID()
+std::string OAIDService::GainOAID()
 {
-    std::string path = OAID_JSON_PATH;
+    OAID_HILOGI(OAID_MODULE_SERVICE, "Gain OAID Begin.");
     std::string oaid;
-
-    OAID_HILOGI(OAID_MODULE_SERVICE, "Begin.");
-
-    CloudServiceProvider cloudServiceProvider;
-    if (CloudServiceExist(cloudServiceProvider)) {
-        checkLastCloudServce(cloudServiceProvider);
-        TryConnectCloud(cloudServiceProvider);
-        bool ret = SendOAIDSARemoteObjectToService(cloudServiceProxy_, OAIDServiceStub::GainOAIDServiceStubProxy());
-        OAID_HILOGW(OAID_MODULE_SERVICE, "SendOAIDSARemoteObjectToService ret=%{public}d", ret);
-    }
-
     std::string oaidKvStoreStr = OAID_ALLZERO_STR;
 
     bool result = ReadValueFromKvStore(OAID_KVSTORE_KEY, oaidKvStoreStr);
     OAID_HILOGI(OAID_MODULE_SERVICE, "ReadValueFromKvStore %{public}s", result == true ? "success" : "failed");
 
-    if (oaidKvStoreStr != OAID_ALLZERO_STR) {
-        if (!oaid_.empty()) {
+    if (oaidKvStoreStr != OAID_ALLZERO_STR && oaidKvStoreStr != "") {
+        if (!oaid_.empty() || oaid_ != "") {
             oaid = oaid_;
             OAID_HILOGI(OAID_MODULE_SERVICE, "get oaid from kvdb successfully");
         } else {
@@ -682,7 +684,7 @@ std::string OAIDService::GetOAID()
         }
         return oaid;
     } else {
-        if (oaid_.empty()) {
+        if (oaid_.empty() || oaid_ == "") {
             oaid_ = GetUUID();
             OAID_HILOGI(OAID_MODULE_SERVICE, "The oaid has been regenerated.");
         }
@@ -692,9 +694,53 @@ std::string OAIDService::GetOAID()
 
     result = WriteValueToKvStore(OAID_KVSTORE_KEY, oaid);
     OAID_HILOGI(OAID_MODULE_SERVICE, "WriteValueToKvStore %{public}s", result == true ? "success" : "failed");
+    OAID_HILOGI(OAID_MODULE_SERVICE, "Gain OAID Finish.");
+    return oaid;
+}
 
+std::string OAIDService::HmsGainOAID()
+{
+    OAID_HILOGI(OAID_MODULE_SERVICE, "HMS Gain OAID Begin.");
+
+    std::string oaid = GainOAID();
+
+    CloudServiceProvider cloudServiceProvider;
+    if (CloudServiceExist(cloudServiceProvider)) {
+        checkLastCloudServce(cloudServiceProvider);
+        if (TryConnectCloud(cloudServiceProvider)) {
+            bool ret = SendOAIDToService(cloudServiceProxy_, oaid);
+            OAID_HILOGW(OAID_MODULE_SERVICE, "SendOAIDToService ret=%{public}d", ret);
+        }
+    }
+    OAID_HILOGI(OAID_MODULE_SERVICE, "HMS Gain OAID Finish.");
+    return oaid;
+}
+
+std::string OAIDService::GetOAID()
+{
+    OAID_HILOGI(OAID_MODULE_SERVICE, "Begin.");
+
+    CloudServiceProvider cloudServiceProvider;
+    if (CloudServiceExist(cloudServiceProvider)) {
+        checkLastCloudServce(cloudServiceProvider);
+        if (TryConnectCloud(cloudServiceProvider)) {
+            bool ret = SendOAIDSARemoteObjectToService(cloudServiceProxy_, OAIDServiceStub::GainOAIDServiceStubProxy());
+            OAID_HILOGW(OAID_MODULE_SERVICE, "SendOAIDSARemoteObjectToService ret=%{public}d", ret);
+        }
+    }
+
+    std::string oaid = GainOAID();
     OAID_HILOGI(OAID_MODULE_SERVICE, "End.");
     return oaid;
+}
+
+void OAIDService::ClearOAID()
+{
+    OAID_HILOGI(OAID_MODULE_SERVICE, "ClearOAID.");
+    oaid_ = "";
+    std::string clearOaid = "";
+    bool result = WriteValueToKvStore(OAID_KVSTORE_KEY, clearOaid);
+    OAID_HILOGI(OAID_MODULE_SERVICE, "WriteValueToKvStore %{public}s", result == true ? "success" : "failed");
 }
 
 void OAIDService::notifyConnected(const AppExecFwk::ElementName& element, const sptr<IRemoteObject>& remoteObject)

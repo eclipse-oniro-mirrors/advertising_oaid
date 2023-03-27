@@ -30,7 +30,8 @@ config("oaid_service_config") {
     "//foundation/bundlemanager/bundle_framework/interfaces/inner_api/appexecfwk_base/include",
     "//third_party/openssl",
     "//third_party/openssl/include",
-    "//base/customization/config_policy/interfaces/inner_api/include"
+    "//base/customization/config_policy/interfaces/inner_api/include",
+    "//base/security/access_token/interfaces/innerkits/accesstoken/include"
   ]
 }
 
@@ -43,9 +44,15 @@ ohos_shared_library("oaid_service") {
     ":oaid_service_config",
   ]
 
+  ldflags = [
+    "-lpthread"
+  ]
+
   sources = [
     "oaid_manager/src/oaid_service.cpp",
     "oaid_manager/src/oaid_service_stub.cpp",
+    "oaid_manager/src/bundle_mgr_helper.cpp",
+    "oaid_manager/src/oaid_death_recipient.cpp"
   ]
 
   deps = [
@@ -54,6 +61,7 @@ ohos_shared_library("oaid_service") {
     "//foundation/communication/netmanager_base/interfaces/innerkits/netconnclient:net_conn_manager_if",
     "//foundation/ability/ability_runtime/interfaces/inner_api/ability_manager:ability_manager",
     "//foundation/distributeddatamgr/kv_store/interfaces/innerkits/distributeddata:distributeddata_inner",
+    "//base/security/access_token/interfaces/innerkits/accesstoken:libtokenid_sdk",
     "//third_party/jsoncpp:jsoncpp",
     "//third_party/openssl:libcrypto_static",
   ]

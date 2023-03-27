@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -30,7 +30,8 @@ public:
      */
     enum {
         GET_OAID = 0,
-        GET_LIMIT_AD_TRACKING_ENABLED_STATUS = 1
+        CLEAR_OAID = 1,
+        HMS_GAIN_OAID = 2
     };
 
     /**
