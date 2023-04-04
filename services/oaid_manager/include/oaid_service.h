@@ -97,8 +97,6 @@ private:
     bool CheckKvStore();
     bool ReadValueFromKvStore(const std::string &kvStoreKey, std::string &kvStoreValue);
     bool WriteValueToKvStore(const std::string &kvStoreKey, const std::string &kvStoreValue);
-    std::string GetOAIDFromFile(const std::string &filePath);
-    bool SaveOAIDToFile(const std::string &filePath, std::string oaid);
     bool TryConnectCloud(CloudServiceProvider& cloudServiceProviderProvider);
     bool BeginDisConnectCloud();
     void checkLastCloudServce(CloudServiceProvider& cloudServiceProvider);

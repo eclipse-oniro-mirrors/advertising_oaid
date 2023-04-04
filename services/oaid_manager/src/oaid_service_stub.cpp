@@ -43,7 +43,6 @@ OAIDServiceStub::~OAIDServiceStub()
 bool OAIDServiceStub::InitThread()
 {
     pthread_mutex_lock(&mutex_);
-    isRunning_ = true;
     pthread_mutex_unlock(&mutex_);
     pthread_attr_t attr;
     pthread_attr_init(&attr);
@@ -52,7 +51,6 @@ bool OAIDServiceStub::InitThread()
     if (ret != 0) {
         OAID_HILOGE(OAID_MODULE_SERVICE, "pthread_create failed %{public}d", ret);
         pthread_mutex_lock(&mutex_);
-        isRunning_ = false;
         pthread_mutex_unlock(&mutex_);
         return false;
     }

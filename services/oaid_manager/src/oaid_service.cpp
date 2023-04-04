@@ -117,6 +117,7 @@ sptr<IBundleMgr> GetBundleService()
     if (samgr == nullptr) {
         return nullptr;
     }
+
     auto object = samgr->CheckSystemAbility(BUNDLE_MGR_SERVICE_SYS_ABILITY_ID);
     if (object == nullptr) {
         return nullptr;
@@ -198,8 +199,15 @@ bool GetCloudServiceProvider(std::vector<OAIDService::CloudServiceProvider>& clo
     char pathBuff[MAX_PATH_LEN];
     GetOneCfgFile(DEPENDENCY_CONFIG_FILE_RELATIVE_PATH.c_str(), pathBuff, MAX_PATH_LEN);
     OAID_HILOGD(OAID_MODULE_SERVICE, "Config path is %{public}s", pathBuff);
+
+    char realPath[PATH_MAX];
+    if (realpath(pathBuff, realPath) == nullptr) {
+        OAID_HILOGE(OAID_MODULE_SERVICE, "Parse realpath fail");
+        return false;
+    }
+
     std::ifstream ifs;
-    ifs.open(pathBuff);
+    ifs.open(realPath);
     if (!ifs) {
         OAID_HILOGE(OAID_MODULE_SERVICE, "Open file error.");
         return false;
@@ -354,10 +362,13 @@ OAIDService::OAIDService(int32_t systemAbilityId, bool runOnCreate)
     : SystemAbility(systemAbilityId, runOnCreate), state_(ServiceRunningState::STATE_NOT_START)
 {
     OAID_HILOGI(OAID_MODULE_SERVICE, "Start.");
+    currCloudServiceProvider_.userId = 0;
 }
 
 OAIDService::OAIDService() : state_(ServiceRunningState::STATE_NOT_START)
-{}
+{
+    currCloudServiceProvider_.userId = 0;
+}
 
 OAIDService::~OAIDService(){};
 
@@ -411,54 +422,6 @@ void OAIDService::OnStop()
     cloudConnection_ = nullptr;
     state_ = ServiceRunningState::STATE_NOT_START;
     OAID_HILOGI(OAID_MODULE_SERVICE, "Stop success.");
-}
-
-std::string OAIDService::GetOAIDFromFile(const std::string &filePath)
-{
-    std::string oaid = OAID_ALLZERO_STR;
-    std::ifstream ifs;
-    ifs.open(filePath.c_str());
-    if (!ifs) {
-        OAID_HILOGE(OAID_MODULE_SERVICE, "Get oaid, open file error->%{public}d", errno);
-        return oaid;
-    }
-
-    Json::Value jsonValue;
-    Json::CharReaderBuilder builder;
-    builder["collectComments"] = true;
-    std::string errs;
-    if (!parseFromStream(builder, ifs, &jsonValue, &errs)) {
-        ifs.close();
-        OAID_HILOGE(OAID_MODULE_SERVICE, "Read file failed %{public}s.", errs.c_str());
-        return oaid;
-    }
-
-    oaid = jsonValue["oaid"].asString();
-    ifs.close();
-
-    OAID_HILOGI(OAID_MODULE_SERVICE, "Read oaid from file, length is %{public}zu.", oaid.size());
-    return oaid;
-}
-
-bool OAIDService::SaveOAIDToFile(const std::string &filePath, std::string oaid)
-{
-    Json::Value jsonValue;
-    std::ofstream ofs;
-
-    ofs.open(filePath.c_str());
-    if (!ofs) {
-        OAID_HILOGE(OAID_MODULE_SERVICE, "Save oaid, open file error->%{public}d", errno);
-        return false;
-    }
-
-    jsonValue["oaid"] = oaid;
-    Json::StreamWriterBuilder builder;
-    const std::string jsonStr = Json::writeString(builder, jsonValue);
-    ofs << jsonStr;
-    ofs.close();
-    OAID_HILOGI(OAID_MODULE_SERVICE, "Save oaid, length is %{public}zu.", oaid.size());
-
-    return true;
 }
 
 bool OAIDService::InitOaidKvStore()

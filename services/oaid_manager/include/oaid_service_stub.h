@@ -57,7 +57,6 @@ private:
     std::map<uint32_t, OAIDServiceFunc> memberFuncMap_;
     sptr<IRemoteObject> oaidServiceStubProxy_;
     pthread_t oaidThreadId = 0;
-    bool isRunning_;
 };
 } // namespace Cloud
 } // namespace OHOS
