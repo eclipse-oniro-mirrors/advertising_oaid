@@ -16,22 +16,12 @@ import("//domains/cloud/oaid/oaid.gni")
 config("oaid_service_config") {
   visibility = [ ":*" ]
   include_dirs = [
-    "//domains/cloud/oaid/interfaces/innerkits/include",
+    "${innerkits_path}/include",
     "../utils/native/include",
     "oaid_manager/include",
     "//utils/system/safwk/native/include",
     "//third_party/json/include",
-    "//base/hiviewdfx/hilog/interfaces/native/innerkits/include",
-    "//foundation/distributeddatamgr/appdatamgr/interfaces/inner_api/native/rdb/include/",
-    "//foundation/distributeddatamgr/appdatamgr/interfaces/inner_api/native/appdatafwk/include/",
-    "//foundation/distributeddatamgr/kv_store/interfaces/innerkits/distributeddata/include",
-    "//foundation/ability/ability_runtime/interfaces/inner_api/ability_manager/include",
-    "//foundation/bundlemanager/bundle_framework/interfaces/inner_api/appexecfwk_core/include",
-    "//foundation/bundlemanager/bundle_framework/interfaces/inner_api/appexecfwk_base/include",
-    "//third_party/openssl",
-    "//third_party/openssl/include",
-    "//base/customization/config_policy/interfaces/inner_api/include",
-    "//base/security/access_token/interfaces/innerkits/accesstoken/include"
+    "//third_party/openssl/include/",
   ]
 }
 
@@ -41,7 +31,7 @@ ohos_shared_library("oaid_service") {
   public_configs = [
     "//commonlibrary/c_utils/base:utils_config",
     "//third_party/jsoncpp:jsoncpp_public_config",
-    ":oaid_service_config",
+    ":oaid_service_config"
   ]
 
   ldflags = [
@@ -58,20 +48,15 @@ ohos_shared_library("oaid_service") {
   deps = [
     "${aafwk_kits_path}/ability/native:abilitykit_native",
     "${oaid_utils_path}:oaid_utils",
-    "//foundation/communication/netmanager_base/interfaces/innerkits/netconnclient:net_conn_manager_if",
-    "//foundation/ability/ability_runtime/interfaces/inner_api/ability_manager:ability_manager",
-    "//foundation/distributeddatamgr/kv_store/interfaces/innerkits/distributeddata:distributeddata_inner",
-    "//base/security/access_token/interfaces/innerkits/accesstoken:libtokenid_sdk",
     "//third_party/jsoncpp:jsoncpp",
     "//third_party/openssl:libcrypto_static",
   ]
+
   external_deps = [
     "ability_base:want",
     "ability_runtime:runtime",
     "ability_runtime:ability_manager",
     "ability_runtime:wantagent_innerkits",
-    "common_event_service:cesfwk_innerkits",
-    "eventhandler:libeventhandler",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
     "relational_store:native_appdatafwk",
@@ -81,6 +66,9 @@ ohos_shared_library("oaid_service") {
     "bundle_framework:appexecfwk_core",
     "bundle_framework:appexecfwk_base",
     "c_utils:utilsbase",
+    "access_token:libaccesstoken_sdk",
+    "kv_store:distributeddata_inner",
+    "config_policy:configpolicy_util",
   ]
   part_name = "oaid"
   subsystem_name = "cloud"

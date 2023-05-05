@@ -38,7 +38,6 @@ ohos_shared_library("oaid") {
     "//domains/cloud/oaid/interfaces/innerkits/include",
     "../utils/native/include",
     "./include",
-    "//foundation/arkui/napi/interfaces/kits/napi",
     "//third_party/node/src",
     "//third_party/libuv/include",
   ]
@@ -53,8 +52,7 @@ ohos_shared_library("oaid") {
   deps = [
     "${aafwk_kits_path}/ability/native:abilitykit_native",
     "${oaid_utils_path}:oaid_utils",
-    "//domains/cloud/oaid/interfaces/innerkits:oaid_client",
-    "//foundation/arkui/napi:ace_napi",
+    "${innerkits_path}:oaid_client",
     "//third_party/libuv:uv_static",
     "//third_party/jsoncpp:jsoncpp",
   ]
@@ -65,6 +63,7 @@ ohos_shared_library("oaid") {
     "ability_runtime:wantagent_innerkits",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
+    "napi:ace_napi"
   ]
 
   relative_install_dir = "module/identifier"
