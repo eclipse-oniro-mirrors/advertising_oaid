@@ -40,14 +40,11 @@ public:
      * @return int32_t, return ERR_OK on success, others on failure.
      */
     int32_t OnRemoteRequest(uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option) override;
-
-    sptr<IRemoteObject> GainOAIDServiceStubProxy();
 private:
     using OAIDServiceFunc = int32_t (OAIDServiceStub::*)(MessageParcel& data, MessageParcel& reply);
 
     int32_t OnGetOAID(MessageParcel& data, MessageParcel& reply);
     int32_t OnClearOAID(MessageParcel& data, MessageParcel& reply);
-    int32_t OnHmsGainOAID(MessageParcel& data, MessageParcel& reply);
 
     bool CheckPermission(const std::string &permissionName);
     void CtrlOAIDByAdsTrackingPermissionsState(int32_t userId);
@@ -55,7 +52,6 @@ private:
     static void *StartThreadMain(void *arg);
 
     std::map<uint32_t, OAIDServiceFunc> memberFuncMap_;
-    sptr<IRemoteObject> oaidServiceStubProxy_;
     pthread_t oaidThreadId = 0;
 };
 } // namespace Cloud

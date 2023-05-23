@@ -20,7 +20,6 @@
 #include <mutex>
 #include <string>
 
-#include "oaid_service_stub.h"
 #include "bundle_mgr_interface.h"
 #include "iremote_proxy.h"
 #include "ability_connect_callback_stub.h"
@@ -28,6 +27,7 @@
 #include "securec.h"
 #include "system_ability.h"
 #include "time.h"
+#include "oaid_service_stub.h"
 
 namespace OHOS {
 namespace Cloud {
@@ -59,35 +59,6 @@ public:
      */
     void ClearOAID();
 
-    /**
-     * Hmscore Gain open advertising id.
-     *
-     * @return std::string, OAID.
-     */
-    std::string HmsGainOAID();
-    /**
-    * Notify cloud service connected.
-    *
-    * @param remoteObject Remote object.
-    */
-    void notifyConnected(const AppExecFwk::ElementName& element, const sptr<IRemoteObject>& remoteObject);
-
-    /**
-     * Notify cloud service disconnected.
-     *
-     * @param remoteObject Remote object.
-     */
-    void notifyDisConnected(const AppExecFwk::ElementName& element);
-
-    /**
-     * Cloud Service Provider.
-     */
-    struct CloudServiceProvider {
-        std::string bundleName;
-        std::string extensionName;
-        int userId;
-    };
-
 protected:
     void OnStart() override;
     void OnStop() override;
@@ -97,24 +68,14 @@ private:
     bool CheckKvStore();
     bool ReadValueFromKvStore(const std::string &kvStoreKey, std::string &kvStoreValue);
     bool WriteValueToKvStore(const std::string &kvStoreKey, const std::string &kvStoreValue);
-    bool TryConnectCloud(CloudServiceProvider& cloudServiceProviderProvider);
-    bool BeginDisConnectCloud();
-    void checkLastCloudServce(CloudServiceProvider& cloudServiceProvider);
-    void clearConnect();
     std::string GainOAID();
 
     ServiceRunningState state_;
-    static std::mutex instanceLock_;
+    static std::mutex mutex_;
     static sptr<OAIDService> instance_;
-    sptr<IRemoteObject> cloudServiceProxy_;
-    sptr<IAbilityConnection> cloudConnection_;
-    std::mutex connectMutex_;
-    bool connectServiceReady_ = false;
-    std::condition_variable connectCondition_;
 
     std::shared_ptr<DistributedKv::SingleKvStore> oaidKvStore_;
     std::string oaid_;
-    CloudServiceProvider currCloudServiceProvider_;
 };
 } // namespace Cloud
 } // namespace OHOS

@@ -30,8 +30,7 @@ public:
      */
     enum {
         GET_OAID = 0,
-        CLEAR_OAID = 1,
-        HMS_GAIN_OAID = 2
+        CLEAR_OAID = 1
     };
 
     /**

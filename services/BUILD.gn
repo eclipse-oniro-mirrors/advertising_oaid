@@ -67,6 +67,7 @@ ohos_shared_library("oaid_service") {
     "bundle_framework:appexecfwk_base",
     "c_utils:utilsbase",
     "access_token:libaccesstoken_sdk",
+    "access_token:libprivacy_sdk",
     "kv_store:distributeddata_inner",
     "config_policy:configpolicy_util",
   ]

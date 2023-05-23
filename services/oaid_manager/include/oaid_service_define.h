@@ -38,9 +38,6 @@ static const int8_t CONNECT_TIME_OUT = 3;    // The connection timeout is 3s.
 /* oaid_service send remoteObject to cloud service RequestCode  */
 static const int8_t INVOKE_CODE_SEND_REMOTE_OBJECT = 10;
 
-/* oaid_service send oaid to cloud service RequestCode  */
-static const int8_t INVOKE_CODE_SEND_OAID = 11;
-
 /* system default user id */
 static const int SYSTEM_UERID = 100;
 

@@ -13,26 +13,26 @@
  * limitations under the License.
  */
 #include "oaid_service_stub.h"
-#include "oaid_service_define.h"
 #include <singleton.h>
 #include "bundle_mgr_helper.h"
-#include "oaid_common.h"
 #include "bundle_mgr_client.h"
-#include "oaid_service.h"
 #include "accesstoken_kit.h"
+#include "privacy_kit.h"
+#include "oaid_common.h"
+#include "oaid_service_define.h"
+#include "oaid_service.h"
 
 using namespace OHOS::Security::AccessToken;
 
 namespace OHOS {
 namespace Cloud {
 using namespace OHOS::HiviewDFX;
-pthread_mutex_t mutex_;
+pthread_mutex_t pthreadMutex_;
 OAIDServiceStub::OAIDServiceStub()
 {
-    pthread_mutex_init(&mutex_, nullptr);
+    pthread_mutex_init(&pthreadMutex_, nullptr);
     memberFuncMap_[GET_OAID] = &OAIDServiceStub::OnGetOAID;
     memberFuncMap_[CLEAR_OAID] = &OAIDServiceStub::OnClearOAID;
-    memberFuncMap_[HMS_GAIN_OAID] = &OAIDServiceStub::OnHmsGainOAID;
 }
 
 OAIDServiceStub::~OAIDServiceStub()
@@ -42,18 +42,17 @@ OAIDServiceStub::~OAIDServiceStub()
 
 bool OAIDServiceStub::InitThread()
 {
-    pthread_mutex_lock(&mutex_);
-    pthread_mutex_unlock(&mutex_);
+    pthread_mutex_lock(&pthreadMutex_);
     pthread_attr_t attr;
     pthread_attr_init(&attr);
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
     int32_t ret = pthread_create(&oaidThreadId, &attr, StartThreadMain, this);
     if (ret != 0) {
         OAID_HILOGE(OAID_MODULE_SERVICE, "pthread_create failed %{public}d", ret);
-        pthread_mutex_lock(&mutex_);
-        pthread_mutex_unlock(&mutex_);
+        pthread_mutex_unlock(&pthreadMutex_);
         return false;
     }
+    pthread_mutex_unlock(&pthreadMutex_);
     return true;
 }
 
@@ -69,6 +68,15 @@ bool OAIDServiceStub::CheckPermission(const std::string &permissionName)
 {
     AccessTokenID callingToken = IPCSkeleton::GetCallingTokenID();
     ErrCode result = AccessTokenKit::VerifyAccessToken(callingToken, permissionName);
+
+    ATokenTypeEnum callingType = AccessTokenKit::GetTokenTypeFlag(callingToken);
+    if (callingType == TOKEN_HAP) {
+        int32_t successCnt = (int32_t)(result == TypePermissionState::PERMISSION_GRANTED);
+        int32_t failCnt = 1 - successCnt; // 1 means that there is only one visit in total
+        // AddPermissionUsedRecord needs to transfer both the number of successful and failed permission access requests
+        int32_t ret = PrivacyKit::AddPermissionUsedRecord(callingToken, permissionName, successCnt, failCnt);
+        OAID_HILOGI(OAID_MODULE_SERVICE, "AddPermissionUsedRecord ret=%{public}d", ret);
+    }
     if (result == TypePermissionState::PERMISSION_DENIED) {
         return false;
     }
@@ -147,13 +155,6 @@ int32_t OAIDServiceStub::OnRemoteRequest(
 
     std::u16string myDescripter = OAIDServiceStub::GetDescriptor();
     std::u16string remoteDescripter = data.ReadInterfaceToken();
-    oaidServiceStubProxy_ = data.ReadRemoteObject();
-    if (oaidServiceStubProxy_ == nullptr) {
-        OAID_HILOGE(OAID_MODULE_SERVICE, "oaidServiceStubProxy is nullptr");
-    } else {
-        OAID_HILOGE(OAID_MODULE_SERVICE, "oaidServiceStubProxy is not nullptr");
-    }
-
     if (myDescripter != remoteDescripter) {
         OAID_HILOGE(OAID_MODULE_SERVICE, "Descriptor checked fail.");
         return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
@@ -200,28 +201,5 @@ int32_t OAIDServiceStub::OnClearOAID(MessageParcel& data, MessageParcel& reply)
     OAID_HILOGI(OAID_MODULE_SERVICE, "Clear OAID End.");
     return ERR_OK;
 }
-
-int32_t OAIDServiceStub::OnHmsGainOAID(MessageParcel& data, MessageParcel& reply)
-{
-    OAID_HILOGI(OAID_MODULE_SERVICE, "Hms Gain OAID OAID Start.");
-
-    auto oaid = OAIDService::GetInstance()->HmsGainOAID();
-    if (oaid == "") {
-        OAID_HILOGE(OAID_MODULE_SERVICE, "Hms Gain OAID failed.");
-        return ERR_SYSYTEM_ERROR;
-    }
-    if (!reply.WriteString16(to_utf16(oaid))) {
-        OAID_HILOGE(OAID_MODULE_SERVICE, "OnHmsGainOAID Failed to write parcelable.");
-        return ERR_SYSYTEM_ERROR;
-    }
-    OAID_HILOGI(OAID_MODULE_SERVICE, "Hms Gain OAID End.");
-    return ERR_OK;
-}
-
-sptr<IRemoteObject> OAIDServiceStub::GainOAIDServiceStubProxy()
-{
-    return oaidServiceStubProxy_;
-}
-
 } // namespace Cloud
 } // namespace OHOS
