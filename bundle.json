@@ -45,6 +45,7 @@
         "//domains/cloud/oaid:oaid_native_packages"
       ],
       "test": [
+        "//domains/cloud/oaid/test/fuzztest:fuzztest"
       ]
     }
   }

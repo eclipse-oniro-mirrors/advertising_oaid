@@ -41,10 +41,6 @@ static const int8_t INVOKE_CODE_SEND_REMOTE_OBJECT = 10;
 /* system default user id */
 static const int SYSTEM_UERID = 100;
 
-/* cloud service config */
-static const std::string DEPENDENCY_CONFIG_FILE_RELATIVE_PATH = "etc/cloud/oaid/oaid_service_config.json";
-static const std::string ADS_SA_SERVICE_ACTION = "com.ohos.cloudservice.identifier.oaid";
-
 /* cache file define */
 const std::string OAID_JSON_PATH = "/data/service/el1/public/oaid/ohos_oaid.json";
 const std::string OAID_ALLZERO_STR = "00000000-0000-0000-0000-000000000000";

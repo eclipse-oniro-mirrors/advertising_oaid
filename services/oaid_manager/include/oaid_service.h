@@ -20,9 +20,7 @@
 #include <mutex>
 #include <string>
 
-#include "bundle_mgr_interface.h"
 #include "iremote_proxy.h"
-#include "ability_connect_callback_stub.h"
 #include "distributed_kv_data_manager.h"
 #include "securec.h"
 #include "system_ability.h"
@@ -31,9 +29,6 @@
 
 namespace OHOS {
 namespace Cloud {
-using namespace OHOS::AAFwk;
-using namespace OHOS::AppExecFwk;
-
 enum class ServiceRunningState { STATE_NOT_START, STATE_RUNNING };
 
 class OAIDService : public SystemAbility, public OAIDServiceStub {

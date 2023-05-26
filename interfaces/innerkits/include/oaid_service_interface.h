@@ -19,7 +19,6 @@
 #include <string>
 
 #include "iremote_broker.h"
-#include "want_agent_helper.h"
 
 namespace OHOS {
 namespace Cloud {

@@ -29,6 +29,7 @@ enum OAIDSubModule {
     OAID_MODULE_JNI,
     OAID_MODULE_COMMON,
     OAID_MODULE_JS_NAPI,
+    OAID_MODULE_TEST,
     OAID_MODULE_BUTT,
 };
 
@@ -42,6 +43,7 @@ static constexpr OHOS::HiviewDFX::HiLogLabel OAID_MODULE_LABEL[OAID_MODULE_BUTT]
     { LOG_CORE, OAID_DOMAIN_ID, "OAIDJni" },
     { LOG_CORE, OAID_DOMAIN_ID, "OAIDCommon" },
     { LOG_CORE, OAID_DOMAIN_ID, "OAIDJSNAPI" },
+    { LOG_CORE, OAID_DOMAIN_ID, "OAIDTest" },
 };
 
 #define R_FILENAME (__builtin_strrchr(__FILE__, '/') ? __builtin_strrchr(__FILE__, '/') + 1 : __FILE__)
