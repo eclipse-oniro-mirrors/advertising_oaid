@@ -46,7 +46,6 @@ ohos_shared_library("oaid_service") {
   ]
 
   deps = [
-    "${aafwk_kits_path}/ability/native:abilitykit_native",
     "${oaid_utils_path}:oaid_utils",
     "//third_party/jsoncpp:jsoncpp",
     "//third_party/openssl:libcrypto_static",
@@ -57,10 +56,9 @@ ohos_shared_library("oaid_service") {
     "ability_runtime:runtime",
     "ability_runtime:ability_manager",
     "ability_runtime:wantagent_innerkits",
+    "ability_runtime:abilitykit_native",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
-    "relational_store:native_appdatafwk",
-    "relational_store:native_rdb",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
     "bundle_framework:appexecfwk_core",

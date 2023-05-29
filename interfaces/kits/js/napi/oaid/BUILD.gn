@@ -50,7 +50,6 @@ ohos_shared_library("oaid") {
   ]
 
   deps = [
-    "${aafwk_kits_path}/ability/native:abilitykit_native",
     "${oaid_utils_path}:oaid_utils",
     "${innerkits_path}:oaid_client",
     "//third_party/libuv:uv_static",
@@ -61,6 +60,7 @@ ohos_shared_library("oaid") {
     "ability_base:want",
     "ability_runtime:runtime",
     "ability_runtime:wantagent_innerkits",
+    "ability_runtime:abilitykit_native",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
     "napi:ace_napi"

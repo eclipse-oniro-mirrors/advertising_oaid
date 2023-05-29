@@ -31,7 +31,6 @@ ohos_shared_library("oaid_client") {
   configs = [ ":oaid_client_config" ]
   public_configs = [ ":oaid_client_config" ]
   deps = [
-    "${aafwk_kits_path}/ability/native:abilitykit_native",
     "${oaid_utils_path}:oaid_utils",
     "//third_party/jsoncpp:jsoncpp",
   ]
@@ -39,6 +38,7 @@ ohos_shared_library("oaid_client") {
     "ability_base:want",
     "ability_runtime:runtime",
     "ability_runtime:wantagent_innerkits",
+    "ability_runtime:abilitykit_native",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
     "safwk:system_ability_fwk",
