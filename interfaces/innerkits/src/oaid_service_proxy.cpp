@@ -27,7 +27,7 @@ OAIDServiceProxy::OAIDServiceProxy(const sptr<IRemoteObject>& object) : IRemoteP
 
 std::string OAIDServiceProxy::GetOAID()
 {
-    OAID_HILOGI(OAID_MODULE_CLIENT, "Begin.");
+    OAID_HILOGI(OAID_MODULE_CLIENT, "GetOAID Begin.");
     MessageParcel data, reply;
     MessageOption option;
 
@@ -44,6 +44,23 @@ std::string OAIDServiceProxy::GetOAID()
     auto oaid = reply.ReadString();
 
     return oaid;
+}
+
+void OAIDServiceProxy::ResetOAID()
+{
+    OAID_HILOGI(OAID_MODULE_CLIENT, "Reset OAID Begin.");
+    MessageParcel data, reply;
+    MessageOption option;
+
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        OAID_HILOGE(OAID_MODULE_CLIENT, "Failed to write parcelable");
+    }
+
+    int32_t result = Remote()->SendRequest(RESET_OAID, data, reply, option);
+    if (result != ERR_NONE) {
+        OAID_HILOGE(OAID_MODULE_CLIENT, "Reset OAID failed, error code is: %{public}d", result);
+    }
+    OAID_HILOGI(OAID_MODULE_CLIENT, "Reset OAID End.");
 }
 } // namespace Cloud
 } // namespace OHOS

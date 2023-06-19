@@ -18,6 +18,7 @@
 #include "bundle_mgr_client.h"
 #include "accesstoken_kit.h"
 #include "privacy_kit.h"
+#include "tokenid_kit.h"
 #include "oaid_common.h"
 #include "oaid_service_define.h"
 #include "oaid_service.h"
@@ -27,12 +28,11 @@ using namespace OHOS::Security::AccessToken;
 namespace OHOS {
 namespace Cloud {
 using namespace OHOS::HiviewDFX;
-pthread_mutex_t pthreadMutex_;
+
 OAIDServiceStub::OAIDServiceStub()
 {
-    pthread_mutex_init(&pthreadMutex_, nullptr);
     memberFuncMap_[GET_OAID] = &OAIDServiceStub::OnGetOAID;
-    memberFuncMap_[CLEAR_OAID] = &OAIDServiceStub::OnClearOAID;
+    memberFuncMap_[RESET_OAID] = &OAIDServiceStub::OnResetOAID;
 }
 
 OAIDServiceStub::~OAIDServiceStub()
@@ -40,36 +40,26 @@ OAIDServiceStub::~OAIDServiceStub()
     memberFuncMap_.clear();
 }
 
-bool OAIDServiceStub::InitThread()
-{
-    pthread_mutex_lock(&pthreadMutex_);
-    pthread_attr_t attr;
-    pthread_attr_init(&attr);
-    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-    int32_t ret = pthread_create(&oaidThreadId, &attr, StartThreadMain, this);
-    if (ret != 0) {
-        OAID_HILOGE(OAID_MODULE_SERVICE, "pthread_create failed %{public}d", ret);
-        pthread_mutex_unlock(&pthreadMutex_);
-        return false;
-    }
-    pthread_mutex_unlock(&pthreadMutex_);
-    return true;
-}
-
-void *OAIDServiceStub::StartThreadMain(void *arg)
-{
-    OAID_HILOGI(OAID_MODULE_SERVICE, "StartThreadMain");
-    OAIDServiceStub *oaidServiceStub = (OAIDServiceStub *)arg;
-    oaidServiceStub->CtrlOAIDByAdsTrackingPermissionsState(SYSTEM_UERID);
-    return nullptr;
-}
-
 bool OAIDServiceStub::CheckPermission(const std::string &permissionName)
 {
+    // Verify the invoker's permission.
+    AccessTokenID firstCallToken = IPCSkeleton::GetFirstTokenID();
     AccessTokenID callingToken = IPCSkeleton::GetCallingTokenID();
-    ErrCode result = AccessTokenKit::VerifyAccessToken(callingToken, permissionName);
-
     ATokenTypeEnum callingType = AccessTokenKit::GetTokenTypeFlag(callingToken);
+
+    ErrCode result = TypePermissionState::PERMISSION_DENIED;
+
+    if (firstCallToken == 0) {
+        if (callingType == TOKEN_INVALID) {
+            OAID_HILOGE(OAID_MODULE_SERVICE, "callingToken is invalid");
+            return false;
+        } else {
+            result = AccessTokenKit::VerifyAccessToken(callingToken, permissionName);
+        }
+    } else {
+        result = AccessTokenKit::VerifyAccessToken(callingToken, firstCallToken, permissionName);
+    }
+
     if (callingType == TOKEN_HAP) {
         int32_t successCnt = (int32_t)(result == TypePermissionState::PERMISSION_GRANTED);
         int32_t failCnt = 1 - successCnt; // 1 means that there is only one visit in total
@@ -77,64 +67,27 @@ bool OAIDServiceStub::CheckPermission(const std::string &permissionName)
         int32_t ret = PrivacyKit::AddPermissionUsedRecord(callingToken, permissionName, successCnt, failCnt);
         OAID_HILOGI(OAID_MODULE_SERVICE, "AddPermissionUsedRecord ret=%{public}d", ret);
     }
+
     if (result == TypePermissionState::PERMISSION_DENIED) {
+        OAID_HILOGI(OAID_MODULE_SERVICE, "the caller not granted the app tracking permission");
         return false;
     }
     return true;
 }
 
-void OAIDServiceStub::CtrlOAIDByAdsTrackingPermissionsState(int32_t userId)
+bool OAIDServiceStub::CheckSystemApp()
 {
-    std::vector<AppExecFwk::BundleInfo> bundleInfos;
-    if (!DelayedSingleton<BundleMgrHelper>::GetInstance()->GetBundleInfosV9ByReqPermission(bundleInfos, userId) ||
-        bundleInfos.size() <= 0) {
-        OAID_HILOGW(OAID_MODULE_SERVICE, "GetBundleInfos fail,bundleInfos.size()=%{public}lu", bundleInfos.size());
-        return;
+    FullTokenID callingFullToken = IPCSkeleton::GetCallingFullTokenID();
+
+    auto tokenType = AccessTokenKit::GetTokenTypeFlag(IPCSkeleton::GetCallingTokenID());
+    if (!TokenIdKit::IsSystemAppByFullTokenID(callingFullToken) &&
+        tokenType != TOKEN_NATIVE &&
+        tokenType != TOKEN_SHELL) {
+        OAID_HILOGI(OAID_MODULE_SERVICE, "the caller App is not system app");
+        return false;
     }
 
-    // When some applications is granted permissions
-    bool isSomeAppsGrantedPermissions = false;
-    OAID_HILOGI(OAID_MODULE_SERVICE, "bundleInfos.size=%{public}lu", bundleInfos.size());
-    for (auto it = bundleInfos.begin(); it != bundleInfos.end(); it++) {
-        OAID_HILOGI(OAID_MODULE_SERVICE, "it->bundleName=%{public}s.", it->name.c_str());
-        if (it->versionCode < OHOS_API_VERSION) {
-            continue;
-        }
-        AppExecFwk::ApplicationInfo applicationInfo;
-        if (!DelayedSingleton<BundleMgrHelper>::GetInstance()->GetApplicationInfoV9WithPermission(
-            it->name, userId, applicationInfo)) {
-            OAID_HILOGW(OAID_MODULE_SERVICE, "GetApplicationInfo fail, bundleName=%{public}s", it->name.c_str());
-            continue;
-        }
-
-        for (auto reqPermissionItor = it->reqPermissionDetails.begin();
-            reqPermissionItor != it->reqPermissionDetails.end(); reqPermissionItor++) {
-            std::string permissionName = reqPermissionItor->name;
-            if (permissionName != OAID_TRACKING_CONSENT_PERMISSION) {
-                continue;
-            }
-
-            ErrCode result = AccessTokenKit::VerifyAccessToken(applicationInfo.accessTokenId, permissionName);
-            if (result == TypePermissionState::PERMISSION_DENIED) {
-                OAID_HILOGW(OAID_MODULE_SERVICE, "VerifyAccessToken fail, bundleName=%{public}s", it->name.c_str());
-                break;
-            }
-            isSomeAppsGrantedPermissions = true;
-            break;
-        }
-
-        if (isSomeAppsGrantedPermissions) {
-            OAID_HILOGI(OAID_MODULE_SERVICE, "Some apps are granted this permission.");
-            break;
-        }
-    }
-
-    if (!isSomeAppsGrantedPermissions) {
-        OAID_HILOGI(OAID_MODULE_SERVICE, "All apps are not granted this permission.");
-        OAIDService::GetInstance()->ClearOAID();
-    }
-
-    return;
+    return true;
 }
 
 int32_t OAIDServiceStub::OnRemoteRequest(
@@ -147,9 +100,11 @@ int32_t OAIDServiceStub::OnRemoteRequest(
     if (!CheckPermission(OAID_TRACKING_CONSENT_PERMISSION)) {
         OAID_HILOGW(
             OAID_MODULE_SERVICE, "bundleName %{public}s not granted the app tracking permission", bundleName.c_str());
-        bool resultExecThread = InitThread();
-        OAID_HILOGI(
-            OAID_MODULE_SERVICE, "resultExecThread = %{public}s", resultExecThread ? "success" : "failed");
+        return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
+    }
+
+    if (code == RESET_OAID && !CheckSystemApp()) {
+        OAID_HILOGW(OAID_MODULE_SERVICE, "CheckSystemApp fail");
         return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
     }
 
@@ -192,13 +147,13 @@ int32_t OAIDServiceStub::OnGetOAID(MessageParcel& data, MessageParcel& reply)
     return ERR_OK;
 }
 
-int32_t OAIDServiceStub::OnClearOAID(MessageParcel& data, MessageParcel& reply)
+int32_t OAIDServiceStub::OnResetOAID(MessageParcel& data, MessageParcel& reply)
 {
-    OAID_HILOGI(OAID_MODULE_SERVICE, "Clear OAID Start.");
+    OAID_HILOGI(OAID_MODULE_SERVICE, "Reset OAID Start.");
 
-    OAIDService::GetInstance()->ClearOAID();
+    ResetOAID();
 
-    OAID_HILOGI(OAID_MODULE_SERVICE, "Clear OAID End.");
+    OAID_HILOGI(OAID_MODULE_SERVICE, "Reset OAID End.");
     return ERR_OK;
 }
 } // namespace Cloud

@@ -50,9 +50,9 @@ public:
     std::string GetOAID() override;
 
     /**
-     * Clear the open advertising id.
+     * Reset open advertising id.
      */
-    void ClearOAID();
+    void ResetOAID() override;
 
 protected:
     void OnStart() override;

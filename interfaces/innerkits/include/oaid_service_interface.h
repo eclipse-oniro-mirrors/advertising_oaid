@@ -29,7 +29,7 @@ public:
      */
     enum {
         GET_OAID = 0,
-        CLEAR_OAID = 1
+        RESET_OAID = 1
     };
 
     /**
@@ -38,6 +38,11 @@ public:
      * @return std::string, OAID.
      */
     virtual std::string GetOAID() = 0;
+
+    /**
+     * Reset open advertising id.
+     */
+    virtual void ResetOAID() = 0;
 
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.cloud.oaid.IOAIDService");
 };

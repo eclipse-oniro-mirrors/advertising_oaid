@@ -151,6 +151,24 @@ std::string OAIDServiceClient::GetOAID()
     return oaid;
 }
 
+void OAIDServiceClient::ResetOAID()
+{
+    OAID_HILOGI(OAID_MODULE_CLIENT, "Begin.");
+
+    if (!LoadService()) {
+        OAID_HILOGW(OAID_MODULE_CLIENT, "Redo load oaid service.");
+        LoadService();
+    }
+
+    if (oaidServiceProxy_ == nullptr) {
+        OAID_HILOGE(OAID_MODULE_CLIENT, "Quit because redoing load oaid service failed.");
+    }
+
+    oaidServiceProxy_->ResetOAID();
+
+    OAID_HILOGI(OAID_MODULE_CLIENT, "End.");
+}
+
 void OAIDServiceClient::OnRemoteSaDied(const wptr<IRemoteObject>& remote)
 {
     OAID_HILOGE(OAID_MODULE_CLIENT, "OnRemoteSaDied");

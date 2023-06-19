@@ -44,15 +44,12 @@ private:
     using OAIDServiceFunc = int32_t (OAIDServiceStub::*)(MessageParcel& data, MessageParcel& reply);
 
     int32_t OnGetOAID(MessageParcel& data, MessageParcel& reply);
-    int32_t OnClearOAID(MessageParcel& data, MessageParcel& reply);
+    int32_t OnResetOAID(MessageParcel& data, MessageParcel& reply);
 
     bool CheckPermission(const std::string &permissionName);
-    void CtrlOAIDByAdsTrackingPermissionsState(int32_t userId);
-    bool InitThread();
-    static void *StartThreadMain(void *arg);
+    bool CheckSystemApp();
 
     std::map<uint32_t, OAIDServiceFunc> memberFuncMap_;
-    pthread_t oaidThreadId = 0;
 };
 } // namespace Cloud
 } // namespace OHOS

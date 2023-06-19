@@ -39,6 +39,15 @@ napi_value OAIDInit(napi_env env, napi_value exports);
  * @return napi_value, result.
  */
 napi_value GetOAID(napi_env env, napi_callback_info info);
+
+/**
+ * Reset open advertising id.
+ *
+ * @param env napi environment variable.
+ * @param exports napi export variable.
+ * @return napi_value, result.
+ */
+napi_value ResetOAID(napi_env env, napi_callback_info info);
 } // namespace OAIDNapi
 } // namespace CloudNapi
 } // namespace OHOS

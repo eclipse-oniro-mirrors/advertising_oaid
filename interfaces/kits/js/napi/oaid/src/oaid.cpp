@@ -33,13 +33,13 @@ namespace OAIDNapi {
 namespace {
 const int32_t NO_ERROR = 0;
 const int32_t ERROR = -1;
-const size_t OAID_MAX_PARA = 1;
+const size_t OAID_MAX_PARA = 2;
 const size_t CALLBACK_ARGS_LENGTH = 2;
 const int8_t CALLBACK_CODE = 0;
 const int8_t CALLBACK_RESULT = 1;
 } // namespace
 
-std::mutex getOAIDLock_;
+std::mutex oaidLock_;
 
 struct AsyncCallbackInfoOAID {
     napi_env env = nullptr;
@@ -122,9 +122,9 @@ napi_value ParseParameters(const napi_env& env, const napi_value (&argv)[OAID_MA
 
     napi_valuetype valuetype = napi_undefined;
     if (argc >= OAID_MAX_PARA) {
-        NAPI_CALL(env, napi_typeof(env, argv[0], &valuetype));
+        NAPI_CALL(env, napi_typeof(env, argv[1], &valuetype));
         NAPI_ASSERT(env, valuetype == napi_function, "Wrong argument type, function expected.");
-        NAPI_CALL(env, napi_create_reference(env, argv[0], 1, &callback));
+        NAPI_CALL(env, napi_create_reference(env, argv[1], 1, &callback));
     }
 
     OAID_HILOGI(OHOS::Cloud::OAID_MODULE_JS_NAPI, "End.");
@@ -147,7 +147,7 @@ void PaddingCallbackInfo(
 
 void GetOAIDExecuteCallBack(napi_env env, void* data)
 {
-    std::lock_guard<std::mutex> autoLock(getOAIDLock_);
+    std::lock_guard<std::mutex> autoLock(oaidLock_);
     AsyncCallbackInfoOAID* asynccallbackinfo = (AsyncCallbackInfoOAID*)data;
 
     asynccallbackinfo->oaid = Cloud::OAIDServiceClient::GetInstance()->GetOAID();
@@ -202,7 +202,7 @@ napi_value GetOAID(napi_env env, napi_callback_info info)
     }
 
     napi_value resourceName = nullptr;
-    NAPI_CALL(env, napi_create_string_utf8(env, "getOAID", NAPI_AUTO_LENGTH, &resourceName));
+    NAPI_CALL(env, napi_create_string_utf8(env, "getAdsIdentifierInfo", NAPI_AUTO_LENGTH, &resourceName));
     napi_async_execute_callback getOAIDExecuteCallBack = GetOAIDExecuteCallBack;
     napi_async_complete_callback getOAIDCompleteCallBack = GetOAIDCompleteCallBack;
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resourceName, getOAIDExecuteCallBack, getOAIDCompleteCallBack,
@@ -218,10 +218,24 @@ napi_value GetOAID(napi_env env, napi_callback_info info)
     }
 }
 
+napi_value ResetOAID(napi_env env, napi_callback_info info)
+{
+    OAID_HILOGI(OHOS::Cloud::OAID_MODULE_JS_NAPI, "ResetOAID Begin.");
+
+    napi_value result = nullptr;
+    napi_get_undefined(env, &result);
+    Cloud::OAIDServiceClient::GetInstance()->ResetOAID();
+
+    OAID_HILOGI(OHOS::Cloud::OAID_MODULE_JS_NAPI, "ResetOAID End.");
+
+    return result;
+}
+
 napi_value OAIDInit(napi_env env, napi_value exports)
 {
     napi_property_descriptor desc[] = {
-        DECLARE_NAPI_FUNCTION("getOAID", GetOAID)
+        DECLARE_NAPI_FUNCTION("getAdsIdentifierInfo", GetOAID),
+        DECLARE_NAPI_FUNCTION("resetAdsIdentifier", ResetOAID),
     };
 
     NAPI_CALL(env, napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc));

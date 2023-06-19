@@ -47,6 +47,11 @@ public:
      */
     std::string GetOAID();
 
+    /**
+     * Reset open advertising id.
+     */
+    void ResetOAID();
+
     void OnRemoteSaDied(const wptr<IRemoteObject>& object);
 
     void LoadServerFail();

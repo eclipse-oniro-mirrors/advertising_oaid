@@ -36,6 +36,11 @@ public:
      */
     std::string GetOAID() override;
 
+    /**
+     * Reset open advertising id.
+     */
+    void ResetOAID() override;
+
 private:
     static inline BrokerDelegator<OAIDServiceProxy> delegator_;
 };

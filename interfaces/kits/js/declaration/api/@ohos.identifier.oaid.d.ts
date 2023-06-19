@@ -13,42 +13,50 @@
  * limitations under the License.
  */
 
+import type { UIAbilityContext } from './application/UIAbilityContext';
 import type { AsyncCallback } from './basic';
 
 /**
- * OAID(Open Advertising Identifier), a non-permanent device identifier.
- *
- * @since 10
+ * Obtains Open Advertising Identifier(OAID) information.
  * @syscap SystemCapability.Cloud.OAID
- * @permission N/A
- * @import oaid from '@ohos.identifier.oaid';
+ * @since 10
  */
-declare namespace oaid {
+declare namespace identifier {
   /**
-   * Get OAID(Open Advertising Identifier).
+   * Get the open advertising identifier id.
    *
-   * @since 10
+   * @permission ohos.permission.APP_TRACKING_CONSENT
+   * @param abilityContext The context of an ability.
+   * @param callback The callback to get the open advertising identifier id.
+   * @throws {BusinessError} 17300001 - System internal error.
    * @syscap SystemCapability.Cloud.OAID
-   * @param { AsyncCallback<string> } callback - Indicates the callback to get the OAID(Open Advertising Identifier).
-   * @throws {BusinessError} 401 - Invalid input parameter.
-   * @throws {BusinessError} 17200001 - System internal error.
-   * @returns { void | Promise<string> } no callback return Promise otherwise return void.
+   * @since 10
    */
-  function getOAID(callback: AsyncCallback<string>): void;
-  function getOAID(): Promise<string>;
+  function getAdsIdentifierInfo(abilityContext: UIAbilityContext, callback: AsyncCallback<string>): void;
 
   /**
-   * Get setting of disable personalized ads.
+   * Get the open advertising identifier id.
    *
-   * @since 10
+   * @permission ohos.permission.APP_TRACKING_CONSENT
+   * @param abilityContext The context of an ability.
+   * @return Returns the open advertising identifier id.
+   * @throws {BusinessError} 17300001 - System internal error.
    * @syscap SystemCapability.Cloud.OAID
-   * @param { AsyncCallback<boolean> } callback - Indicates the callback to get the setting of disable personalized ads.
-   * @throws {BusinessError} 401 - Invalid input parameter.
-   * @throws {BusinessError} 17200001 - System internal error.
-   * @returns { void | Promise<boolean> } no callback return Promise otherwise return void.
+   * @since 10
    */
-  function isLimitAdTrackingEnabled(callback: AsyncCallback<boolean>): void;
-  function isLimitAdTrackingEnabled(): Promise<boolean>;
+  function getAdsIdentifierInfo(abilityContext: UIAbilityContext): Promise<string>;
+
+  /**
+   * Reset the open advertising identifier id.
+   *
+   * @permission ohos.permission.APP_TRACKING_CONSENT
+   * @param abilityContext The context of an ability.
+   * @throws {BusinessError} 17300001 - System internal error.
+   * @syscap SystemCapability.Cloud.OAID
+   * @systemapi
+   * @since 10
+   */
+  function resetAdsIdentifier(abilityContext: UIAbilityContext): void;
 }
+export default identifier;
 
-export default oaid;
