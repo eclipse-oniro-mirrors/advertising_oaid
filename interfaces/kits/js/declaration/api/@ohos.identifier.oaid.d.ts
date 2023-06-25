@@ -18,6 +18,7 @@ import type { AsyncCallback } from './basic';
 
 /**
  * Obtains Open Advertising Identifier(OAID) information.
+ * @namespace identifier
  * @syscap SystemCapability.Cloud.OAID
  * @since 10
  */

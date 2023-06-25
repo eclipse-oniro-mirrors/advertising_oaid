@@ -61,7 +61,7 @@ ohos_shared_library("oaid") {
     "ability_runtime:runtime",
     "ability_runtime:wantagent_innerkits",
     "ability_runtime:abilitykit_native",
-    "hiviewdfx_hilog_native:libhilog",
+    "hilog:libhilog",
     "ipc:ipc_core",
     "napi:ace_napi"
   ]

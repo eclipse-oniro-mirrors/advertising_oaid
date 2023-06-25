@@ -57,7 +57,7 @@ ohos_shared_library("oaid_service") {
     "ability_runtime:ability_manager",
     "ability_runtime:wantagent_innerkits",
     "ability_runtime:abilitykit_native",
-    "hiviewdfx_hilog_native:libhilog",
+    "hilog:libhilog",
     "ipc:ipc_core",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",

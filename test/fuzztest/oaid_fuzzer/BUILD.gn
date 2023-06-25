@@ -41,7 +41,7 @@ ohos_fuzztest("OAIDFuzzTest") {
 
   external_deps = [
     "c_utils:utils",
-    "hiviewdfx_hilog_native:libhilog",
+    "hilog:libhilog",
     "ipc:ipc_single",
     "kv_store:distributeddata_inner",
     "access_token:libaccesstoken_sdk",
