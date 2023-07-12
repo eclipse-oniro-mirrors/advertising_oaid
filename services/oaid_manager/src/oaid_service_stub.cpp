@@ -22,6 +22,7 @@
 #include "oaid_common.h"
 #include "oaid_service_define.h"
 #include "oaid_service.h"
+#include "oaid_service_ipc_interface_code.h"
 
 using namespace OHOS::Security::AccessToken;
 
@@ -31,8 +32,8 @@ using namespace OHOS::HiviewDFX;
 
 OAIDServiceStub::OAIDServiceStub()
 {
-    memberFuncMap_[GET_OAID] = &OAIDServiceStub::OnGetOAID;
-    memberFuncMap_[RESET_OAID] = &OAIDServiceStub::OnResetOAID;
+    memberFuncMap_[static_cast<uint32_t>(OAIDInterfaceCode::GET_OAID)] = &OAIDServiceStub::OnGetOAID;
+    memberFuncMap_[static_cast<uint32_t>(OAIDInterfaceCode::RESET_OAID)] = &OAIDServiceStub::OnResetOAID;
 }
 
 OAIDServiceStub::~OAIDServiceStub()
@@ -103,7 +104,7 @@ int32_t OAIDServiceStub::OnRemoteRequest(
         return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
     }
 
-    if (code == RESET_OAID && !CheckSystemApp()) {
+    if (code == static_cast<uint32_t>(OAIDInterfaceCode::RESET_OAID) && !CheckSystemApp()) {
         OAID_HILOGW(OAID_MODULE_SERVICE, "CheckSystemApp fail");
         return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
     }

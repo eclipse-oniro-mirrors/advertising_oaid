@@ -25,14 +25,6 @@ namespace Cloud {
 class IOAIDService : public IRemoteBroker {
 public:
     /**
-     * Remote method code.
-     */
-    enum {
-        GET_OAID = 0,
-        RESET_OAID = 1
-    };
-
-    /**
      * Get open advertising id.
      *
      * @return std::string, OAID.
