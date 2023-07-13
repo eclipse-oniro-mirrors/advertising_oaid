@@ -20,7 +20,6 @@
 #include "bundle_mgr_interface.h"
 #include "bundle_mgr_proxy.h"
 #include "iservice_registry.h"
-#include "nlohmann/json.hpp"
 #include "system_ability_definition.h"
 
 namespace OHOS {

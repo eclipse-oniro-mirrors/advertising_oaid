@@ -15,6 +15,7 @@
 
 #ifndef OHOS_CLOUD_OAID_COMMON_H
 #define OHOS_CLOUD_OAID_COMMON_H
+
 #include <map>
 #include "oaid_hilog_wreapper.h"
 #include "errors.h"

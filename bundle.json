@@ -24,8 +24,6 @@
     "ram":"1024KB",
     "deps": {
       "components": [
-        "ability_base",
-        "ability_runtime",
         "access_token",
         "bundle_framework",
         "c_utils",
@@ -38,7 +36,6 @@
         "samgr"
       ],
       "third_party": [
-        "jsoncpp",
         "libuv",
         "openssl"
       ]

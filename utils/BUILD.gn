@@ -15,7 +15,6 @@ import("//domains/cloud/oaid/oaid.gni")
 
 config("utils_config") {
   include_dirs = [
-    "mock/include",
     "native/include",
     "//commonlibrary/c_utils/base/include",
   ]
@@ -24,21 +23,13 @@ config("utils_config") {
 ohos_source_set("oaid_utils") {
   configs = [ ":utils_config" ]
 
-  sources = [
-  ]
+  sources = []
 
   deps = []
 
   external_deps = [
-    "ability_base:want",
-    "ability_runtime:app_manager",
-    "access_token:libaccesstoken_sdk",
-    "bundle_framework:appexecfwk_core",
     "c_utils:utils",
     "hilog:libhilog",
-    "ipc:ipc_core",
-    "safwk:system_ability_fwk",
-    "samgr:samgr_proxy",
   ]
 
   part_name = "oaid"

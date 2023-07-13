@@ -16,7 +16,6 @@
 #ifndef OHOS_CLOUD_OAID_SERVICES_H
 #define OHOS_CLOUD_OAID_SERVICES_H
 
-#include <inttypes.h>
 #include <mutex>
 #include <string>
 
@@ -24,7 +23,6 @@
 #include "distributed_kv_data_manager.h"
 #include "securec.h"
 #include "system_ability.h"
-#include "time.h"
 #include "oaid_service_stub.h"
 
 namespace OHOS {

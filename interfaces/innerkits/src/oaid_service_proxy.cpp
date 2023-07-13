@@ -13,9 +13,8 @@
  * limitations under the License.
  */
 
-#include "iremote_broker.h"
 #include "oaid_service_proxy.h"
-
+#include "iremote_broker.h"
 #include "oaid_common.h"
 #include "oaid_service_interface.h"
 #include "oaid_service_ipc_interface_code.h"

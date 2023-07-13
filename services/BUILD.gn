@@ -19,9 +19,6 @@ config("oaid_service_config") {
     "${innerkits_path}/include",
     "../utils/native/include",
     "oaid_manager/include",
-    "//utils/system/safwk/native/include",
-    "//third_party/json/include",
-    "//third_party/openssl/include/",
   ]
 }
 
@@ -29,13 +26,7 @@ ohos_shared_library("oaid_service") {
   configs = [ "${oaid_utils_path}:utils_config" ]
 
   public_configs = [
-    "//commonlibrary/c_utils/base:utils_config",
-    "//third_party/jsoncpp:jsoncpp_public_config",
     ":oaid_service_config"
-  ]
-
-  ldflags = [
-    "-lpthread"
   ]
 
   sources = [
@@ -47,23 +38,16 @@ ohos_shared_library("oaid_service") {
 
   deps = [
     "${oaid_utils_path}:oaid_utils",
-    "//third_party/jsoncpp:jsoncpp",
-    "//third_party/openssl:libcrypto_static",
+    "//third_party/openssl:libcrypto_shared",
   ]
 
   external_deps = [
-    "ability_base:want",
-    "ability_runtime:runtime",
-    "ability_runtime:ability_manager",
-    "ability_runtime:wantagent_innerkits",
-    "ability_runtime:abilitykit_native",
     "hilog:libhilog",
-    "ipc:ipc_core",
+    "ipc:ipc_single",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
     "bundle_framework:appexecfwk_core",
     "bundle_framework:appexecfwk_base",
-    "c_utils:utilsbase",
     "access_token:libaccesstoken_sdk",
     "access_token:libprivacy_sdk",
     "access_token:libtokenid_sdk",

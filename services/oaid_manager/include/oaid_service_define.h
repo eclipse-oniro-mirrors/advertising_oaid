@@ -22,10 +22,10 @@ namespace OHOS {
 namespace Cloud {
 
 /* The package management API define */
-const int32_t OHOS_API_VERSION = 9;
+static const int32_t OHOS_API_VERSION = 10;
 
 /* getOAID permission define */
-const std::string OAID_TRACKING_CONSENT_PERMISSION = "ohos.permission.APP_TRACKING_CONSENT";
+static const std::string OAID_TRACKING_CONSENT_PERMISSION = "ohos.permission.APP_TRACKING_CONSENT";
 
 /* The system component ID of the OAID is 6101. */
 static const int32_t OAID_SYSTME_ID = 6101;
@@ -35,21 +35,13 @@ static constexpr uint32_t KVSTORE_CONNECT_RETRY_COUNT = 5;
 static constexpr uint32_t KVSTORE_CONNECT_RETRY_DELAY_TIME = 3000; // Unit: ms
 static const int8_t CONNECT_TIME_OUT = 3;    // The connection timeout is 3s.
 
-/* oaid_service send remoteObject to cloud service RequestCode  */
-static const int8_t INVOKE_CODE_SEND_REMOTE_OBJECT = 10;
-
-/* system default user id */
-static const int SYSTEM_UERID = 100;
-
-/* cache file define */
-const std::string OAID_JSON_PATH = "/data/service/el1/public/oaid/ohos_oaid.json";
-const std::string OAID_ALLZERO_STR = "00000000-0000-0000-0000-000000000000";
+static const std::string OAID_ALLZERO_STR = "00000000-0000-0000-0000-000000000000";
 
 /* database define */
-const std::string OAID_DATA_BASE_DIR = "/data/service/el1/public/database/";
-const std::string OAID_DATA_BASE_APP_ID = "oaid_service_manager";
-const std::string OAID_DATA_BASE_STORE_ID = "oaidservice";
-const std::string OAID_KVSTORE_KEY = "oaid_key";
+static const std::string OAID_DATA_BASE_DIR = "/data/service/el1/public/database/";
+static const std::string OAID_DATA_BASE_APP_ID = "oaid_service_manager";
+static const std::string OAID_DATA_BASE_STORE_ID = "oaidservice";
+static const std::string OAID_KVSTORE_KEY = "oaid_key";
 
 } // namespace Cloud
 } // namespace OHOS

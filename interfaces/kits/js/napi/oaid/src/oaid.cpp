@@ -15,17 +15,12 @@
 
 #include "oaid.h"
 
-#include <fstream>
-#include <memory>
 #include <string>
 #include <uv.h>
-
 #include "hilog/log.h"
-#include "json/json.h"
 #include "oaid_common.h"
 #include "oaid_service_client.h"
 #include "securec.h"
-#include "want_agent_helper.h"
 
 namespace OHOS {
 namespace CloudNapi {

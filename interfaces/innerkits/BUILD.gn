@@ -17,7 +17,6 @@ config("oaid_client_config") {
   visibility = [ ":*" ]
   include_dirs = [
     "include",
-    "//commonlibrary/c_utils/base/include",
     "${oaid_utils_path}/native/include",
   ]
 }
@@ -32,18 +31,12 @@ ohos_shared_library("oaid_client") {
   public_configs = [ ":oaid_client_config" ]
   deps = [
     "${oaid_utils_path}:oaid_utils",
-    "//third_party/jsoncpp:jsoncpp",
   ]
   external_deps = [
-    "ability_base:want",
-    "ability_runtime:runtime",
-    "ability_runtime:wantagent_innerkits",
-    "ability_runtime:abilitykit_native",
     "hilog:libhilog",
-    "ipc:ipc_core",
+    "ipc:ipc_single",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
-    "c_utils:utilsbase",
   ]
   subsystem_name = "cloud"
   part_name = "oaid"

@@ -19,9 +19,7 @@ cflags = []
 config("native_module_config") {
   visibility = [ ":*" ]
 
-  include_dirs = [
-    "//third_party/json/include",
-  ]
+  include_dirs = []
 
   if (target_cpu == "arm") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
@@ -52,17 +50,12 @@ ohos_shared_library("oaid") {
   deps = [
     "${oaid_utils_path}:oaid_utils",
     "${innerkits_path}:oaid_client",
-    "//third_party/libuv:uv_static",
-    "//third_party/jsoncpp:jsoncpp",
+    "//third_party/libuv:uv_static"
   ]
 
   external_deps = [
-    "ability_base:want",
-    "ability_runtime:runtime",
-    "ability_runtime:wantagent_innerkits",
-    "ability_runtime:abilitykit_native",
     "hilog:libhilog",
-    "ipc:ipc_core",
+    "ipc:ipc_single",
     "napi:ace_napi"
   ]
 

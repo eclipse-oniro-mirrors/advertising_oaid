@@ -20,11 +20,9 @@
 #include <vector>
 
 #include "bundle_mgr_interface.h"
-#include "extension_ability_info.h"
 #include "iremote_object.h"
 #include "refbase.h"
 #include "singleton.h"
-#include "want.h"
 #include "oaid_death_recipient.h"
 
 namespace OHOS {

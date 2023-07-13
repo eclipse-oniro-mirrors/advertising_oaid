@@ -13,40 +13,14 @@
  * limitations under the License.
  */
 #include "oaid_service.h"
-
-#include <cerrno>
-#include <chrono>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <ctime>
-#include <dirent.h>
-#include <fcntl.h>
-#include <fstream>
-#include <linux/rtc.h>
 #include <mutex>
 #include <openssl/rand.h>
-#include <random>
 #include <singleton.h>
-#include <sstream>
 #include <string>
-#include <sys/ioctl.h>
-#include <sys/socket.h>
-#include <sys/time.h>
-#include <sys/types.h>
 #include <unistd.h>
-
-#include "ability_connect_callback_stub.h"
-#include "ability_manager_client.h"
-#include "iremote_proxy.h"
-#include "iservice_registry.h"
-#include "config_policy_utils.h"
-#include "json/json.h"
 #include "oaid_common.h"
-#include "pthread.h"
 #include "system_ability.h"
 #include "system_ability_definition.h"
-#include "uri.h"
 #include "oaid_service_stub.h"
 #include "oaid_service_define.h"
 

@@ -12,11 +12,6 @@
 # limitations under the License.
 import("//build/ohos.gni")
 
-aafwk_inner_api_path =
-    "//foundation/ability/ability_runtime/interfaces/inner_api"
-
-aafwk_kits_path = "//foundation/ability/ability_runtime/frameworks/native"
-
 oaid_root_path = "//domains/cloud/oaid"
 
 kits_path = "${oaid_root_path}/interfaces/kits"
