@@ -28,7 +28,7 @@ namespace OAIDNapi {
 namespace {
 const int32_t NO_ERROR = 0;
 const int32_t ERROR = -1;
-const size_t OAID_MAX_PARA = 2;
+const size_t OAID_MAX_PARA = 1;
 const size_t CALLBACK_ARGS_LENGTH = 2;
 const int8_t CALLBACK_CODE = 0;
 const int8_t CALLBACK_RESULT = 1;
@@ -117,9 +117,9 @@ napi_value ParseParameters(const napi_env& env, const napi_value (&argv)[OAID_MA
 
     napi_valuetype valuetype = napi_undefined;
     if (argc >= OAID_MAX_PARA) {
-        NAPI_CALL(env, napi_typeof(env, argv[1], &valuetype));
+        NAPI_CALL(env, napi_typeof(env, argv[0], &valuetype));
         NAPI_ASSERT(env, valuetype == napi_function, "Wrong argument type, function expected.");
-        NAPI_CALL(env, napi_create_reference(env, argv[1], 1, &callback));
+        NAPI_CALL(env, napi_create_reference(env, argv[0], 1, &callback));
     }
 
     OAID_HILOGI(OHOS::Cloud::OAID_MODULE_JS_NAPI, "End.");
@@ -229,8 +229,8 @@ napi_value ResetOAID(napi_env env, napi_callback_info info)
 napi_value OAIDInit(napi_env env, napi_value exports)
 {
     napi_property_descriptor desc[] = {
-        DECLARE_NAPI_FUNCTION("getAdsIdentifierInfo", GetOAID),
-        DECLARE_NAPI_FUNCTION("resetAdsIdentifier", ResetOAID),
+        DECLARE_NAPI_FUNCTION("getOAID", GetOAID),
+        DECLARE_NAPI_FUNCTION("resetOAID", ResetOAID),
     };
 
     NAPI_CALL(env, napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc));

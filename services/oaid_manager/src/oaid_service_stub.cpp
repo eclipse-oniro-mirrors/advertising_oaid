@@ -98,7 +98,8 @@ int32_t OAIDServiceStub::OnRemoteRequest(
     std::string bundleName;
     pid_t uid = IPCSkeleton::GetCallingUid();
     DelayedSingleton<BundleMgrHelper>::GetInstance()->GetBundleNameByUid(static_cast<int>(uid), bundleName);
-    if (!CheckPermission(OAID_TRACKING_CONSENT_PERMISSION)) {
+    if (code != static_cast<uint32_t>(OAIDInterfaceCode::RESET_OAID) &&
+        !CheckPermission(OAID_TRACKING_CONSENT_PERMISSION)) {
         OAID_HILOGW(
             OAID_MODULE_SERVICE, "bundleName %{public}s not granted the app tracking permission", bundleName.c_str());
         return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
