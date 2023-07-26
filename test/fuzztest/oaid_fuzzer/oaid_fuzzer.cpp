@@ -20,6 +20,7 @@
 #include "oaid_service_stub.h"
 #include "oaid_service.h"
 #include "oaid_hilog_wreapper.h"
+#include "oaid_service_ipc_interface_code.h"
 #include "accesstoken_kit.h"
 #include "nativetoken_kit.h"
 #include "token_setproc.h"
@@ -31,9 +32,6 @@ using namespace OHOS::Cloud;
 namespace OHOS {
     const std::u16string OAID_INTERFACE_TOKEN = u"ohos.cloud.oaid.IOAIDService";
     const std::string OAID_TRACKING_CONSENT_PERMISSION = "ohos.permission.APP_TRACKING_CONSENT";
-    const int32_t SHIFT_LEFT_8 = 8;
-    const int32_t SHIFT_LEFT_16 = 16;
-    const int32_t SHIFT_LEFT_24 = 24;
     bool g_isGrant = false;
 
     void AddPermission()
@@ -59,27 +57,20 @@ namespace OHOS {
         }
     }
 
-    uint32_t Convert2Uint32(const uint8_t *ptr)
-    {
-        if (ptr == nullptr) {
-            return 0;
-        }
-        /* Move the 0th digit to the left by 24 bits, the 1st digit to the left by 16 bits,
-           the 2nd digit to the left by 8 bits, and the 3rd digit not to the left */
-        return (ptr[0] << SHIFT_LEFT_24) | (ptr[1] << SHIFT_LEFT_16) | (ptr[2] << SHIFT_LEFT_8) | (ptr[3]);
-    }
-
     bool OAIDFuzzTest(const uint8_t* rawData, size_t size)
     {
-        uint32_t code = Convert2Uint32(rawData);
+        uint32_t startCode = static_cast<uint32_t>(OHOS::Cloud::OAIDInterfaceCode::GET_OAID);
+        uint32_t endCode = static_cast<uint32_t>(OHOS::Cloud::OAIDInterfaceCode::RESET_OAID);
+        for (uint32_t code = startCode; code <= endCode; code++) {
+            MessageParcel data;
+            data.WriteInterfaceToken(OAID_INTERFACE_TOKEN);
+            MessageParcel reply;
+            MessageOption option;
+            auto oaidService =
+                sptr<Cloud::OAIDService>(new (std::nothrow) Cloud::OAIDService());
+            oaidService->OnRemoteRequest(code, data, reply, option);
+        }
 
-        MessageParcel data;
-        data.WriteInterfaceToken(OAID_INTERFACE_TOKEN);
-        MessageParcel reply;
-        MessageOption option;
-        auto oaidService =
-            sptr<Cloud::OAIDService>(new (std::nothrow) Cloud::OAIDService());
-        oaidService->OnRemoteRequest(code, data, reply, option);
         return true;
     }
 }
