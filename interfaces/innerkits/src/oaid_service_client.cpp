@@ -28,6 +28,8 @@ namespace Cloud {
 namespace {
 static const int32_t OAID_SYSTME_ID = 6101; // The system component ID of the OAID is 6101.
 
+static const std::string OAID_ALLZERO_STR = "00000000-0000-0000-0000-000000000000";
+
 /**
  * load time out: 10s
  */
@@ -139,13 +141,13 @@ std::string OAIDServiceClient::GetOAID()
 
     if (oaidServiceProxy_ == nullptr) {
         OAID_HILOGE(OAID_MODULE_CLIENT, "Quit because redoing load oaid service failed.");
-        return "";
+        return OAID_ALLZERO_STR;
     }
 
     auto oaid = oaidServiceProxy_->GetOAID();
     if (oaid == "") {
         OAID_HILOGE(OAID_MODULE_CLIENT, "Get OAID failed.");
-        return "";
+        return OAID_ALLZERO_STR;
     }
     OAID_HILOGI(OAID_MODULE_SERVICE, "Get OAID id %{public}zu.", oaid.size());
     return oaid;
