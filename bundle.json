@@ -1,0 +1,52 @@
+{
+  "name": "@ohos/oaid",
+  "description": "Allowing apps to use OS OAID get/set functions",
+  "version": "3.2",
+  "license": "Apache License 2.0",
+  "publishAs": "code-segment",
+  "segment": {
+    "destPath": "domains/cloud/oaid"
+  },
+  "dirs": {},
+  "scripts": {},
+  "component": {
+    "name": "oaid",
+    "subsystem": "cloud",
+    "syscap": [
+      "SystemCapability.Cloud.OAID"
+    ],
+    "features": [
+    ],
+    "adapted_system_type": [
+      "standard"
+    ],
+    "rom":"300KB",
+    "ram":"1024KB",
+    "deps": {
+      "components": [
+        "access_token",
+        "bundle_framework",
+        "c_utils",
+        "config_policy",
+        "hilog",
+        "kv_store",
+        "ipc",
+        "napi",
+        "safwk",
+        "samgr"
+      ],
+      "third_party": [
+        "libuv",
+        "openssl"
+      ]
+    },
+    "build": {
+      "sub_component": [
+        "//domains/cloud/oaid:oaid_native_packages"
+      ],
+      "test": [
+        "//domains/cloud/oaid/test/fuzztest:fuzztest"
+      ]
+    }
+  }
+}
