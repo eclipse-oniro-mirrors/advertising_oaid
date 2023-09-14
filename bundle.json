@@ -11,9 +11,9 @@
   "scripts": {},
   "component": {
     "name": "oaid",
-    "subsystem": "cloud",
+    "subsystem": "advertising",
     "syscap": [
-      "SystemCapability.Cloud.OAID"
+      "SystemCapability.Advertising.OAID"
     ],
     "features": [
     ],
