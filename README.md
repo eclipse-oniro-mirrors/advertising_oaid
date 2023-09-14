@@ -4,28 +4,6 @@
 
 The Open Anonymous Device Identifier (OAID) service facilitates personalized ad placement based on OAIDs, each of which is a non-permanent device identifier. The service provides personalized ads for users while protecting their personal data privacy. It can also interact with third-party tracking platforms to provide conversion attribution analysis for advertisers.
 
-### Concepts
-
-- Ad platform
-
-  The ad platform is an Internet ad transaction platform that bridges buyers (advertisers) and sellers (ad slot owners) for ad transactions. By accessing the ad slots, the ad platform collects and processes data of the target ad audience, thereby enabling precision marketing.
-
-- Advertiser
-
-  Advertisers refer to brand owners who need to advertise their goods, for example, Fast Moving Consumer Goods and daily supplies commonly seen in various communication media.
-
-- Third-party tracking platform
-
-  The third-party tracking platform is a platform that delivers insights on ad performance (including impressions and clicks) for advertisers.
-
-- Conversion attribution
-
-  Conversion attribution refers to the process of matching the subsequent effects (such as download, installation, and purchase) of an ad to a specific ad.
-
-### Architecture
-
-![](figures/en-us_architecture-of-the-oaid.png)
-
 ## Directory Structure
 
 ```
