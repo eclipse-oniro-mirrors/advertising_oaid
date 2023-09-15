@@ -4,6 +4,11 @@
       "project":"productdefine_common",
       "path":"productdefine/common",
       "pr_url":"https://gitee.com/openharmony/productdefine_common/pulls/712"
+    },
+    {
+      "project":"build",
+      "path":"build",
+      "pr_url":"https://gitee.com/openharmony/build/pulls/2346"
     }
   ]
 }
