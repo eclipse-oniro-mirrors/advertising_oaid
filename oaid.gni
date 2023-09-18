@@ -23,4 +23,3 @@ oaid_service_path = "${oaid_root_path}/services"
 oaid_utils_path = "${oaid_root_path}/utils"
 
 adapter_path = "${oaid_root_path}/adapter"
-
