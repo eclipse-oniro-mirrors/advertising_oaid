@@ -44,6 +44,15 @@
       "sub_component": [
         "//domains/cloud/oaid:oaid_native_packages"
       ],
+      "inner_api": [
+        {
+          "header": {
+            "header_base": "//domains/cloud/oaid/interfaces/innerkits/include/",
+            "header_files": []
+          },
+          "name": "//domains/cloud/oaid/interfaces/innerkits:oaid_client"
+        }
+      ],
       "test": [
         "//domains/cloud/oaid/test/fuzztest:fuzztest"
       ]
