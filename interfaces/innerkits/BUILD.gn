@@ -38,6 +38,6 @@ ohos_shared_library("oaid_client") {
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
-  subsystem_name = "cloud"
+  subsystem_name = "advertising"
   part_name = "oaid"
 }

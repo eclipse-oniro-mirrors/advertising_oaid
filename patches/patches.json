@@ -4,6 +4,16 @@
       "project":"productdefine_common",
       "path":"productdefine/common",
       "pr_url":"https://gitee.com/openharmony/productdefine_common/pulls/712"
+    },
+    {
+      "project":"build",
+      "path":"build",
+      "pr_url":"https://gitee.com/openharmony/build/pulls/2346"
+    },
+    {
+      "project":"developtools_syscap_codec",
+      "path":"developtools/syscap_codec",
+      "pr_url":"https://gitee.com/openharmony/developtools_syscap_codec/pulls/313"
     }
   ]
 }
