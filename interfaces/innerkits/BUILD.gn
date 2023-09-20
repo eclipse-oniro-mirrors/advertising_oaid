@@ -29,7 +29,6 @@ ohos_shared_library("oaid_client") {
 
   configs = [ ":oaid_client_config" ]
   public_configs = [ ":oaid_client_config" ]
-  innerapi_tags = ["platformsdk"]
   deps = [
     "${oaid_utils_path}:oaid_utils",
   ]
@@ -39,7 +38,6 @@ ohos_shared_library("oaid_client") {
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
-  version_script = "liboaidclient.versionscript"
-  subsystem_name = "cloud"
+  subsystem_name = "advertising"
   part_name = "oaid"
 }

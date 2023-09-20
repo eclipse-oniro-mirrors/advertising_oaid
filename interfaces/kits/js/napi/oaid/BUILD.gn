@@ -60,6 +60,6 @@ ohos_shared_library("oaid") {
   ]
 
   relative_install_dir = "module/identifier"
-  subsystem_name = "cloud"
+  subsystem_name = "advertising"
   part_name = "oaid"
 }

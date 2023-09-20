@@ -99,7 +99,7 @@ OAIDService::OAIDService(int32_t systemAbilityId, bool runOnCreate)
 OAIDService::OAIDService() : state_(ServiceRunningState::STATE_NOT_START)
 {}
 
-OAIDService::~OAIDService(){};
+OAIDService::~OAIDService() {};
 
 sptr<OAIDService> OAIDService::GetInstance()
 {

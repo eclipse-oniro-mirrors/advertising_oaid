@@ -1,50 +1,51 @@
-# OAID Service Component
+# 广告标识服务部件
 
-## Introduction
+## 简介
 
-The Open Anonymous Device Identifier (OAID) service facilitates personalized ad placement based on OAIDs, each of which is a non-permanent device identifier. The service provides personalized ads for users while protecting their personal data privacy. It can also interact with third-party tracking platforms to provide conversion attribution analysis for advertisers.
+开放匿名设备标识符（Open Anonymous Device Identifier, OAID，以下简称OAID）：是一种非永久性设备标识符，基于开放匿名设备标识符，可在保护用户个人数据隐私安全的前提下，向用户提供个性化广告，同时三方监测平台也可以向广告主提供转化归因分析。
 
-## Directory Structure
+
+## 目录
 
 ```
-/domains/cloud/oaid # Service code of the OAID service component
-├── interfaces                         # API code
-├── profile                            # Service configuration profile
-├── services                           # Service code
-├── test                               # Test cases
-├── LICENSE                            # License file
-└── bundle.json                        # Build file
+/domains/cloud/oaid  # 广告标识服务部件业务代码
+├── interfaces                         # 接口代码
+├── profile                            # 服务配置文件
+├── services                           # 服务代码
+├── test                               # 测试用例
+├── LICENSE                            # 证书文件
+└── bundle.json                        # 编译文件
 ```
 
-## How to Use
+## 使用说明
 
-### Obtaining an OAID
+### 获取OAID
 
-You can use the APIs provided in this repository to obtain OAIDs.  
+可以使用此仓库内提供的接口获取OAID。以下步骤描述了如何使用接口获取OAID。
 
-1. Request the ad tracking permission.
+1. 申请广告跟踪权限
 
-   Configure the [ohos.permission.APP_TRACKING_CONSENT](https://docs.openharmony.cn/pages/v4.0/zh-cn/application-dev/security/permission-list.md/) permission in the **module.json5** file of the module.
+   在模块的module.json5文件中，申请[ohos.permission.APP_TRACKING_CONSENT](https://docs.openharmony.cn/pages/v4.0/zh-cn/application-dev/security/permission-list.md/)权限。
 
    ```javascript
    {
      "module": {
        "requestPermissions": [
          {
-           "name": "ohos.permission.APP_TRACKING_CONSENT" // Request the ad tracking permission.
+           "name": "ohos.permission.APP_TRACKING_CONSENT" // 申请广告跟踪权限
          }
        ]
      }
    }
    ```
 
-2. Request authorization from the user by displaying a dialog box when the application is started.
+2. 在应用启动时触发动态授权弹框，向用户请求授权。
 
    ```javascript
    import abilityAccessCtrl from '@ohos.abilityAccessCtrl';
    
    private requestOAIDTrackingConsentPermissions(context: any): void {
-     // Display a dialog box when the page is displayed to request the user to grant the ad tracking permission.
+     // 进入页面时触发动态授权弹框，向用户请求授权广告跟踪权限
      const atManager = abilityAccessCtrl.createAtManager();
      try {
        atManager.requestPermissionsFromUser(context, ["ohos.permission.APP_TRACKING_CONSENT"]).then((data) => {
@@ -62,9 +63,9 @@ You can use the APIs provided in this repository to obtain OAIDs.
    }
    ```
 
-3. Obtain an OAID.
+3. 获取OAID信息
 
-- Obtain an OAID through the callback function.
+- 通过Callback回调函数获取OAID
 
   ```javascript
   import identifier from '@ohos.identifier.oaid';
@@ -85,14 +86,14 @@ You can use the APIs provided in this repository to obtain OAIDs.
   }
   ```
 
-- Obtain an OAID through the promise.
+- 通过Promise异步获取OAID
 
   ```javascript
   import identifier from '@ohos.identifier.oaid';
   
   private getOaidByPromise() {
     try {
-      // Obtain an OAID.
+      // 获取OAID信息
       identifier.getOAID().then((data) => {
         const oaid = data;
         console.info(`getAdsIdentifierInfo by promise success`);
@@ -105,9 +106,9 @@ You can use the APIs provided in this repository to obtain OAIDs.
   }
   ```
 
-### Resetting the OAID
+### 重置OAID
 
-You can use the API provided in this repository to reset OAIDs.  The API is a system API.
+可以使用此仓库内提供的接口重置OAID。以下步骤描述了如何使用接口重置OAID。该接口为系统接口。
 
 ```javascript
 import identifier from '@ohos.identifier.oaid';
@@ -121,4 +122,4 @@ private resetOaid() {
 }
 ```
 
-## Repositories Involved
+## 相关仓

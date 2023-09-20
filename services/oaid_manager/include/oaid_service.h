@@ -41,7 +41,7 @@ public:
     virtual ~OAIDService() override;
 
     /**
-     * Get open advertising id And connnect hms for send OaidServiceStub remoteObject to hms.
+     * Get OAID
      *
      * @return std::string, OAID.
      */

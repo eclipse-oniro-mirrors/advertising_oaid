@@ -20,7 +20,6 @@ group("oaid_native_packages") {
     deps = [
       "etc/init:oaidservice.cfg",
       "interfaces/innerkits:oaid_client",
-      "interfaces/kits/js/declaration:oaid",
       "interfaces/kits/js/napi/oaid:oaid",
       "profile:cloud_oaid_sa_profiles",
       "services:oaid_service",

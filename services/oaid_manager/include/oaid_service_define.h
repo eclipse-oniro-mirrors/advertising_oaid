@@ -20,7 +20,6 @@
 
 namespace OHOS {
 namespace Cloud {
-
 /* The package management API define */
 static const int32_t OHOS_API_VERSION = 10;
 
@@ -42,7 +41,6 @@ static const std::string OAID_DATA_BASE_DIR = "/data/service/el1/public/database
 static const std::string OAID_DATA_BASE_APP_ID = "oaid_service_manager";
 static const std::string OAID_DATA_BASE_STORE_ID = "oaidservice";
 static const std::string OAID_KVSTORE_KEY = "oaid_key";
-
 } // namespace Cloud
 } // namespace OHOS
 #endif // OHOS_CLOUD_OAID_SERVICE_DEFINE_H
