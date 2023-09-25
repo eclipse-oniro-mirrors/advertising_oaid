@@ -42,25 +42,29 @@
 2. 在应用启动时触发动态授权弹框，向用户请求授权。
 
    ```javascript
-   import abilityAccessCtrl from '@ohos.abilityAccessCtrl';
+  import abilityAccessCtrl from '@ohos.abilityAccessCtrl';
+  import { BusinessError } from '@ohos.base';
+  import hilog from '@ohos.hilog';
    
-   private requestOAIDTrackingConsentPermissions(context: any): void {
-     // 进入页面时触发动态授权弹框，向用户请求授权广告跟踪权限
-     const atManager = abilityAccessCtrl.createAtManager();
-     try {
-       atManager.requestPermissionsFromUser(context, ["ohos.permission.APP_TRACKING_CONSENT"]).then((data) => {
-         if (data.authResults[0] == 0) {
-           console.info(`request permission success`);
-         } else {
-           console.info(`user rejected`);
-         }
+  private requestOAIDTrackingConsentPermissions(context: common.Context): void {
+    // 进入页面时触发动态授权弹框，向用户请求授权广告跟踪权限
+    const atManager: abilityAccessCtrl.AtManager = abilityAccessCtrl.createAtManager();
+      try {
+        atManager.requestPermissionsFromUser(context, ["ohos.permission.APP_TRACKING_CONSENT"]).then((data) => {
+          if (data.authResults[0] == 0) {
+            hilog.info(0x0000, 'testTag', '%{public}s', 'request permission success');
+          } else {
+            hilog.info(0x0000, 'testTag', '%{public}s', `user rejected`);
+          }
        }).catch((err) => {
-         console.error(`request permission failed, error message: ${err.message}`);
+         const e: BusinessError = err as BusinessError;
+         hilog.error(0x0000, 'testTag', '%{public}s', `request permission failed, error message: ${e.message}`);
        })
-     } catch(err) {
-       console.error(`catch err->${JSON.stringify(err)}`);
-     }
-   }
+    } catch(err) {
+      const e: BusinessError = err as BusinessError;
+      hilog.error(0x0000, 'testTag', '%{public}s', `catch err->${JSON.stringify(e)}`);
+    }
+  }
    ```
 
 3. 获取OAID信息
@@ -69,20 +73,21 @@
 
   ```javascript
   import identifier from '@ohos.identifier.oaid';
-  
-  private getOaidByCallback() {
-    try {
-      identifier.getOAID((err, data) => {
-        if (err.code) {
-          console.info(`getAdsIdentifierInfo failed, message: ${err.message}`);
-  	  } else {
-  		const oaid = data;
-  		console.error(`getOaidFromOaidSaAPi by callback success`);
-  	  }
-  	});
-    } catch (err) {
-      console.error(`catch err->${JSON.stringify(err)}`);
+  import hilog from '@ohos.hilog'; 
+  import { BusinessError } from '@ohos.base';
+
+  try {
+    identifier.getOAID((err, data) => {
+      if (err.code) {
+        hilog.info(0x0000, 'testTag', '%{public}s', `getOAID failed, message: ${err.message}`);
+    } else {
+      const oaid: string = data;
+      hilog.info(0x0000, 'testTag', '%{public}s', `getOAID by callback success`);
     }
+    });
+  } catch (err) {
+    const e: BusinessError = err as BusinessError;
+    hilog.error(0x0000, 'testTag', 'get oaid catch error: %{public}d %{public}s', e.code, e.message);
   }
   ```
 
@@ -90,19 +95,19 @@
 
   ```javascript
   import identifier from '@ohos.identifier.oaid';
+  import hilog from '@ohos.hilog'; 
+  import { BusinessError } from '@ohos.base';
   
-  private getOaidByPromise() {
-    try {
-      // 获取OAID信息
-      identifier.getOAID().then((data) => {
-        const oaid = data;
-        console.info(`getAdsIdentifierInfo by promise success`);
-      }).catch((err) => {
-        console.error(`getAdsIdentifierInfo failed, message: ${err.message}`);
-      })
-    } catch (err) {
-      console.error(`catch err->${JSON.stringify(err)}`);
-    }
+  try {  
+    identifier.getOAID().then((data) => {
+      const oaid: string = data;
+      hilog.info(0x0000, 'testTag', '%{public}s', `get oaid by callback success`);
+    }).catch((err) => {
+      hilog.info(0x0000, 'testTag', '%{public}s', `get oaid failed, message: ${(err as BusinessError).message}`);
+    })
+  } catch (err) {
+    const e: BusinessError = err as BusinessError;
+    hilog.error(0x0000, 'testTag', 'get oaid catch error: %{public}d %{public}s', e.code, e.message);
   }
   ```
 
@@ -111,15 +116,16 @@
 可以使用此仓库内提供的接口重置OAID。以下步骤描述了如何使用接口重置OAID。该接口为系统接口。
 
 ```javascript
-import identifier from '@ohos.identifier.oaid';
+  import identifier from '@ohos.identifier.oaid';
+  import hilog from '@ohos.hilog'; 
+  import { BusinessError } from '@ohos.base';
  
-private resetOaid() {
   try {
     identifier.resetOAID();
   } catch (err) {
-    console.error(`reset oaid catch error: ${err.code} ${err.message}`);
+    const e: BusinessError = err as BusinessError;
+    hilog.error(0x0000, 'testTag', 'reset oaid catch error: %{public}d %{public}s', e.code, e.message);
   }
-}
 ```
 
 ## 相关仓
