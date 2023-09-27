@@ -16,7 +16,7 @@ import("//domains/cloud/oaid/oaid.gni")
 #####################hydra-fuzz###################
 import("//build/config/features.gni")
 import("//build/test.gni")
-module_output_path = "cloud/oaid"
+module_output_path = "oaid/OAID"
 
 ##############################fuzztest##########################################
 ohos_fuzztest("OAIDFuzzTest") {
