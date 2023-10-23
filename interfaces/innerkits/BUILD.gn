@@ -10,7 +10,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import("//domains/cloud/oaid/oaid.gni")
+import("//domains/advertising/oaid/oaid.gni")
 import("//build/ohos.gni")
 
 config("oaid_client_config") {
@@ -27,8 +27,15 @@ ohos_shared_library("oaid_client") {
     "src/oaid_service_proxy.cpp",
   ]
 
+  sanitize = {
+    boundary_sanitize = true
+    integer_overflow = true
+    ubsan = true
+  }
+
   configs = [ ":oaid_client_config" ]
   public_configs = [ ":oaid_client_config" ]
+  innerapi_tags = ["platformsdk"]
   deps = [
     "${oaid_utils_path}:oaid_utils",
   ]
@@ -38,6 +45,7 @@ ohos_shared_library("oaid_client") {
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
+  version_script = "liboaidclient.versionscript"
   subsystem_name = "advertising"
   part_name = "oaid"
 }

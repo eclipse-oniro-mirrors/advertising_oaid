@@ -11,7 +11,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("//domains/cloud/oaid/oaid.gni")
+import("//domains/advertising/oaid/oaid.gni")
 import("//build/ohos.gni")
 
 cflags = []
@@ -33,13 +33,19 @@ config("native_module_config") {
 
 ohos_shared_library("oaid") {
   include_dirs = [
-    "//domains/cloud/oaid/interfaces/innerkits/include",
+    "//domains/advertising/oaid/interfaces/innerkits/include",
     "../utils/native/include",
     "./include",
     "//third_party/node/src",
     "//third_party/libuv/include",
   ]
 
+  sanitize = {
+    boundary_sanitize = true
+    integer_overflow = true
+    ubsan = true
+  }
+  
   configs = [ ":native_module_config"]
 
   sources = [

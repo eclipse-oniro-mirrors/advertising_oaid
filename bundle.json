@@ -5,7 +5,7 @@
   "license": "Apache License 2.0",
   "publishAs": "code-segment",
   "segment": {
-    "destPath": "domains/cloud/oaid"
+    "destPath": "domains/advertising/oaid"
   },
   "dirs": {},
   "scripts": {},
@@ -42,10 +42,19 @@
     },
     "build": {
       "sub_component": [
-        "//domains/cloud/oaid:oaid_native_packages"
+        "//domains/advertising/oaid:oaid_native_packages"
+      ],
+      "inner_api": [
+        {
+          "header": {
+            "header_base": "//domains/advertising/oaid/interfaces/innerkits/include/",
+            "header_files": []
+          },
+          "name": "//domains/advertising/oaid/interfaces/innerkits:oaid_client"
+        }
       ],
       "test": [
-        "//domains/cloud/oaid/test/fuzztest:fuzztest"
+        "//domains/advertising/oaid/test/fuzztest:fuzztest"
       ]
     }
   }

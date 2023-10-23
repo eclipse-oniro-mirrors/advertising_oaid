@@ -1,0 +1,14 @@
+{
+  "patches": [
+    {
+      "project":"manifest",
+      "path":"manifest",
+      "pr_url":"https://gitee.com/openharmony/manifest/pulls/1678"
+    },
+    {
+      "project":"build",
+      "path":"build",
+      "pr_url":"https://gitee.com/openharmony/build/pulls/2457"
+    }
+  ]
+}

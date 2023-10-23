@@ -12,7 +12,7 @@
 # limitations under the License.
 import("//build/ohos.gni")
 
-oaid_root_path = "//domains/cloud/oaid"
+oaid_root_path = "//domains/advertising/oaid"
 
 kits_path = "${oaid_root_path}/interfaces/kits"
 

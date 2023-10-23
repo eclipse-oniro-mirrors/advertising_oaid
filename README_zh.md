@@ -8,7 +8,7 @@
 ## 目录
 
 ```
-/domains/cloud/oaid  # 广告标识服务部件业务代码
+/domains/advertising/oaid  # 广告标识服务部件业务代码
 ├── interfaces                         # 接口代码
 ├── profile                            # 服务配置文件
 ├── services                           # 服务代码
