@@ -17,20 +17,18 @@ import("//domains/advertising/oaid/oaid.gni")
 ################################################################################
 
 group("oaid_native_packages") {
-    deps = [
-      "etc/init:oaidservice.cfg",
-      "interfaces/innerkits:oaid_client",
-      "interfaces/kits/js/napi/oaid:oaid",
-      "profile:cloud_oaid_sa_profiles",
-      "services:oaid_service",
-      "services:oaid_service_config_json",
-    ]
+  deps = [
+    "etc/init:oaidservice.cfg",
+    "interfaces/innerkits:oaid_client",
+    "interfaces/kits/js/napi/oaid:oaid",
+    "profile:cloud_oaid_sa_profiles",
+    "services:oaid_service",
+    "services:oaid_service_config_json",
+  ]
 }
 
 group("oaid_build_fuzztest") {
   testonly = true
   deps = []
-  deps += [
-    "${oaid_root_path}/test/fuzztest:fuzztest"
-  ]
+  deps += [ "${oaid_root_path}/test/fuzztest:fuzztest" ]
 }

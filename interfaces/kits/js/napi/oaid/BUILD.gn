@@ -33,7 +33,7 @@ config("native_module_config") {
 
 ohos_shared_library("oaid") {
   include_dirs = [
-    "//domains/advertising/oaid/interfaces/innerkits/include",
+    "${innerkits_path}/include",
     "../utils/native/include",
     "./include",
     "//third_party/node/src",
