@@ -10,8 +10,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import("//domains/advertising/oaid/oaid.gni")
 import("//build/ohos.gni")
+import("//domains/advertising/oaid/oaid.gni")
 
 config("oaid_client_config") {
   visibility = [ ":*" ]
@@ -36,9 +36,7 @@ ohos_shared_library("oaid_client") {
   configs = [ ":oaid_client_config" ]
   public_configs = [ ":oaid_client_config" ]
   innerapi_tags = ["platformsdk"]
-  deps = [
-    "${oaid_utils_path}:oaid_utils",
-  ]
+  deps = [ "${oaid_utils_path}:oaid_utils" ]
   external_deps = [
     "hilog:libhilog",
     "ipc:ipc_single",
