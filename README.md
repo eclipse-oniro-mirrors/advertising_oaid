@@ -7,7 +7,7 @@ The Open Anonymous Device Identifier (OAID) service facilitates personalized ad 
 ## Directory Structure
 
 ```
-/domains/cloud/oaid # Service code of the OAID service component
+/domains/advertising/oaid # Service code of the OAID service component
 ├── interfaces                         # API code
 ├── profile                            # Service configuration profile
 ├── services                           # Service code
