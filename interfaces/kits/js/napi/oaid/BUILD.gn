@@ -45,7 +45,7 @@ ohos_shared_library("oaid") {
     integer_overflow = true
     ubsan = true
   }
-  
+
   configs = [ ":native_module_config" ]
 
   sources = [
