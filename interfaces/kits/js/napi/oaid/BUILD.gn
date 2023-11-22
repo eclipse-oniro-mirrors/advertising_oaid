@@ -32,6 +32,7 @@ config("native_module_config") {
 }
 
 ohos_shared_library("oaid") {
+  branch_protector_ret = "pac_ret"
   include_dirs = [
     "${innerkits_path}/include",
     "../utils/native/include",

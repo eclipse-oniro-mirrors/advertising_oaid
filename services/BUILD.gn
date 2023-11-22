@@ -23,6 +23,7 @@ config("oaid_service_config") {
 }
 
 ohos_shared_library("oaid_service") {
+  branch_protector_ret = "pac_ret"
   configs = [ "${oaid_utils_path}:utils_config" ]
 
   public_configs = [ ":oaid_service_config" ]
