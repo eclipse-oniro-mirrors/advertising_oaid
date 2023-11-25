@@ -29,6 +29,10 @@ ohos_shared_library("oaid_service") {
   public_configs = [ ":oaid_service_config" ]
 
   sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+    blocklist = "../cfi_blocklist.txt"
     boundary_sanitize = true
     integer_overflow = true
     ubsan = true
