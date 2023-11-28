@@ -26,8 +26,8 @@ namespace Cloud {
     #define OAID_PUBLIC_API __attribute__((visibility ("default")))
     #define OAID_LOCAL_API __attribute__((visibility ("hidden")))
 #else
-   #define OAID_PUBLIC_API
-   #define OAID_LOCAL_API
+    #define OAID_PUBLIC_API
+    #define OAID_LOCAL_API
 #endif
 
 enum OAIDError : int32_t {
