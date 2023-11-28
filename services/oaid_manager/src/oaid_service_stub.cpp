@@ -81,14 +81,11 @@ bool OAIDServiceStub::CheckSystemApp()
     FullTokenID callingFullToken = IPCSkeleton::GetCallingFullTokenID();
 
     auto tokenType = AccessTokenKit::GetTokenTypeFlag(IPCSkeleton::GetCallingTokenID());
-    if (!TokenIdKit::IsSystemAppByFullTokenID(callingFullToken) &&
-        tokenType != TOKEN_NATIVE &&
-        tokenType != TOKEN_SHELL) {
-        OAID_HILOGI(OAID_MODULE_SERVICE, "the caller App is not system app");
-        return false;
+    if (TokenIdKit::IsSystemAppByFullTokenID(callingFullToken) && tokenType == TOKEN_HAP) {
+        return true;
     }
-
-    return true;
+    OAID_HILOGW(OAID_MODULE_SERVICE, "the caller App is not system app");
+    return false;
 }
 
 int32_t OAIDServiceStub::OnRemoteRequest(
