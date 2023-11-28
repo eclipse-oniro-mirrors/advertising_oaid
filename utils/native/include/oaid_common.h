@@ -22,7 +22,13 @@
 
 namespace OHOS {
 namespace Cloud {
-#define OAID_SERVICE_NAME "OAIDService"
+#if defined(__GNUC__) && (__GNUC__ >= 4)
+    #define OAID_PUBLIC_API __attribute__((visibility ("default")))
+    #define OAID_LOCAL_API __attribute__((visibility ("hidden")))
+#else
+    #define OAID_PUBLIC_API
+    #define OAID_LOCAL_API
+#endif
 
 enum OAIDError : int32_t {
     ERR_OK = 0,

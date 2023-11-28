@@ -20,6 +20,7 @@
 
 #include "oaid_service_interface.h"
 #include "iremote_proxy.h"
+#include "oaid_common.h"
 
 namespace OHOS {
 namespace Cloud {
@@ -39,7 +40,7 @@ public:
     /**
      * Reset open advertising id.
      */
-    void ResetOAID() override;
+    OAID_LOCAL_API void ResetOAID() override;
 
 private:
     static inline BrokerDelegator<OAIDServiceProxy> delegator_;

@@ -46,7 +46,7 @@ std::string OAIDServiceProxy::GetOAID()
     return oaid;
 }
 
-void OAIDServiceProxy::ResetOAID()
+OAID_LOCAL_API void OAIDServiceProxy::ResetOAID()
 {
     OAID_HILOGI(OAID_MODULE_CLIENT, "Reset OAID Begin.");
     MessageParcel data, reply;
