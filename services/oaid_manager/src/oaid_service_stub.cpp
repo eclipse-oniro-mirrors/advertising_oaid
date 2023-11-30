@@ -4,7 +4,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #include "oaid_service_stub.h"
 #include <singleton.h>
 #include "bundle_mgr_helper.h"
@@ -23,13 +24,14 @@
 #include "oaid_service_define.h"
 #include "oaid_service.h"
 #include "oaid_service_ipc_interface_code.h"
+#include "config_policy_utils.h"
+
 
 using namespace OHOS::Security::AccessToken;
 
 namespace OHOS {
 namespace Cloud {
 using namespace OHOS::HiviewDFX;
-
 OAIDServiceStub::OAIDServiceStub()
 {
     memberFuncMap_[static_cast<uint32_t>(OAIDInterfaceCode::GET_OAID)] = &OAIDServiceStub::OnGetOAID;
@@ -79,7 +81,6 @@ bool OAIDServiceStub::CheckPermission(const std::string &permissionName)
 bool OAIDServiceStub::CheckSystemApp()
 {
     FullTokenID callingFullToken = IPCSkeleton::GetCallingFullTokenID();
-
     auto tokenType = AccessTokenKit::GetTokenTypeFlag(IPCSkeleton::GetCallingTokenID());
     if (TokenIdKit::IsSystemAppByFullTokenID(callingFullToken) && tokenType == TOKEN_HAP) {
         return true;
@@ -88,8 +89,54 @@ bool OAIDServiceStub::CheckSystemApp()
     return false;
 }
 
-int32_t OAIDServiceStub::OnRemoteRequest(
-    uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option)
+bool LoadAndCheckOaidWhiteList(const std::string &bundleName)
+{
+    char pathBuff[MAX_PATH_LEN];
+    GetOneCfgFile(OAID_TRUSTLIST_CONFIG_PATH.c_str(), pathBuff, MAX_PATH_LEN);
+    char realPath[PATH_MAX];
+    if (realpath(pathBuff, realPath) == nullptr) {
+        OAID_HILOGE(OAID_MODULE_SERVICE, "Parse realpath fail");
+        return false;
+    }
+
+    std::ifstream ifs;
+    ifs.open(realPath);
+    if (!ifs) {
+        OAID_HILOGW(OAID_MODULE_SERVICE, "Open file error.");
+        ifs.close();
+        return false;
+    }
+
+    Json::Value jsonValue;
+    Json::CharReaderBuilder builder;
+    builder["collectComments"] = true;
+    JSONCPP_STRING errs;
+    if (!parseFromStream(builder, ifs, &jsonValue, &errs)) {
+        ifs.close();
+        OAID_HILOGW(OAID_MODULE_SERVICE, "Read file failed %{public}s.", errs.c_str());
+        return false;
+    }
+
+    Json::Value oaidTrustConfig = jsonValue["resetOAIDBundleName"];
+    if (oaidTrustConfig.size() == 0) {
+        ifs.close();
+        return true;
+    }
+    for (int i = 0; i < oaidTrustConfig.size(); i++) {
+        std::string trustData = oaidTrustConfig[i].asString();
+        int result = bundleName.compare(trustData);
+        if (result == 0) {
+            OAID_HILOGI(OAID_MODULE_SERVICE, "the oaidWhiteList contains this bundle name");
+            ifs.close();
+            return true;
+        }
+    }
+    ifs.close();
+    return false;
+}
+
+int32_t OAIDServiceStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply,
+    MessageOption &option)
 {
     OAID_HILOGI(OAID_MODULE_SERVICE, "Start, code is %{public}u.", code);
     std::string bundleName;
@@ -97,16 +144,22 @@ int32_t OAIDServiceStub::OnRemoteRequest(
     DelayedSingleton<BundleMgrHelper>::GetInstance()->GetBundleNameByUid(static_cast<int>(uid), bundleName);
     if (code != static_cast<uint32_t>(OAIDInterfaceCode::RESET_OAID) &&
         !CheckPermission(OAID_TRACKING_CONSENT_PERMISSION)) {
-        OAID_HILOGW(
-            OAID_MODULE_SERVICE, "bundleName %{public}s not granted the app tracking permission", bundleName.c_str());
+        OAID_HILOGW(OAID_MODULE_SERVICE, "bundleName %{public}s not granted the app tracking permission",
+            bundleName.c_str());
         return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
     }
 
-    if (code == static_cast<uint32_t>(OAIDInterfaceCode::RESET_OAID) && !CheckSystemApp()) {
-        OAID_HILOGW(OAID_MODULE_SERVICE, "CheckSystemApp fail");
-        return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
-    }
+    if (code == static_cast<uint32_t>(OAIDInterfaceCode::RESET_OAID)) {
+        if (!LoadAndCheckOaidWhiteList(bundleName)) {
+            OAID_HILOGW(OAID_MODULE_SERVICE, "CheckOaidTrustList fail");
+            return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
+        }
 
+        if (!CheckSystemApp()) {
+            OAID_HILOGW(OAID_MODULE_SERVICE, "CheckSystemApp fail");
+            return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
+        }
+    }
     std::u16string myDescripter = OAIDServiceStub::GetDescriptor();
     std::u16string remoteDescripter = data.ReadInterfaceToken();
     if (myDescripter != remoteDescripter) {
@@ -128,7 +181,7 @@ int32_t OAIDServiceStub::OnRemoteRequest(
     return ret;
 }
 
-int32_t OAIDServiceStub::OnGetOAID(MessageParcel& data, MessageParcel& reply)
+int32_t OAIDServiceStub::OnGetOAID(MessageParcel &data, MessageParcel &reply)
 {
     OAID_HILOGI(OAID_MODULE_SERVICE, "Start.");
 
@@ -146,7 +199,7 @@ int32_t OAIDServiceStub::OnGetOAID(MessageParcel& data, MessageParcel& reply)
     return ERR_OK;
 }
 
-int32_t OAIDServiceStub::OnResetOAID(MessageParcel& data, MessageParcel& reply)
+int32_t OAIDServiceStub::OnResetOAID(MessageParcel &data, MessageParcel &reply)
 {
     OAID_HILOGI(OAID_MODULE_SERVICE, "Reset OAID Start.");
 
