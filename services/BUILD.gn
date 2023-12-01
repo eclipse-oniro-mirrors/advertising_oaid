@@ -47,6 +47,7 @@ ohos_shared_library("oaid_service") {
 
   deps = [
     "${oaid_utils_path}:oaid_utils",
+    "//third_party/jsoncpp:jsoncpp",
     "//third_party/openssl:libcrypto_shared",
   ]
 
