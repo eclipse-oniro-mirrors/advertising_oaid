@@ -70,7 +70,7 @@ ohos_shared_library("oaid_service") {
 
 ohos_prebuilt_etc("oaid_service_config_json") {
   source = "oaid_manager/resource/oaid_service_config.json"
-  relative_install_dir = "cloud/oaid"
+  relative_install_dir = "advertising/oaid"
   part_name = "oaid"
   subsystem_name = "advertising"
 }
