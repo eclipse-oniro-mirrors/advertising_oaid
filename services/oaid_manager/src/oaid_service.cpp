@@ -167,6 +167,7 @@ bool OAIDService::InitOaidKvStore()
     options.kvStoreType = DistributedKv::KvStoreType::SINGLE_VERSION;
     options.area = DistributedKv::EL1;
     options.baseDir = OAID_DATA_BASE_DIR + appId.appId;
+    options.securityLevel = DistributedKv::SecurityLevel::S1;
 
     DistributedKv::StoreId storeId;
     storeId.storeId = OAID_DATA_BASE_STORE_ID;
