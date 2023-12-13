@@ -122,9 +122,9 @@ bool LoadAndCheckOaidWhiteList(const std::string &bundleName)
         ifs.close();
         return true;
     }
-    for (int i = 0; i < oaidTrustConfig.size(); i++) {
+    for (uint32_t i = 0; i < oaidTrustConfig.size(); i++) {
         std::string trustData = oaidTrustConfig[i].asString();
-        int result = bundleName.compare(trustData);
+        uint32_t result = bundleName.compare(trustData);
         if (result == 0) {
             OAID_HILOGI(OAID_MODULE_SERVICE, "the oaidWhiteList contains this bundle name");
             ifs.close();
