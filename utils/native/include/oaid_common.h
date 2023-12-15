@@ -33,7 +33,7 @@ namespace Cloud {
 enum OAIDError : int32_t {
     ERR_OK = 0,
     ERR_INVALID_PARAM = 401,
-    ERR_SYSYTEM_ERROR = 17200001,
+    ERR_SYSYTEM_ERROR = 17300001,
 };
 
 static std::map<int32_t, std::string> oaidErrCodeMsgMap = {

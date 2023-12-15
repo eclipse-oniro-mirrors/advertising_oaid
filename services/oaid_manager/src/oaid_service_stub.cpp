@@ -89,14 +89,17 @@ bool OAIDServiceStub::CheckSystemApp()
     return false;
 }
 
-bool LoadAndCheckOaidWhiteList(const std::string &bundleName)
+bool LoadAndCheckOaidTrustList(const std::string &bundleName)
 {
     char pathBuff[MAX_PATH_LEN];
-    GetOneCfgFile(OAID_TRUSTLIST_CONFIG_PATH.c_str(), pathBuff, MAX_PATH_LEN);
+    GetOneCfgFile(OAID_TRUSTLIST_EXTENSION_CONFIG_PATH.c_str(), pathBuff, MAX_PATH_LEN);
     char realPath[PATH_MAX];
     if (realpath(pathBuff, realPath) == nullptr) {
-        OAID_HILOGE(OAID_MODULE_SERVICE, "Parse realpath fail");
-        return false;
+        GetOneCfgFile(OAID_TRUSTLIST_CONFIG_PATH.c_str(), pathBuff, MAX_PATH_LEN);
+        if (realpath(pathBuff, realPath) == nullptr) {
+            OAID_HILOGE(OAID_MODULE_SERVICE, "Parse realpath fail");
+            return false;
+        }
     }
 
     std::ifstream ifs;
@@ -150,7 +153,7 @@ int32_t OAIDServiceStub::OnRemoteRequest(uint32_t code, MessageParcel &data, Mes
     }
 
     if (code == static_cast<uint32_t>(OAIDInterfaceCode::RESET_OAID)) {
-        if (!LoadAndCheckOaidWhiteList(bundleName)) {
+        if (!LoadAndCheckOaidTrustList(bundleName)) {
             OAID_HILOGW(OAID_MODULE_SERVICE, "CheckOaidTrustList fail");
             return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
         }
