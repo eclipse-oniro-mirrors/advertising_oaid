@@ -23,7 +23,7 @@ config("utils_config") {
 ohos_source_set("oaid_utils") {
   configs = [ ":utils_config" ]
 
-  sources = []
+  sources = [ "native/src/oaid_file_operator.cpp" ]
 
   deps = []
 
