@@ -43,6 +43,9 @@ static const std::string OAID_DATA_BASE_STORE_ID = "oaidservice";
 static const std::string OAID_KVSTORE_KEY = "oaid_key";
 static const std::string OAID_TRUSTLIST_CONFIG_PATH = "/etc/advertising/oaid/oaid_service_config.json";
 static const std::string OAID_TRUSTLIST_EXTENSION_CONFIG_PATH = "/etc/advertising/oaid/oaid_service_config_ext.json";
+
+/* oaid check define */
+const std::string OAID_UPDATE = "/data/service/el1/public/database/oaid_service_manager/update_check.json";
 } // namespace Cloud
 } // namespace OHOS
 #endif // OHOS_CLOUD_OAID_SERVICE_DEFINE_H

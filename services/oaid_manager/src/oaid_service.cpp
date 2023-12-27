@@ -19,6 +19,7 @@
 #include <string>
 #include <unistd.h>
 #include "oaid_common.h"
+#include "oaid_file_operator.h"
 #include "system_ability.h"
 #include "system_ability_definition.h"
 #include "oaid_service_stub.h"
@@ -289,35 +290,43 @@ bool OAIDService::WriteValueToKvStore(const std::string &kvStoreKey, const std::
 std::string OAIDService::GainOAID()
 {
     OAID_HILOGI(OAID_MODULE_SERVICE, "Gain OAID Begin.");
-    std::string oaid;
     std::string oaidKvStoreStr = OAID_ALLZERO_STR;
-
+    updateMutex_.lock();
+    if (OAIDFileOperator::IsFileExsit(OAID_UPDATE)) {
+        OAIDFileOperator::OpenAndReadFile(OAID_UPDATE, oaidKvStoreStr);
+        OAIDFileOperator::ClearFile(OAID_UPDATE);
+        Json::Reader reader;
+        Json::Value root;
+        std::string oaid;
+        if (reader.parse(oaidKvStoreStr, root)) {
+            oaid = root["oaid"].asString();
+        }
+        oaid_ = oaid;
+        bool update = WriteValueToKvStore(OAID_KVSTORE_KEY, oaid_);
+        OAID_HILOGI(OAID_MODULE_SERVICE, "update oaid %{public}s", update == true ? "success" : "failed");
+        updateMutex_.unlock();
+        return oaid_;
+    }
+    updateMutex_.unlock();
     bool result = ReadValueFromKvStore(OAID_KVSTORE_KEY, oaidKvStoreStr);
     OAID_HILOGI(OAID_MODULE_SERVICE, "ReadValueFromKvStore %{public}s", result == true ? "success" : "failed");
 
-    if (oaidKvStoreStr != OAID_ALLZERO_STR && oaidKvStoreStr != "") {
-        if (!oaid_.empty() || oaid_ != "") {
-            oaid = oaid_;
-            OAID_HILOGI(OAID_MODULE_SERVICE, "get oaid from kvdb successfully");
-        } else {
-            oaid = oaidKvStoreStr;
+    if (oaidKvStoreStr != OAID_ALLZERO_STR && !oaidKvStoreStr.empty()) {
+        if (oaid_.empty()) {
             oaid_ = oaidKvStoreStr;
-            OAID_HILOGW(OAID_MODULE_SERVICE, "The Oaid in the memory is empty,it get oaid from kvdb successfully");
+            OAID_HILOGI(OAID_MODULE_SERVICE, "The Oaid in the memory is empty, it get oaid from kvdb successfully");
         }
-        return oaid;
+        return oaid_;
     } else {
-        if (oaid_.empty() || oaid_ == "") {
+        if (oaid_.empty()) {
             oaid_ = GetUUID();
             OAID_HILOGI(OAID_MODULE_SERVICE, "The oaid has been regenerated.");
         }
     }
-
-    oaid = oaid_;
-
-    result = WriteValueToKvStore(OAID_KVSTORE_KEY, oaid);
+    result = WriteValueToKvStore(OAID_KVSTORE_KEY, oaid_);
     OAID_HILOGI(OAID_MODULE_SERVICE, "WriteValueToKvStore %{public}s", result == true ? "success" : "failed");
     OAID_HILOGI(OAID_MODULE_SERVICE, "Gain OAID Finish.");
-    return oaid;
+    return oaid_;
 }
 
 std::string OAIDService::GetOAID()

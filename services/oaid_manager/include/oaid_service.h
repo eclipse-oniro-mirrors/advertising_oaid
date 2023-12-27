@@ -68,6 +68,7 @@ private:
     static sptr<OAIDService> instance_;
 
     std::shared_ptr<DistributedKv::SingleKvStore> oaidKvStore_;
+    std::mutex updateMutex_;
     std::string oaid_;
 };
 } // namespace Cloud
