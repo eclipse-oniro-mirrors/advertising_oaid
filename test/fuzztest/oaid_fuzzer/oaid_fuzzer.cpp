@@ -32,27 +32,52 @@ using namespace OHOS::Cloud;
 namespace OHOS {
     const std::u16string OAID_INTERFACE_TOKEN = u"ohos.cloud.oaid.IOAIDService";
     const std::string OAID_TRACKING_CONSENT_PERMISSION = "ohos.permission.APP_TRACKING_CONSENT";
+    const std::string OAID_TRUSTLIST_EXTENSION_CONFIG_PATH = "/etc/advertising/oaid/oaid_service_config_ext.json";
+
     bool g_isGrant = false;
 
     void AddPermission()
     {
+        (void)remove(OAID_TRUSTLIST_EXTENSION_CONFIG_PATH.c_str());
+
         if (!g_isGrant) {
-            const char *perms[] = {
-                OAID_TRACKING_CONSENT_PERMISSION.c_str()
+            Security::AccessToken::PermissionDef testPermDef = {
+                .permissionName = OAID_TRACKING_CONSENT_PERMISSION,
+                .bundleName = "test_oaid",
+                .grantMode = Security::AccessToken::GrantMode::USER_GRANT,
+                .availableLevel = Security::AccessToken::APL_SYSTEM_BASIC,
+                .label = "label",
+                .labelId = 1,
+                .description = "test oaid",
+                .descriptionId = 1,
             };
-            NativeTokenInfoParams infoInstance = {
-                .dcapsNum = 0,
-                .permsNum = 1,
-                .aclsNum = 0,
-                .dcaps = nullptr,
-                .perms = perms,
-                .acls = nullptr,
-                .processName = "OAIDFuzzer",
-                .aplStr = "system_basic",
+
+            Security::AccessToken::PermissionStateFull testState = {
+                .isGeneral = true,
+                .grantStatus = {Security::AccessToken::PermissionState::PERMISSION_GRANTED},
+                .permissionName = OAID_TRACKING_CONSENT_PERMISSION,
+                .grantFlags = {Security::AccessToken::PermissionFlag::PERMISSION_USER_FIXED},
+                .resDeviceID = {"local"},
             };
-            uint64_t tokenId = GetAccessTokenId(&infoInstance);
-            SetSelfTokenID(tokenId);
-            Security::AccessToken::AccessTokenKit::ReloadNativeTokenInfo();
+
+            Security::AccessToken::HapInfoParams testInfoParms = {
+                .userID = 1,
+                .bundleName = "test_oaid",
+                .instIndex = 0,
+                .appIDDesc = "test",
+                .isSystemApp = true
+            };
+
+            Security::AccessToken::HapPolicyParams testPolicyPrams = {
+                .apl = Security::AccessToken::APL_SYSTEM_BASIC,
+                .domain = "test.domain",
+                .permList = {testPermDef},
+                .permStateList = {testState},
+            };
+
+            auto tokenID = Security::AccessToken::AccessTokenKit::AllocHapToken(testInfoParms, testPolicyPrams);
+            SetSelfTokenID(tokenID.tokenIDEx);
+
             g_isGrant = true;
         }
     }
