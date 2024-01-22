@@ -27,7 +27,8 @@
 
    在模块的module.json5文件中，申请[ohos.permission.APP_TRACKING_CONSENT](https://docs.openharmony.cn/pages/v4.0/zh-cn/application-dev/security/permission-list.md/)权限。
 
-   ```javascript
+   ```
+
    {
      "module": {
        "requestPermissions": [
@@ -41,37 +42,38 @@
 
 2. 在应用启动时触发动态授权弹框，向用户请求授权。
 
-   ```javascript
+  ```
   import abilityAccessCtrl from '@ohos.abilityAccessCtrl';
   import { BusinessError } from '@ohos.base';
   import hilog from '@ohos.hilog';
-   
+
   private requestOAIDTrackingConsentPermissions(context: common.Context): void {
     // 进入页面时触发动态授权弹框，向用户请求授权广告跟踪权限
     const atManager: abilityAccessCtrl.AtManager = abilityAccessCtrl.createAtManager();
-      try {
-        atManager.requestPermissionsFromUser(context, ["ohos.permission.APP_TRACKING_CONSENT"]).then((data) => {
-          if (data.authResults[0] == 0) {
-            hilog.info(0x0000, 'testTag', '%{public}s', 'request permission success');
-          } else {
-            hilog.info(0x0000, 'testTag', '%{public}s', `user rejected`);
-          }
+     try {
+       atManager.requestPermissionsFromUser(context, ["ohos.permission.APP_TRACKING_CONSENT"]).then((data) => {
+         if (data.authResults[0] == 0) {
+           hilog.info(0x0000, 'testTag', '%{public}s', 'request permission success');
+         } else {
+           hilog.info(0x0000, 'testTag', '%{public}s', `user rejected`);
+         }
        }).catch((err) => {
          const e: BusinessError = err as BusinessError;
          hilog.error(0x0000, 'testTag', '%{public}s', `request permission failed, error message: ${e.message}`);
        })
-    } catch(err) {
-      const e: BusinessError = err as BusinessError;
-      hilog.error(0x0000, 'testTag', '%{public}s', `catch err->${JSON.stringify(e)}`);
-    }
-  }
-   ```
+     } catch(err) {
+       const e: BusinessError = err as BusinessError;
+       hilog.error(0x0000, 'testTag', '%{public}s', `catch err->${JSON.stringify(e)}`);
+     }
+   }
+  ```
 
 3. 获取OAID信息
 
 - 通过Callback回调函数获取OAID
 
-  ```javascript
+  ```
+
   import identifier from '@ohos.identifier.oaid';
   import hilog from '@ohos.hilog'; 
   import { BusinessError } from '@ohos.base';
@@ -93,7 +95,8 @@
 
 - 通过Promise异步获取OAID
 
-  ```javascript
+  ```
+
   import identifier from '@ohos.identifier.oaid';
   import hilog from '@ohos.hilog'; 
   import { BusinessError } from '@ohos.base';
@@ -115,7 +118,8 @@
 
 可以使用此仓库内提供的接口重置OAID。以下步骤描述了如何使用接口重置OAID。该接口为系统接口。
 
-```javascript
+```
+
   import identifier from '@ohos.identifier.oaid';
   import hilog from '@ohos.hilog'; 
   import { BusinessError } from '@ohos.base';
