@@ -295,21 +295,24 @@ std::string OAIDService::GainOAID()
     if (OAIDFileOperator::IsFileExsit(OAID_UPDATE)) {
         OAIDFileOperator::OpenAndReadFile(OAID_UPDATE, oaidKvStoreStr);
         OAIDFileOperator::ClearFile(OAID_UPDATE);
-        Json::Reader reader;
-        Json::Value root;
         std::string oaid;
-        if (reader.parse(oaidKvStoreStr, root)) {
-            oaid = root["oaid"].asString();
+        cJSON *root = cJSON_Parse(oaidKvStoreStr.c_str());
+        if (root != nullptr && !cJSON_IsInvalid(root)) {
+            cJSON *oaidObj = cJSON_GetObjectItem(root, "oaid");
+            if (cJSON_IsString(oaidObj)) {
+                oaid = oaidObj->valuestring;
+            }
+            cJSON_Delete(root);
         }
         oaid_ = oaid;
         bool update = WriteValueToKvStore(OAID_KVSTORE_KEY, oaid_);
-        OAID_HILOGI(OAID_MODULE_SERVICE, "update oaid %{public}s", update == true ? "success" : "failed");
+        OAID_HILOGI(OAID_MODULE_SERVICE, "update oaid %{public}s", update ? "success" : "failed");
         updateMutex_.unlock();
         return oaid_;
     }
     updateMutex_.unlock();
     bool result = ReadValueFromKvStore(OAID_KVSTORE_KEY, oaidKvStoreStr);
-    OAID_HILOGI(OAID_MODULE_SERVICE, "ReadValueFromKvStore %{public}s", result == true ? "success" : "failed");
+    OAID_HILOGI(OAID_MODULE_SERVICE, "ReadValueFromKvStore %{public}s", result? "success" : "failed");
 
     if (oaidKvStoreStr != OAID_ALLZERO_STR && !oaidKvStoreStr.empty()) {
         if (oaid_.empty()) {

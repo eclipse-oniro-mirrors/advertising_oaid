@@ -21,7 +21,7 @@
 #include <map>
 #include <string>
 #include <pthread.h>
-#include "json/json.h"
+#include "cJSON.h"
 #include "oaid_service_interface.h"
 #include "ipc_skeleton.h"
 #include "iremote_stub.h"

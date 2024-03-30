@@ -36,9 +36,9 @@
         "samgr"
       ],
       "third_party": [
+        "cJSON",
         "libuv",
-        "openssl",
-        "jsoncpp"
+        "openssl"
       ]
     },
     "build": {

@@ -101,40 +101,41 @@ bool LoadAndCheckOaidTrustList(const std::string &bundleName)
             return false;
         }
     }
-
-    std::ifstream ifs;
-    ifs.open(realPath);
-    if (!ifs) {
-        OAID_HILOGW(OAID_MODULE_SERVICE, "Open file error.");
-        ifs.close();
+    std::ifstream inFile(realPath, std::ios::in);
+    if (!inFile.is_open()) {
+        OAID_HILOGE(OAID_MODULE_SERVICE, "Open file error.");
         return false;
     }
-
-    Json::Value jsonValue;
-    Json::CharReaderBuilder builder;
-    builder["collectComments"] = true;
-    JSONCPP_STRING errs;
-    if (!parseFromStream(builder, ifs, &jsonValue, &errs)) {
-        ifs.close();
-        OAID_HILOGW(OAID_MODULE_SERVICE, "Read file failed %{public}s.", errs.c_str());
+    std::string fileContent((std::istreambuf_iterator<char>(inFile)), std::istreambuf_iterator<char>());
+    cJSON *root = cJSON_Parse(fileContent.c_str());
+    inFile.close();
+    if (root == nullptr) {
+        OAID_HILOGE(OAID_MODULE_SERVICE, "ParseJsonFromFile is not in JSON format.");
         return false;
     }
-
-    Json::Value oaidTrustConfig = jsonValue["resetOAIDBundleName"];
-    if (oaidTrustConfig.size() == 0) {
-        ifs.close();
+    cJSON *oaidTrustConfig = cJSON_GetObjectItem(root, "resetOAIDBundleName");
+    if (oaidTrustConfig == nullptr || !cJSON_IsArray(oaidTrustConfig)) {
+        OAID_HILOGE(OAID_MODULE_SERVICE, "not contain resetOAIDBundleName node.");
+        cJSON_Delete(root);
+        return false;
+    }
+    int arraySize = cJSON_GetArraySize(oaidTrustConfig);
+    if (arraySize == 0) {
+        OAID_HILOGI(OAID_MODULE_SERVICE, "oaidTrustConfig list is empty.");
+        cJSON_Delete(root);
         return true;
     }
-    for (uint32_t i = 0; i < oaidTrustConfig.size(); i++) {
-        std::string trustData = oaidTrustConfig[i].asString();
-        uint32_t result = bundleName.compare(trustData);
-        if (result == 0) {
-            OAID_HILOGI(OAID_MODULE_SERVICE, "the oaidWhiteList contains this bundle name");
-            ifs.close();
-            return true;
+    for (int i = 0; i < arraySize; i++) {
+        cJSON *item = cJSON_GetArrayItem(oaidTrustConfig, i);
+        if (cJSON_IsString(item)) {
+            if (bundleName.compare(item->valuestring) == 0) {
+                OAID_HILOGI(OAID_MODULE_SERVICE, "the oaidWhiteList contains this bundle name");
+                cJSON_Delete(root);
+                return true;
+            }
         }
     }
-    ifs.close();
+    cJSON_Delete(root);
     return false;
 }
 

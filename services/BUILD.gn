@@ -19,6 +19,7 @@ config("oaid_service_config") {
     "${innerkits_path}/include",
     "../utils/native/include",
     "oaid_manager/include",
+    "//third_party/cJSON",
   ]
 }
 
@@ -47,7 +48,7 @@ ohos_shared_library("oaid_service") {
 
   deps = [
     "${oaid_utils_path}:oaid_utils",
-    "//third_party/jsoncpp:jsoncpp",
+    "//third_party/cJSON:cjson",
     "//third_party/openssl:libcrypto_shared",
   ]
 
