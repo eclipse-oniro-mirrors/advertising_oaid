@@ -19,7 +19,6 @@ config("oaid_service_config") {
     "${innerkits_path}/include",
     "../utils/native/include",
     "oaid_manager/include",
-    "//third_party/cJSON",
   ]
 }
 
