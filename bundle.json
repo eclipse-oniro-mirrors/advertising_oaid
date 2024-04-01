@@ -26,6 +26,7 @@
       "components": [
         "access_token",
         "bundle_framework",
+        "cJSON",
         "c_utils",
         "config_policy",
         "hilog",
@@ -36,7 +37,6 @@
         "samgr"
       ],
       "third_party": [
-        "cJSON",
         "libuv",
         "openssl"
       ]
