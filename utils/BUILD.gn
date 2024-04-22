@@ -31,7 +31,6 @@ ohos_source_set("oaid_utils") {
     cfi = true
     cfi_cross_dso = true
     debug = false
-    blocklist = "../cfi_blocklist.txt"
   }
 
   external_deps = [
