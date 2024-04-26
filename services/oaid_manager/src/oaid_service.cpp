@@ -302,8 +302,8 @@ std::string OAIDService::GainOAID()
             if (cJSON_IsString(oaidObj)) {
                 oaid = oaidObj->valuestring;
             }
-            cJSON_Delete(root);
         }
+        cJSON_Delete(root);
         oaid_ = oaid;
         bool update = WriteValueToKvStore(OAID_KVSTORE_KEY, oaid_);
         OAID_HILOGI(OAID_MODULE_SERVICE, "update oaid %{public}s", update ? "success" : "failed");
