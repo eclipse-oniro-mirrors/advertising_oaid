@@ -47,7 +47,7 @@ bool OAIDFileOperator::OpenAndReadFile(const std::string &fileName, std::string 
         inStream.seekg(0, std::ios::beg);
         inStream.read(&destContent[0], destContent.size());
         inStream.close();
-        OAID_HILOGE(OAID_MODULE_COMMON, "OpenAndReadFile success, content = %{public}s", destContent.c_str());
+        OAID_HILOGE(OAID_MODULE_COMMON, "OpenAndReadFile success");
         return true;
     }
     OAID_HILOGE(OAID_MODULE_COMMON, "OpenAndReadFile failed");
