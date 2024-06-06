@@ -164,6 +164,7 @@ void OAIDServiceClient::ResetOAID()
 
     if (oaidServiceProxy_ == nullptr) {
         OAID_HILOGE(OAID_MODULE_CLIENT, "Quit because redoing load oaid service failed.");
+        return;
     }
 
     oaidServiceProxy_->ResetOAID();
