@@ -34,6 +34,8 @@ static const std::string OAID_ALLZERO_STR = "00000000-0000-0000-0000-00000000000
  * load time out: 10s
  */
 static const int8_t LOAD_TIME_OUT = 10;
+
+static const int8_t RESET_OAID_DEFAULT_CODE = 0;
 } // namespace
 
 std::mutex OAIDServiceClient::instanceLock_;
@@ -153,7 +155,7 @@ std::string OAIDServiceClient::GetOAID()
     return oaid;
 }
 
-void OAIDServiceClient::ResetOAID()
+int32_t OAIDServiceClient::ResetOAID()
 {
     OAID_HILOGI(OAID_MODULE_CLIENT, "Begin.");
 
@@ -164,11 +166,13 @@ void OAIDServiceClient::ResetOAID()
 
     if (oaidServiceProxy_ == nullptr) {
         OAID_HILOGE(OAID_MODULE_CLIENT, "Quit because redoing load oaid service failed.");
+        return RESET_OAID_DEFAULT_CODE;
     }
 
-    oaidServiceProxy_->ResetOAID();
+    int32_t resetResult = oaidServiceProxy_->ResetOAID();
+    OAID_HILOGI(OAID_MODULE_SERVICE, "End.resetResult = %{public}d", resetResult);
 
-    OAID_HILOGI(OAID_MODULE_CLIENT, "End.");
+    return resetResult;
 }
 
 void OAIDServiceClient::OnRemoteSaDied(const wptr<IRemoteObject>& remote)

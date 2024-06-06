@@ -32,6 +32,10 @@ const size_t OAID_MAX_PARA = 1;
 const size_t CALLBACK_ARGS_LENGTH = 2;
 const int8_t CALLBACK_CODE = 0;
 const int8_t CALLBACK_RESULT = 1;
+/* not system app error code */
+static const int32_t OAID_ERROR_CODE_NOT_SYSTEM_APP = 202;
+/* not in trust list error code */
+static const int32_t OAID_ERROR_NOT_IN_TRUST_LIST = 401;
 } // namespace
 
 std::mutex oaidLock_;
@@ -219,7 +223,15 @@ napi_value ResetOAID(napi_env env, napi_callback_info info)
 
     napi_value result = nullptr;
     napi_get_undefined(env, &result);
-    Cloud::OAIDServiceClient::GetInstance()->ResetOAID();
+    int32_t errorCode = Cloud::OAIDServiceClient::GetInstance()->ResetOAID();
+    OAID_HILOGI(OHOS::Cloud::OAID_MODULE_JS_NAPI, "ResetOAID code = %{public}d", errorCode);
+    if (errorCode == OAID_ERROR_CODE_NOT_SYSTEM_APP) {
+        napi_throw_error(env, std::to_string(errorCode).c_str(), "not system app");
+    }
+
+    if (errorCode == OAID_ERROR_NOT_IN_TRUST_LIST) {
+        napi_throw_error(env, std::to_string(errorCode).c_str(), "not in trust list");
+    }
 
     OAID_HILOGI(OHOS::Cloud::OAID_MODULE_JS_NAPI, "ResetOAID End.");
 

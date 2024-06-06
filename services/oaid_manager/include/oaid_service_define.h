@@ -34,6 +34,11 @@ static constexpr uint32_t KVSTORE_CONNECT_RETRY_COUNT = 5;
 static constexpr uint32_t KVSTORE_CONNECT_RETRY_DELAY_TIME = 3000; // Unit: ms
 static const int8_t CONNECT_TIME_OUT = 3;    // The connection timeout is 3s.
 
+/* not system app error code */
+static const int32_t OAID_ERROR_CODE_NOT_SYSTEM_APP = 202;
+/* not in trust list error code */
+static const int32_t OAID_ERROR_NOT_IN_TRUST_LIST = 401;
+
 static const std::string OAID_ALLZERO_STR = "00000000-0000-0000-0000-000000000000";
 
 /* database define */
