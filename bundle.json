@@ -34,7 +34,8 @@
         "ipc",
         "napi",
         "safwk",
-        "samgr"
+        "samgr",
+        "hianalytics_service"
       ],
       "third_party": [
         "libuv",

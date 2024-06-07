@@ -46,6 +46,7 @@ ohos_shared_library("oaid_client") {
     "ipc:ipc_single",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
+    "hianalytics_service:ha_client",
   ]
   version_script = "liboaidclient.versionscript"
   subsystem_name = "advertising"

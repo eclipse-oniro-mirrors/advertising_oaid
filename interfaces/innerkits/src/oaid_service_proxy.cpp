@@ -18,6 +18,7 @@
 #include "oaid_common.h"
 #include "oaid_service_interface.h"
 #include "oaid_service_ipc_interface_code.h"
+#include "ha_inner_api.h"
 
 namespace OHOS {
 namespace Cloud {
@@ -61,7 +62,14 @@ int32_t OAIDServiceProxy::ResetOAID()
         OAID_HILOGE(OAID_MODULE_CLIENT, "Reset OAID failed, error code is: %{public}d", result);
     }
     OAID_HILOGI(OAID_MODULE_CLIENT, "Reset OAID End.");
-
+    if (result == ERR_OK) {
+        auto oaid = GetOAID();
+        std::string eventId = "ADS_ID_REFRESH";
+        std::unordered_map<std::string, std::string> someKv({{"type", "oaid"}, {"id", oaid.c_str()}});
+        int32_t onEventRet =
+            HaCloud::HaInnerApi::OnEvent("$CommonEvent", HaCloud::EventType::operation, eventId, someKv);
+        OAID_HILOGI(OAID_MODULE_CLIENT, "Reset OAID onEventRet: %{public}d", onEventRet);
+    }
     int32_t errorCode = reply.ReadInt32();
     OAID_HILOGI(OAID_MODULE_CLIENT, "Reset OAID End.errorCode = %{public}d", errorCode);
     return errorCode;
