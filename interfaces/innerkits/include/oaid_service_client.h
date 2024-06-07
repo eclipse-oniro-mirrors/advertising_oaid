@@ -50,7 +50,7 @@ public:
     /**
      * Reset open advertising id.
      */
-    void ResetOAID();
+    int32_t ResetOAID();
 
     void OnRemoteSaDied(const wptr<IRemoteObject>& object);
 

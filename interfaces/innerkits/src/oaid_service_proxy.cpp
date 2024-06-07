@@ -46,7 +46,7 @@ std::string OAIDServiceProxy::GetOAID()
     return oaid;
 }
 
-OAID_LOCAL_API void OAIDServiceProxy::ResetOAID()
+int32_t OAIDServiceProxy::ResetOAID()
 {
     OAID_HILOGI(OAID_MODULE_CLIENT, "Reset OAID Begin.");
     MessageParcel data, reply;
@@ -61,6 +61,10 @@ OAID_LOCAL_API void OAIDServiceProxy::ResetOAID()
         OAID_HILOGE(OAID_MODULE_CLIENT, "Reset OAID failed, error code is: %{public}d", result);
     }
     OAID_HILOGI(OAID_MODULE_CLIENT, "Reset OAID End.");
+
+    int32_t errorCode = reply.ReadInt32();
+    OAID_HILOGI(OAID_MODULE_CLIENT, "Reset OAID End.errorCode = %{public}d", errorCode);
+    return errorCode;
 }
-} // namespace Cloud
-} // namespace OHOS
+}  // namespace Cloud
+}  // namespace OHOS

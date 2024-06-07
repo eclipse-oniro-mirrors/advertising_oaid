@@ -34,7 +34,7 @@ public:
     /**
      * Reset open advertising id.
      */
-    virtual void ResetOAID() = 0;
+    virtual int32_t ResetOAID() = 0;
 
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.cloud.oaid.IOAIDService");
 };

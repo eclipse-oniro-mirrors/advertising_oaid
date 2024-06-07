@@ -155,12 +155,22 @@ int32_t OAIDServiceStub::OnRemoteRequest(uint32_t code, MessageParcel &data, Mes
 
     if (code == static_cast<uint32_t>(OAIDInterfaceCode::RESET_OAID)) {
         if (!LoadAndCheckOaidTrustList(bundleName)) {
-            OAID_HILOGW(OAID_MODULE_SERVICE, "CheckOaidTrustList fail");
+            OAID_HILOGW(OAID_MODULE_SERVICE, "CheckOaidTrustList fail.errorCode = %{public}d",
+                OAID_ERROR_NOT_IN_TRUST_LIST);
+            if (!reply.WriteInt32(OAID_ERROR_NOT_IN_TRUST_LIST)) {
+                OAID_HILOGE(OAID_MODULE_SERVICE, "write errorCode to reply failed.");
+                return ERR_SYSYTEM_ERROR;
+            }
             return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
         }
 
         if (!CheckSystemApp()) {
-            OAID_HILOGW(OAID_MODULE_SERVICE, "CheckSystemApp fail");
+            OAID_HILOGW(OAID_MODULE_SERVICE, "CheckSystemApp fail.errorCode = %{public}d",
+                OAID_ERROR_CODE_NOT_SYSTEM_APP);
+            if (!reply.WriteInt32(OAID_ERROR_CODE_NOT_SYSTEM_APP)) {
+                OAID_HILOGE(OAID_MODULE_SERVICE, "write errorCode to reply failed.");
+                return ERR_SYSYTEM_ERROR;
+            }
             return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
         }
     }

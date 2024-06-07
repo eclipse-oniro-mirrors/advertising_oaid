@@ -40,7 +40,7 @@ public:
     /**
      * Reset open advertising id.
      */
-    OAID_LOCAL_API void ResetOAID() override;
+    int32_t ResetOAID() override;
 
 private:
     static inline BrokerDelegator<OAIDServiceProxy> delegator_;

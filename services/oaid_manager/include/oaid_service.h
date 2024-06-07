@@ -50,7 +50,7 @@ public:
     /**
      * Reset open advertising id.
      */
-    void ResetOAID() override;
+    int32_t ResetOAID() override;
 
 protected:
     void OnStart() override;

@@ -342,13 +342,14 @@ std::string OAIDService::GetOAID()
     return oaid;
 }
 
-void OAIDService::ResetOAID()
+int32_t OAIDService::ResetOAID()
 {
     OAID_HILOGI(OAID_MODULE_SERVICE, "ResetOAID.");
     std::string resetOaid = GetUUID();
     oaid_ = resetOaid;
     bool result = WriteValueToKvStore(OAID_KVSTORE_KEY, resetOaid);
     OAID_HILOGI(OAID_MODULE_SERVICE, "ResetOAID WriteValueToKvStore %{public}s", result == true ? "success" : "failed");
+    return ERR_OK;
 }
 }  // namespace Cloud
 }  // namespace OHOS
