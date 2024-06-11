@@ -42,11 +42,11 @@ ohos_shared_library("oaid_client") {
   innerapi_tags = [ "platformsdk" ]
   deps = [ "${oaid_utils_path}:oaid_utils" ]
   external_deps = [
+    "hiappevent:hiappevent_innerapi",
     "hilog:libhilog",
     "ipc:ipc_single",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
-    "hiappevent:hiappevent_innerapi",
   ]
   version_script = "liboaidclient.versionscript"
   subsystem_name = "advertising"
