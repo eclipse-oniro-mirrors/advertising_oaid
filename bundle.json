@@ -35,7 +35,7 @@
         "napi",
         "safwk",
         "samgr",
-        "hianalytics_service"
+        "hiappevent"
       ],
       "third_party": [
         "libuv",
