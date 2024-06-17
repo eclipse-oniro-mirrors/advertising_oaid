@@ -35,7 +35,7 @@ const int8_t CALLBACK_RESULT = 1;
 /* not system app error code */
 static const int32_t OAID_ERROR_CODE_NOT_SYSTEM_APP = 202;
 /* not in trust list error code */
-static const int32_t OAID_ERROR_NOT_IN_TRUST_LIST = 401;
+static const int32_t OAID_ERROR_NOT_IN_TRUST_LIST = 17300002;
 } // namespace
 
 std::mutex oaidLock_;
