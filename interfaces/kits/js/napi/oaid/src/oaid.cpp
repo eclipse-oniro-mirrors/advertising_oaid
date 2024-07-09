@@ -226,11 +226,11 @@ napi_value ResetOAID(napi_env env, napi_callback_info info)
     int32_t errorCode = Cloud::OAIDServiceClient::GetInstance()->ResetOAID();
     OAID_HILOGI(OHOS::Cloud::OAID_MODULE_JS_NAPI, "ResetOAID code = %{public}d", errorCode);
     if (errorCode == OAID_ERROR_CODE_NOT_SYSTEM_APP) {
-        napi_throw_error(env, std::to_string(errorCode).c_str(), "not system app");
+        napi_throw_error(env, std::to_string(errorCode).c_str(), "Permission verification failed. A non-system application calls a system API.");
     }
 
     if (errorCode == OAID_ERROR_NOT_IN_TRUST_LIST) {
-        napi_throw_error(env, std::to_string(errorCode).c_str(), "not in trust list");
+        napi_throw_error(env, std::to_string(errorCode).c_str(), "Not in the trust list");
     }
 
     OAID_HILOGI(OHOS::Cloud::OAID_MODULE_JS_NAPI, "ResetOAID End.");
