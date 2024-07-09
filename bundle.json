@@ -34,7 +34,8 @@
         "ipc",
         "napi",
         "safwk",
-        "samgr"
+        "samgr",
+        "hiappevent"
       ],
       "third_party": [
         "libuv",

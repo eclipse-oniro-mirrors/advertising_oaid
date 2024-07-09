@@ -18,17 +18,21 @@
 #include "oaid_common.h"
 #include "oaid_service_interface.h"
 #include "oaid_service_ipc_interface_code.h"
+#include "app_event_processor_mgr.h"
+#include "app_event.h"
 
 namespace OHOS {
 namespace Cloud {
 using namespace OHOS::HiviewDFX;
 
-OAIDServiceProxy::OAIDServiceProxy(const sptr<IRemoteObject>& object) : IRemoteProxy<IOAIDService>(object) {}
+OAIDServiceProxy::OAIDServiceProxy(const sptr<IRemoteObject> &object) : IRemoteProxy<IOAIDService>(object)
+{}
 
 std::string OAIDServiceProxy::GetOAID()
 {
     OAID_HILOGI(OAID_MODULE_CLIENT, "GetOAID Begin.");
-    MessageParcel data, reply;
+    MessageParcel data;
+    MessageParcel reply;
     MessageOption option;
 
     if (!data.WriteInterfaceToken(GetDescriptor())) {
@@ -49,7 +53,8 @@ std::string OAIDServiceProxy::GetOAID()
 int32_t OAIDServiceProxy::ResetOAID()
 {
     OAID_HILOGI(OAID_MODULE_CLIENT, "Reset OAID Begin.");
-    MessageParcel data, reply;
+    MessageParcel data;
+    MessageParcel reply;
     MessageOption option;
 
     if (!data.WriteInterfaceToken(GetDescriptor())) {
@@ -62,6 +67,28 @@ int32_t OAIDServiceProxy::ResetOAID()
     }
     OAID_HILOGI(OAID_MODULE_CLIENT, "Reset OAID End.");
 
+    if (result == ERR_OK) {
+        auto oaid = GetOAID();
+        HiviewDFX::HiAppEvent::ReportConfig config;
+        config.name = "ha_app_event";
+        config.routeInfo = "AUTO";
+        config.eventConfigs.clear();
+
+        HiviewDFX::HiAppEvent::EventConfig eventConfig;
+        eventConfig.domain = "CommonEvent";
+        eventConfig.name = "ADS_ID_REFRESH";
+        eventConfig.isRealTime = true;
+        config.eventConfigs.push_back(eventConfig);
+        HiviewDFX::HiAppEvent::AppEventProcessorMgr::AddProcessor(config);
+
+        // 写事件
+        HiviewDFX::HiAppEvent::Event event("CommonEvent", "ADS_ID_REFRESH", HiviewDFX::HiAppEvent::BEHAVIOR);
+        std::string oaidKey = "oaid";
+        event.AddParam("type", oaidKey);
+        event.AddParam("id", oaid);
+        HiviewDFX::HiAppEvent::Write(event);
+        OAID_HILOGI(OAID_MODULE_CLIENT, "Reset OAID WriteEvent success!");
+    }
     int32_t errorCode = reply.ReadInt32();
     OAID_HILOGI(OAID_MODULE_CLIENT, "Reset OAID End.errorCode = %{public}d", errorCode);
     return errorCode;
