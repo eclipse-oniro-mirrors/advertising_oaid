@@ -62,6 +62,7 @@ ohos_shared_library("oaid_service") {
     "kv_store:distributeddata_inner",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
+    "eventhandler:libeventhandler",
   ]
   part_name = "oaid"
   subsystem_name = "advertising"

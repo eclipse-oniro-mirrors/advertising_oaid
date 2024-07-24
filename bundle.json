@@ -35,7 +35,8 @@
         "napi",
         "safwk",
         "samgr",
-        "hiappevent"
+        "hiappevent",
+        "eventhandler"
       ],
       "third_party": [
         "libuv",

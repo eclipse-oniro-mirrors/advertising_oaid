@@ -25,7 +25,7 @@
 #include "oaid_service.h"
 #include "oaid_service_ipc_interface_code.h"
 #include "config_policy_utils.h"
-
+#include "iservice_registry.h"
 
 using namespace OHOS::Security::AccessToken;
 
@@ -142,6 +142,12 @@ bool LoadAndCheckOaidTrustList(const std::string &bundleName)
 int32_t OAIDServiceStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply,
     MessageOption &option)
 {
+    if (unloadHandler_ == nullptr) {
+        const char *runnerName = "unlock";
+        auto runner = AppExecFwk::EventRunner::Create(runnerName);
+        unloadHandler_ = std::make_shared<AppExecFwk::EventHandler>(runner);
+    }
+    PostDelayUnloadTask();
     OAID_HILOGI(OAID_MODULE_SERVICE, "Start, code is %{public}u.", code);
     std::string bundleName;
     pid_t uid = IPCSkeleton::GetCallingUid();
@@ -222,5 +228,25 @@ int32_t OAIDServiceStub::OnResetOAID(MessageParcel &data, MessageParcel &reply)
     OAID_HILOGI(OAID_MODULE_SERVICE, "Reset OAID End.");
     return ERR_OK;
 }
+
+void OAIDServiceStub::PostDelayUnloadTask()
+{
+    auto task = [this]() {
+        auto samgrProxy = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+        if (samgrProxy == nullptr) {
+            OAID_HILOGI(OAID_MODULE_SERVICE, "Get samgr failed.");
+            return;
+        }
+        int32_t ret = samgrProxy->UnloadSystemAbility(OAID_SYSTME_ID);
+        if (ret != ERR_OK) {
+            OAID_HILOGI(OAID_MODULE_SERVICE, "Unload system ability %{public}d failed, result: %{public}d.",
+                        OAID_SYSTME_ID, ret);
+            return;
+        }
+    };
+    unloadHandler_->RemoveTask(TASK_ID);
+    unloadHandler_->PostTask(task, TASK_ID, DELAY_TIME);
+}
+
 } // namespace Cloud
 } // namespace OHOS

@@ -51,6 +51,10 @@ static const std::string OAID_TRUSTLIST_EXTENSION_CONFIG_PATH = "/etc/advertisin
 
 /* oaid check define */
 const std::string OAID_UPDATE = "/data/service/el1/public/database/oaid_service_manager/update_check.json";
+
+/* oaid service 按需停空闲等待时间。单位（ms） */
+static constexpr int32_t DELAY_TIME = 290000;
+static const std::string TASK_ID = "unload";
 } // namespace Cloud
 } // namespace OHOS
 #endif // OHOS_CLOUD_OAID_SERVICE_DEFINE_H
