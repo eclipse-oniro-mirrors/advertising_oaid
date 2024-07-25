@@ -142,11 +142,6 @@ bool LoadAndCheckOaidTrustList(const std::string &bundleName)
 int32_t OAIDServiceStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply,
     MessageOption &option)
 {
-    if (unloadHandler_ == nullptr) {
-        const char *runnerName = "unlock";
-        auto runner = AppExecFwk::EventRunner::Create(runnerName);
-        unloadHandler_ = std::make_shared<AppExecFwk::EventHandler>(runner);
-    }
     PostDelayUnloadTask();
     OAID_HILOGI(OAID_MODULE_SERVICE, "Start, code is %{public}u.", code);
     std::string bundleName;
@@ -231,6 +226,11 @@ int32_t OAIDServiceStub::OnResetOAID(MessageParcel &data, MessageParcel &reply)
 
 void OAIDServiceStub::PostDelayUnloadTask()
 {
+    if (unloadHandler_ == nullptr) {
+        const char *runnerName = "unlock";
+        auto runner = AppExecFwk::EventRunner::Create(runnerName);
+        unloadHandler_ = std::make_shared<AppExecFwk::EventHandler>(runner);
+    }
     auto task = [this]() {
         auto samgrProxy = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
         if (samgrProxy == nullptr) {
