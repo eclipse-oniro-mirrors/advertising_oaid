@@ -44,14 +44,12 @@ public:
     int32_t OnRemoteRequest(uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option) override;
 
 private:
-    using OAIDServiceFunc = int32_t (OAIDServiceStub::*)(MessageParcel& data, MessageParcel& reply);
 
     int32_t OnGetOAID(MessageParcel& data, MessageParcel& reply);
     int32_t OnResetOAID(MessageParcel& data, MessageParcel& reply);
 
     bool CheckPermission(const std::string &permissionName);
     bool CheckSystemApp();
-    std::map<uint32_t, OAIDServiceFunc> memberFuncMap_;
 };
 } // namespace Cloud
 } // namespace OHOS
