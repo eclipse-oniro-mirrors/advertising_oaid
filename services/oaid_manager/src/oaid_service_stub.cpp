@@ -26,7 +26,6 @@
 #include "oaid_service_ipc_interface_code.h"
 #include "config_policy_utils.h"
 
-
 using namespace OHOS::Security::AccessToken;
 
 namespace OHOS {
@@ -34,13 +33,10 @@ namespace Cloud {
 using namespace OHOS::HiviewDFX;
 OAIDServiceStub::OAIDServiceStub()
 {
-    memberFuncMap_[static_cast<uint32_t>(OAIDInterfaceCode::GET_OAID)] = &OAIDServiceStub::OnGetOAID;
-    memberFuncMap_[static_cast<uint32_t>(OAIDInterfaceCode::RESET_OAID)] = &OAIDServiceStub::OnResetOAID;
 }
 
 OAIDServiceStub::~OAIDServiceStub()
 {
-    memberFuncMap_.clear();
 }
 
 bool OAIDServiceStub::CheckPermission(const std::string &permissionName)
@@ -182,17 +178,17 @@ int32_t OAIDServiceStub::OnRemoteRequest(uint32_t code, MessageParcel &data, Mes
     }
 
     OAID_HILOGI(OAID_MODULE_SERVICE, "Remote bundleName is %{public}s.", bundleName.c_str());
-    auto itFunc = memberFuncMap_.find(code);
-    if (itFunc != memberFuncMap_.end()) {
-        auto memberFunc = itFunc->second;
-        if (memberFunc != nullptr) {
-            return (this->*memberFunc)(data, reply);
+    switch (code) {
+        case static_cast<uint32_t>(OAIDInterfaceCode::GET_OAID):{
+            return OAIDServiceStub::OnGetOAID(data, reply);
+            break;
+        }
+        case static_cast<uint32_t>(OAIDInterfaceCode::RESET_OAID):{
+            return OAIDServiceStub::OnResetOAID(data, reply);
+            break;
         }
     }
-
-    int32_t ret = IPCObjectStub::OnRemoteRequest(code, data, reply, option);
-    OAID_HILOGE(OAID_MODULE_SERVICE, "No find process to handle, ret is %{public}d.", ret);
-    return ret;
+    return ERR_SYSYTEM_ERROR;
 }
 
 int32_t OAIDServiceStub::OnGetOAID(MessageParcel &data, MessageParcel &reply)
