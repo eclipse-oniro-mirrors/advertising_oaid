@@ -46,7 +46,6 @@ public:
     int32_t OnRemoteRequest(uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option) override;
 
 private:
-    using OAIDServiceFunc = int32_t (OAIDServiceStub::*)(MessageParcel& data, MessageParcel& reply);
 
     int32_t OnGetOAID(MessageParcel& data, MessageParcel& reply);
     int32_t OnResetOAID(MessageParcel& data, MessageParcel& reply);
@@ -55,8 +54,6 @@ private:
     bool CheckSystemApp();
 
     void PostDelayUnloadTask();
-
-    std::map<uint32_t, OAIDServiceFunc> memberFuncMap_;
     std::shared_ptr<AppExecFwk::EventHandler> unloadHandler_;
 };
 } // namespace Cloud
