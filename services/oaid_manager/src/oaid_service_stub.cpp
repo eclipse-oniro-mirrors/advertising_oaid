@@ -169,7 +169,6 @@ int32_t OAIDServiceStub::OnRemoteRequest(
             OAID_MODULE_SERVICE, "bundleName %{public}s not granted the app tracking permission", bundleName.c_str());
         return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
     }
-
     if (code == static_cast<uint32_t>(OAIDInterfaceCode::RESET_OAID)) {
         if (!LoadAndCheckOaidTrustList(bundleName)) {
             OAID_HILOGW(
@@ -180,7 +179,6 @@ int32_t OAIDServiceStub::OnRemoteRequest(
             }
             return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
         }
-
         if (!CheckSystemApp()) {
             OAID_HILOGW(
                 OAID_MODULE_SERVICE, "CheckSystemApp fail.errorCode = %{public}d", OAID_ERROR_CODE_NOT_SYSTEM_APP);
@@ -197,9 +195,8 @@ int32_t OAIDServiceStub::OnRemoteRequest(
         OAID_HILOGE(OAID_MODULE_SERVICE, "Descriptor checked fail.");
         return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
     }
-
     OAID_HILOGI(OAID_MODULE_SERVICE, "Remote bundleName is %{public}s.", bundleName.c_str());
-    return sendCode(code, data, reply);
+    return SendCode(code, data, reply);
 }
 
 int32_t OAIDServiceStub::OnGetOAID(MessageParcel &data, MessageParcel &reply)
