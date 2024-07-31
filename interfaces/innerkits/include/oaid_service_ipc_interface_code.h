@@ -21,7 +21,8 @@ namespace OHOS {
 namespace Cloud {
     enum class OAIDInterfaceCode {
         GET_OAID = 0,
-        RESET_OAID = 1
+        RESET_OAID = 1,
+        REGISTER_CONTROL_CONFIG_OBSERVER = 2,
     };
 } // namespace Cloud
 } // namespace OHOS

@@ -52,6 +52,11 @@ public:
      */
     int32_t ResetOAID();
 
+    /**
+     * RegisterObserver
+     */
+    int32_t RegisterObserver(const sptr<IRemoteConfigObserver>& observer);
+
     void OnRemoteSaDied(const wptr<IRemoteObject>& object);
 
     void LoadServerFail();
