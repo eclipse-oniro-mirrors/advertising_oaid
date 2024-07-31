@@ -137,7 +137,7 @@ bool LoadAndCheckOaidTrustList(const std::string &bundleName)
     return false;
 }
 
-int32_t OAIDServiceStub::sendCode(uint32_t code, MessageParcel &data, MessageParcel &reply)
+int32_t OAIDServiceStub::SendCode(uint32_t code, MessageParcel &data, MessageParcel &reply)
 {
     switch (code) {
         case static_cast<uint32_t>(OAIDInterfaceCode::GET_OAID): {
