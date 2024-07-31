@@ -139,6 +139,7 @@ bool LoadAndCheckOaidTrustList(const std::string &bundleName)
 int32_t OAIDServiceStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply,
     MessageOption &option)
 {
+    ExitIdleState();
     PostDelayUnloadTask();
     OAID_HILOGI(OAID_MODULE_SERVICE, "Start, code is %{public}u.", code);
     std::string bundleName;
@@ -221,6 +222,21 @@ int32_t OAIDServiceStub::OnResetOAID(MessageParcel &data, MessageParcel &reply)
     return ERR_OK;
 }
 
+void OAIDServiceStub::ExitIdleState()
+{
+    auto samgrProxy = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    if (samgrProxy == nullptr) {
+        OAID_HILOGE(OAID_MODULE_SERVICE, "Get samgr failed.");
+        return;
+    }
+    int32_t ret = samgrProxy->CancelUnloadSystemAbility(OAID_SYSTME_ID);
+    if (ret != ERR_OK) {
+        OAID_HILOGE(OAID_MODULE_SERVICE, "CancelUnload system ability %{public}d failed, result: %{public}d.",
+                    OAID_SYSTME_ID, ret);
+        return;
+    }
+}
+
 void OAIDServiceStub::PostDelayUnloadTask()
 {
     if (unloadHandler_ == nullptr) {
@@ -231,12 +247,12 @@ void OAIDServiceStub::PostDelayUnloadTask()
     auto task = [this]() {
         auto samgrProxy = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
         if (samgrProxy == nullptr) {
-            OAID_HILOGI(OAID_MODULE_SERVICE, "Get samgr failed.");
+            OAID_HILOGE(OAID_MODULE_SERVICE, "Get samgr failed.");
             return;
         }
         int32_t ret = samgrProxy->UnloadSystemAbility(OAID_SYSTME_ID);
         if (ret != ERR_OK) {
-            OAID_HILOGI(OAID_MODULE_SERVICE, "Unload system ability %{public}d failed, result: %{public}d.",
+            OAID_HILOGE(OAID_MODULE_SERVICE, "Unload system ability %{public}d failed, result: %{public}d.",
                         OAID_SYSTME_ID, ret);
             return;
         }

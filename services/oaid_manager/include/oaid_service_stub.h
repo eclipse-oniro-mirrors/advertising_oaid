@@ -52,7 +52,7 @@ private:
 
     bool CheckPermission(const std::string &permissionName);
     bool CheckSystemApp();
-
+    void ExitIdleState();
     void PostDelayUnloadTask();
     std::shared_ptr<AppExecFwk::EventHandler> unloadHandler_;
 };
