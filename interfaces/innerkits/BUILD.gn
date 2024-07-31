@@ -24,9 +24,9 @@ config("oaid_client_config") {
 ohos_shared_library("oaid_client") {
   branch_protector_ret = "pac_ret"
   sources = [
+    "src/oaid_remote_config_observer_stub.cpp",
     "src/oaid_service_client.cpp",
     "src/oaid_service_proxy.cpp",
-    "src/oaid_remote_config_observer_stub.cpp",
   ]
 
   sanitize = {
