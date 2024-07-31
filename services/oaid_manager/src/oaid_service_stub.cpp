@@ -137,8 +137,41 @@ bool LoadAndCheckOaidTrustList(const std::string &bundleName)
     return false;
 }
 
-int32_t CheckResetOaid(uint32_t code){
-    if (!LoadAndCheckOaidTrustList(bundleName)) {
+int32_t OAIDServiceStub::sendCode(uint32_t code, MessageParcel &data, MessageParcel &reply)
+{
+    switch (code) {
+        case static_cast<uint32_t>(OAIDInterfaceCode::GET_OAID): {
+            return OAIDServiceStub::OnGetOAID(data, reply);
+            break;
+        }
+        case static_cast<uint32_t>(OAIDInterfaceCode::RESET_OAID): {
+            return OAIDServiceStub::OnResetOAID(data, reply);
+            break;
+        }
+        case static_cast<uint32_t>(OAIDInterfaceCode::REGISTER_CONTROL_CONFIG_OBSERVER): {
+            return OAIDServiceStub::HandleRegisterControlConfigObserver(data, reply);
+            break;
+        }
+    }
+    return ERR_SYSYTEM_ERROR;
+}
+
+int32_t OAIDServiceStub::OnRemoteRequest(
+    uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
+{
+    OAID_HILOGI(OAID_MODULE_SERVICE, "Start, code is %{public}u.", code);
+    std::string bundleName;
+    pid_t uid = IPCSkeleton::GetCallingUid();
+    DelayedSingleton<BundleMgrHelper>::GetInstance()->GetBundleNameByUid(static_cast<int>(uid), bundleName);
+    if (code == static_cast<uint32_t>(OAIDInterfaceCode::GET_OAID) &&
+        !CheckPermission(OAID_TRACKING_CONSENT_PERMISSION)) {
+        OAID_HILOGW(
+            OAID_MODULE_SERVICE, "bundleName %{public}s not granted the app tracking permission", bundleName.c_str());
+        return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
+    }
+
+    if (code == static_cast<uint32_t>(OAIDInterfaceCode::RESET_OAID)) {
+        if (!LoadAndCheckOaidTrustList(bundleName)) {
             OAID_HILOGW(
                 OAID_MODULE_SERVICE, "CheckOaidTrustList fail.errorCode = %{public}d", OAID_ERROR_NOT_IN_TRUST_LIST);
             if (!reply.WriteInt32(OAID_ERROR_NOT_IN_TRUST_LIST)) {
@@ -157,24 +190,6 @@ int32_t CheckResetOaid(uint32_t code){
             }
             return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
         }
-}
-
-int32_t OAIDServiceStub::OnRemoteRequest(
-    uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
-{
-    OAID_HILOGI(OAID_MODULE_SERVICE, "Start, code is %{public}u.", code);
-    std::string bundleName;
-    pid_t uid = IPCSkeleton::GetCallingUid();
-    DelayedSingleton<BundleMgrHelper>::GetInstance()->GetBundleNameByUid(static_cast<int>(uid), bundleName);
-    if (code == static_cast<uint32_t>(OAIDInterfaceCode::GET_OAID) &&
-        !CheckPermission(OAID_TRACKING_CONSENT_PERMISSION)) {
-        OAID_HILOGW(
-            OAID_MODULE_SERVICE, "bundleName %{public}s not granted the app tracking permission", bundleName.c_str());
-        return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
-    }
-
-    if (code == static_cast<uint32_t>(OAIDInterfaceCode::RESET_OAID)) {
-        return CheckResetOaid(code);
     }
     std::u16string myDescripter = OAIDServiceStub::GetDescriptor();
     std::u16string remoteDescripter = data.ReadInterfaceToken();
@@ -184,21 +199,7 @@ int32_t OAIDServiceStub::OnRemoteRequest(
     }
 
     OAID_HILOGI(OAID_MODULE_SERVICE, "Remote bundleName is %{public}s.", bundleName.c_str());
-    switch (code) {
-        case static_cast<uint32_t>(OAIDInterfaceCode::GET_OAID): {
-            return OAIDServiceStub::OnGetOAID(data, reply);
-            break;
-        }
-        case static_cast<uint32_t>(OAIDInterfaceCode::RESET_OAID): {
-            return OAIDServiceStub::OnResetOAID(data, reply);
-            break;
-        }
-        case static_cast<uint32_t>(OAIDInterfaceCode::REGISTER_CONTROL_CONFIG_OBSERVER): {
-            return OAIDServiceStub::HandleRegisterControlConfigObserver(data, reply);
-            break;
-        }
-    }
-    return ERR_SYSYTEM_ERROR;
+    return sendCode(code, data, reply);
 }
 
 int32_t OAIDServiceStub::OnGetOAID(MessageParcel &data, MessageParcel &reply)

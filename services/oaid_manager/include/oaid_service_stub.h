@@ -48,6 +48,7 @@ public:
 private:
     int32_t OnGetOAID(MessageParcel& data, MessageParcel& reply);
     int32_t OnResetOAID(MessageParcel& data, MessageParcel& reply);
+    int32_t sendCode(uint32_t code,MessageParcel& data, MessageParcel& reply);
     int32_t HandleRegisterControlConfigObserver(MessageParcel& data, MessageParcel& reply);
 
     bool CheckPermission(const std::string &permissionName);
