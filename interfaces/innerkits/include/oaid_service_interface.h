@@ -19,6 +19,7 @@
 #include <string>
 
 #include "iremote_broker.h"
+#include "oaid_iremote_config_observer.h"
 
 namespace OHOS {
 namespace Cloud {
@@ -35,6 +36,11 @@ public:
      * Reset open advertising id.
      */
     virtual int32_t ResetOAID() = 0;
+
+    /**
+     * RegisterObserver
+     */
+    virtual int32_t RegisterObserver(const sptr<IRemoteConfigObserver>& observer) = 0;
 
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.cloud.oaid.IOAIDService");
 };

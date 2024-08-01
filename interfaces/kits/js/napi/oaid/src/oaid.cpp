@@ -36,7 +36,7 @@ const int8_t CALLBACK_RESULT = 1;
 static const int32_t OAID_ERROR_CODE_NOT_SYSTEM_APP = 202;
 /* not in trust list error code */
 static const int32_t OAID_ERROR_NOT_IN_TRUST_LIST = 17300002;
-} // namespace
+}  // namespace
 
 std::mutex oaidLock_;
 
@@ -67,7 +67,7 @@ napi_value GetCallbackErrorValue(napi_env env, int32_t errCode)
     return result;
 }
 
-void SetPromise(const napi_env& env, const napi_deferred& deferred, const int32_t& errorCode, const napi_value& result)
+void SetPromise(const napi_env &env, const napi_deferred &deferred, const int32_t &errorCode, const napi_value &result)
 {
     if (errorCode == NO_ERROR) {
         NAPI_CALL_RETURN_VOID(env, napi_resolve_deferred(env, deferred, result));
@@ -76,7 +76,7 @@ void SetPromise(const napi_env& env, const napi_deferred& deferred, const int32_
     NAPI_CALL_RETURN_VOID(env, napi_reject_deferred(env, deferred, result));
 }
 
-void SetCallback(const napi_env& env, const napi_ref& callbackIn, const int32_t& errorCode, const napi_value& result)
+void SetCallback(const napi_env &env, const napi_ref &callbackIn, const int32_t &errorCode, const napi_value &result)
 {
     napi_value undefined = nullptr;
     napi_get_undefined(env, &undefined);
@@ -84,14 +84,14 @@ void SetCallback(const napi_env& env, const napi_ref& callbackIn, const int32_t&
     napi_value callback = nullptr;
     napi_value resultout = nullptr;
     napi_get_reference_value(env, callbackIn, &callback);
-    napi_value results[CALLBACK_ARGS_LENGTH] = { 0 };
+    napi_value results[CALLBACK_ARGS_LENGTH] = {0};
     results[CALLBACK_CODE] = GetCallbackErrorValue(env, errorCode);
     results[CALLBACK_RESULT] = result;
     NAPI_CALL_RETURN_VOID(
         env, napi_call_function(env, undefined, callback, CALLBACK_ARGS_LENGTH, &results[CALLBACK_CODE], &resultout));
 }
 
-napi_value ParaError(const napi_env& env, const napi_ref& callback)
+napi_value ParaError(const napi_env &env, const napi_ref &callback)
 {
     if (callback != nullptr) {
         return NapiGetNull(env);
@@ -104,7 +104,7 @@ napi_value ParaError(const napi_env& env, const napi_ref& callback)
     return promise;
 }
 
-void ReturnCallbackPromise(const napi_env& env, AsyncCallbackInfoOAID*& info, const napi_value& result)
+void ReturnCallbackPromise(const napi_env &env, AsyncCallbackInfoOAID *&info, const napi_value &result)
 {
     if (info->isCallback) {
         SetCallback(env, info->callback, info->errorCode, result);
@@ -113,8 +113,8 @@ void ReturnCallbackPromise(const napi_env& env, AsyncCallbackInfoOAID*& info, co
     }
 }
 
-napi_value ParseParameters(const napi_env& env, const napi_value (&argv)[OAID_MAX_PARA],
-    const size_t& argc, napi_ref& callback)
+napi_value ParseParameters(
+    const napi_env &env, const napi_value (&argv)[OAID_MAX_PARA], const size_t &argc, napi_ref &callback)
 {
     OAID_HILOGI(OHOS::Cloud::OAID_MODULE_JS_NAPI, "Begin.");
     NAPI_ASSERT(env, argc >= OAID_MAX_PARA - 1, "Wrong number of arguments.");
@@ -131,7 +131,7 @@ napi_value ParseParameters(const napi_env& env, const napi_value (&argv)[OAID_MA
 }
 
 void PaddingCallbackInfo(
-    const napi_env& env, AsyncCallbackInfoOAID*& asynccallbackinfo, const napi_ref& callback, napi_value& promise)
+    const napi_env &env, AsyncCallbackInfoOAID *&asynccallbackinfo, const napi_ref &callback, napi_value &promise)
 {
     if (callback != nullptr) {
         asynccallbackinfo->isCallback = true;
@@ -144,10 +144,10 @@ void PaddingCallbackInfo(
     }
 }
 
-void GetOAIDExecuteCallBack(napi_env env, void* data)
+void GetOAIDExecuteCallBack(napi_env env, void *data)
 {
     std::lock_guard<std::mutex> autoLock(oaidLock_);
-    AsyncCallbackInfoOAID* asynccallbackinfo = (AsyncCallbackInfoOAID*)data;
+    AsyncCallbackInfoOAID *asynccallbackinfo = (AsyncCallbackInfoOAID *)data;
 
     asynccallbackinfo->oaid = Cloud::OAIDServiceClient::GetInstance()->GetOAID();
     if (asynccallbackinfo->oaid.empty()) {
@@ -156,9 +156,9 @@ void GetOAIDExecuteCallBack(napi_env env, void* data)
     }
 }
 
-void GetOAIDCompleteCallBack(napi_env env, napi_status status, void* data)
+void GetOAIDCompleteCallBack(napi_env env, napi_status status, void *data)
 {
-    AsyncCallbackInfoOAID* asynccallbackinfo = (AsyncCallbackInfoOAID*)data;
+    AsyncCallbackInfoOAID *asynccallbackinfo = (AsyncCallbackInfoOAID *)data;
     napi_value result = nullptr;
     NAPI_CALL_RETURN_VOID(
         env, napi_create_string_utf8(env, asynccallbackinfo->oaid.c_str(), NAPI_AUTO_LENGTH, &result));
@@ -168,11 +168,11 @@ void GetOAIDCompleteCallBack(napi_env env, napi_status status, void* data)
     asynccallbackinfo = nullptr;
 }
 
-AsyncCallbackInfoOAID* GetAsyncCallbackInfoOAID(
-    napi_env& env, napi_callback_info& info, napi_ref& callback, napi_value& promise)
+AsyncCallbackInfoOAID *GetAsyncCallbackInfoOAID(
+    napi_env &env, napi_callback_info &info, napi_ref &callback, napi_value &promise)
 {
     size_t argc = OAID_MAX_PARA;
-    napi_value argv[OAID_MAX_PARA] = { 0 };
+    napi_value argv[OAID_MAX_PARA] = {0};
     napi_value thisVar = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, NULL));
 
@@ -180,8 +180,8 @@ AsyncCallbackInfoOAID* GetAsyncCallbackInfoOAID(
         return nullptr;
     }
 
-    AsyncCallbackInfoOAID* asynccallbackinfo =
-        new (std::nothrow) AsyncCallbackInfoOAID { .env = env, .asyncWork = nullptr };
+    AsyncCallbackInfoOAID *asynccallbackinfo =
+        new (std::nothrow) AsyncCallbackInfoOAID{.env = env, .asyncWork = nullptr};
     if (!asynccallbackinfo) {
         return nullptr;
     }
@@ -195,7 +195,7 @@ napi_value GetOAID(napi_env env, napi_callback_info info)
     OAID_HILOGI(OHOS::Cloud::OAID_MODULE_JS_NAPI, "Begin.");
     napi_ref callback = nullptr;
     napi_value promise = nullptr;
-    AsyncCallbackInfoOAID* asynccallbackinfo = GetAsyncCallbackInfoOAID(env, info, callback, promise);
+    AsyncCallbackInfoOAID *asynccallbackinfo = GetAsyncCallbackInfoOAID(env, info, callback, promise);
     if (asynccallbackinfo == nullptr) {
         return ParaError(env, callback);
     }
@@ -204,8 +204,14 @@ napi_value GetOAID(napi_env env, napi_callback_info info)
     NAPI_CALL(env, napi_create_string_utf8(env, "getAdsIdentifierInfo", NAPI_AUTO_LENGTH, &resourceName));
     napi_async_execute_callback getOAIDExecuteCallBack = GetOAIDExecuteCallBack;
     napi_async_complete_callback getOAIDCompleteCallBack = GetOAIDCompleteCallBack;
-    NAPI_CALL(env, napi_create_async_work(env, nullptr, resourceName, getOAIDExecuteCallBack, getOAIDCompleteCallBack,
-                       (void*)asynccallbackinfo, &asynccallbackinfo->asyncWork));
+    NAPI_CALL(env,
+        napi_create_async_work(env,
+            nullptr,
+            resourceName,
+            getOAIDExecuteCallBack,
+            getOAIDCompleteCallBack,
+            (void *)asynccallbackinfo,
+            &asynccallbackinfo->asyncWork));
     NAPI_CALL(env, napi_queue_async_work(env, asynccallbackinfo->asyncWork));
 
     OAID_HILOGI(OHOS::Cloud::OAID_MODULE_JS_NAPI, "End.");
@@ -226,7 +232,8 @@ napi_value ResetOAID(napi_env env, napi_callback_info info)
     int32_t errorCode = Cloud::OAIDServiceClient::GetInstance()->ResetOAID();
     OAID_HILOGI(OHOS::Cloud::OAID_MODULE_JS_NAPI, "ResetOAID code = %{public}d", errorCode);
     if (errorCode == OAID_ERROR_CODE_NOT_SYSTEM_APP) {
-        napi_throw_error(env, std::to_string(errorCode).c_str(),
+        napi_throw_error(env,
+            std::to_string(errorCode).c_str(),
             "Permission verification failed. A non-system application calls a system API.");
     }
 
@@ -249,6 +256,6 @@ napi_value OAIDInit(napi_env env, napi_value exports)
     NAPI_CALL(env, napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc));
     return exports;
 }
-} // namespace OAIDNapi
-} // namespace CloudNapi
-} // namespace OHOS
+}  // namespace OAIDNapi
+}  // namespace CloudNapi
+}  // namespace OHOS

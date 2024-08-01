@@ -18,8 +18,7 @@
 #include "oaid_common.h"
 #include "oaid_service_interface.h"
 #include "oaid_service_ipc_interface_code.h"
-#include "app_event_processor_mgr.h"
-#include "app_event.h"
+#include "oaid_iremote_config_observer.h"
 
 namespace OHOS {
 namespace Cloud {
@@ -66,32 +65,32 @@ int32_t OAIDServiceProxy::ResetOAID()
         OAID_HILOGE(OAID_MODULE_CLIENT, "Reset OAID failed, error code is: %{public}d", result);
     }
     OAID_HILOGI(OAID_MODULE_CLIENT, "Reset OAID End.");
-
-    if (result == ERR_OK) {
-        auto oaid = GetOAID();
-        HiviewDFX::HiAppEvent::ReportConfig config;
-        config.name = "ha_app_event";
-        config.routeInfo = "AUTO";
-        config.eventConfigs.clear();
-
-        HiviewDFX::HiAppEvent::EventConfig eventConfig;
-        eventConfig.domain = "CommonEvent";
-        eventConfig.name = "ADS_ID_REFRESH";
-        eventConfig.isRealTime = true;
-        config.eventConfigs.push_back(eventConfig);
-        HiviewDFX::HiAppEvent::AppEventProcessorMgr::AddProcessor(config);
-
-        // 写事件
-        HiviewDFX::HiAppEvent::Event event("CommonEvent", "ADS_ID_REFRESH", HiviewDFX::HiAppEvent::BEHAVIOR);
-        std::string oaidKey = "oaid";
-        event.AddParam("type", oaidKey);
-        event.AddParam("id", oaid);
-        HiviewDFX::HiAppEvent::Write(event);
-        OAID_HILOGI(OAID_MODULE_CLIENT, "Reset OAID WriteEvent success!");
-    }
     int32_t errorCode = reply.ReadInt32();
     OAID_HILOGI(OAID_MODULE_CLIENT, "Reset OAID End.errorCode = %{public}d", errorCode);
     return errorCode;
+}
+
+int32_t OAIDServiceProxy::RegisterObserver(const sptr<IRemoteConfigObserver> &observer)
+{
+    if (!observer) {
+        OAID_HILOGE(OAID_MODULE_CLIENT, "Observer is null.");
+        return ERR_NULL_POINTER;
+    }
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        OAID_HILOGE(OAID_MODULE_CLIENT, "Failed to write RegisterObserver InterfaceToken");
+        return ERR_WRITE_PARCEL_FAILED;
+    }
+    if (!data.WriteRemoteObject(observer->AsObject())) {
+        OAID_HILOGE(OAID_MODULE_CLIENT, "Observer write failed.");
+        return ERR_WRITE_PARCEL_FAILED;
+    }
+    OAID_HILOGE(OAID_MODULE_CLIENT, "RegisterObserver proxy");
+    return Remote()->SendRequest(
+        static_cast<uint32_t>(OAIDInterfaceCode::REGISTER_CONTROL_CONFIG_OBSERVER), data, reply, option);
 }
 }  // namespace Cloud
 }  // namespace OHOS

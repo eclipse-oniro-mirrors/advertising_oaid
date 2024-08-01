@@ -42,6 +42,11 @@ public:
      */
     int32_t ResetOAID() override;
 
+    /**
+     * RegisterObserver
+     */
+    int32_t RegisterObserver(const sptr<IRemoteConfigObserver>& observer) override;
+
 private:
     static inline BrokerDelegator<OAIDServiceProxy> delegator_;
 };

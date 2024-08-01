@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,25 +13,18 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_CLOUD_OAID_SERVICE_STUB_H
-#define OHOS_CLOUD_OAID_SERVICE_STUB_H
+#ifndef OHOS_CLOUD_OAID_REMOTE_CONFIG_OBSERVER_STUB_H
+#define OHOS_CLOUD_OAID_REMOTE_CONFIG_OBSERVER_STUB_H
 
-#include <fstream>
-#include <vector>
-#include <map>
-#include <string>
-#include <pthread.h>
-#include "cJSON.h"
-#include "oaid_service_interface.h"
-#include "ipc_skeleton.h"
 #include "iremote_stub.h"
+#include "oaid_iremote_config_observer.h"
 
 namespace OHOS {
 namespace Cloud {
-class OAIDServiceStub : public IRemoteStub<IOAIDService> {
+class RemoteConfigObserverStub : public IRemoteStub<IRemoteConfigObserver> {
 public:
-    OAIDServiceStub();
-    virtual ~OAIDServiceStub() override;
+    RemoteConfigObserverStub();
+    virtual ~RemoteConfigObserverStub() override;
 
     /* *
      * Handle remote request.
@@ -43,18 +36,12 @@ public:
      */
     int32_t OnRemoteRequest(uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option) override;
 
-    int32_t RegisterObserver(const sptr<IRemoteConfigObserver>& observer) override;
+    // virtual int32_t OnOaidUpdated(const std::string& value) override;
+    virtual void OnOaidUpdated(const std::string& value) override {}
 
 private:
-    int32_t OnGetOAID(MessageParcel& data, MessageParcel& reply);
-    int32_t OnResetOAID(MessageParcel& data, MessageParcel& reply);
-    int32_t SendCode(uint32_t code, MessageParcel &data, MessageParcel &reply);
-    int32_t HandleRegisterControlConfigObserver(MessageParcel& data, MessageParcel& reply);
-
-    bool CheckPermission(const std::string &permissionName);
-    bool CheckSystemApp();
+    int32_t HandleOAIDUpdate(MessageParcel& data, MessageParcel& reply);
 };
-} // namespace Cloud
+} // namespace HaCloud
 } // namespace OHOS
-
-#endif // OHOS_CLOUD_OAID_SERVICE_STUB_H
+#endif // OHOS_CLOUD_OAID_REMOTE_CONFIG_OBSERVER_STUB_H

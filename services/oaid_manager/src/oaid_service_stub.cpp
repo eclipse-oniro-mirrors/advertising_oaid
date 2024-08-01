@@ -25,6 +25,10 @@
 #include "oaid_service.h"
 #include "oaid_service_ipc_interface_code.h"
 #include "config_policy_utils.h"
+#include "iservice_registry.h"
+#include "oaid_remote_config_observer_stub.h"
+#include "oaid_remote_config_observer_proxy.h"
+#include "oaid_observer_manager.h"
 
 using namespace OHOS::Security::AccessToken;
 
@@ -32,12 +36,10 @@ namespace OHOS {
 namespace Cloud {
 using namespace OHOS::HiviewDFX;
 OAIDServiceStub::OAIDServiceStub()
-{
-}
+{}
 
 OAIDServiceStub::~OAIDServiceStub()
-{
-}
+{}
 
 bool OAIDServiceStub::CheckPermission(const std::string &permissionName)
 {
@@ -61,7 +63,7 @@ bool OAIDServiceStub::CheckPermission(const std::string &permissionName)
 
     if (callingType == TOKEN_HAP) {
         int32_t successCnt = (int32_t)(result == TypePermissionState::PERMISSION_GRANTED);
-        int32_t failCnt = 1 - successCnt; // 1 means that there is only one visit in total
+        int32_t failCnt = 1 - successCnt;  // 1 means that there is only one visit in total
         // AddPermissionUsedRecord needs to transfer both the number of successful and failed permission access requests
         int32_t ret = PrivacyKit::AddPermissionUsedRecord(callingToken, permissionName, successCnt, failCnt);
         OAID_HILOGI(OAID_MODULE_SERVICE, "AddPermissionUsedRecord ret=%{public}d", ret);
@@ -135,34 +137,51 @@ bool LoadAndCheckOaidTrustList(const std::string &bundleName)
     return false;
 }
 
-int32_t OAIDServiceStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply,
-    MessageOption &option)
+int32_t OAIDServiceStub::SendCode(uint32_t code, MessageParcel &data, MessageParcel &reply)
+{
+    switch (code) {
+        case static_cast<uint32_t>(OAIDInterfaceCode::GET_OAID): {
+            return OAIDServiceStub::OnGetOAID(data, reply);
+            break;
+        }
+        case static_cast<uint32_t>(OAIDInterfaceCode::RESET_OAID): {
+            return OAIDServiceStub::OnResetOAID(data, reply);
+            break;
+        }
+        case static_cast<uint32_t>(OAIDInterfaceCode::REGISTER_CONTROL_CONFIG_OBSERVER): {
+            return OAIDServiceStub::HandleRegisterControlConfigObserver(data, reply);
+            break;
+        }
+    }
+    return ERR_SYSYTEM_ERROR;
+}
+
+int32_t OAIDServiceStub::OnRemoteRequest(
+    uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
     OAID_HILOGI(OAID_MODULE_SERVICE, "Start, code is %{public}u.", code);
     std::string bundleName;
     pid_t uid = IPCSkeleton::GetCallingUid();
     DelayedSingleton<BundleMgrHelper>::GetInstance()->GetBundleNameByUid(static_cast<int>(uid), bundleName);
-    if (code != static_cast<uint32_t>(OAIDInterfaceCode::RESET_OAID) &&
+    if (code == static_cast<uint32_t>(OAIDInterfaceCode::GET_OAID) &&
         !CheckPermission(OAID_TRACKING_CONSENT_PERMISSION)) {
-        OAID_HILOGW(OAID_MODULE_SERVICE, "bundleName %{public}s not granted the app tracking permission",
-            bundleName.c_str());
+        OAID_HILOGW(
+            OAID_MODULE_SERVICE, "bundleName %{public}s not granted the app tracking permission", bundleName.c_str());
         return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
     }
-
     if (code == static_cast<uint32_t>(OAIDInterfaceCode::RESET_OAID)) {
         if (!LoadAndCheckOaidTrustList(bundleName)) {
-            OAID_HILOGW(OAID_MODULE_SERVICE, "CheckOaidTrustList fail.errorCode = %{public}d",
-                OAID_ERROR_NOT_IN_TRUST_LIST);
+            OAID_HILOGW(
+                OAID_MODULE_SERVICE, "CheckOaidTrustList fail.errorCode = %{public}d", OAID_ERROR_NOT_IN_TRUST_LIST);
             if (!reply.WriteInt32(OAID_ERROR_NOT_IN_TRUST_LIST)) {
                 OAID_HILOGE(OAID_MODULE_SERVICE, "write errorCode to reply failed.");
                 return ERR_SYSYTEM_ERROR;
             }
             return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
         }
-
         if (!CheckSystemApp()) {
-            OAID_HILOGW(OAID_MODULE_SERVICE, "CheckSystemApp fail.errorCode = %{public}d",
-                OAID_ERROR_CODE_NOT_SYSTEM_APP);
+            OAID_HILOGW(
+                OAID_MODULE_SERVICE, "CheckSystemApp fail.errorCode = %{public}d", OAID_ERROR_CODE_NOT_SYSTEM_APP);
             if (!reply.WriteInt32(OAID_ERROR_CODE_NOT_SYSTEM_APP)) {
                 OAID_HILOGE(OAID_MODULE_SERVICE, "write errorCode to reply failed.");
                 return ERR_SYSYTEM_ERROR;
@@ -176,19 +195,8 @@ int32_t OAIDServiceStub::OnRemoteRequest(uint32_t code, MessageParcel &data, Mes
         OAID_HILOGE(OAID_MODULE_SERVICE, "Descriptor checked fail.");
         return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
     }
-
     OAID_HILOGI(OAID_MODULE_SERVICE, "Remote bundleName is %{public}s.", bundleName.c_str());
-    switch (code) {
-        case static_cast<uint32_t>(OAIDInterfaceCode::GET_OAID):{
-            return OAIDServiceStub::OnGetOAID(data, reply);
-            break;
-        }
-        case static_cast<uint32_t>(OAIDInterfaceCode::RESET_OAID):{
-            return OAIDServiceStub::OnResetOAID(data, reply);
-            break;
-        }
-    }
-    return ERR_SYSYTEM_ERROR;
+    return SendCode(code, data, reply);
 }
 
 int32_t OAIDServiceStub::OnGetOAID(MessageParcel &data, MessageParcel &reply)
@@ -218,5 +226,30 @@ int32_t OAIDServiceStub::OnResetOAID(MessageParcel &data, MessageParcel &reply)
     OAID_HILOGI(OAID_MODULE_SERVICE, "Reset OAID End.");
     return ERR_OK;
 }
-} // namespace Cloud
-} // namespace OHOS
+
+int32_t OAIDServiceStub::HandleRegisterControlConfigObserver(MessageParcel &data, MessageParcel &reply)
+{
+    int32_t uid = IPCSkeleton::GetCallingUid();
+    if (uid != HA_UID) {
+        OAID_HILOGE(OAID_MODULE_SERVICE, "callingUid error.");
+        return ERR_INVALID_PARAM;
+    }
+    auto remoteObject = data.ReadRemoteObject();
+    if (!remoteObject) {
+        OAID_HILOGI(OAID_MODULE_SERVICE, "remoteObject is null");
+        return ERR_SYSYTEM_ERROR;
+    }
+    auto observer = iface_cast<IRemoteConfigObserver>(remoteObject);
+    if (observer == nullptr) {
+        OAID_HILOGI(OAID_MODULE_SERVICE, "Null observer.");
+        return ERR_SYSYTEM_ERROR;
+    }
+    return RegisterObserver(observer);
+}
+
+int32_t OAIDServiceStub::RegisterObserver(const sptr<IRemoteConfigObserver> &observer)
+{
+    return DelayedSingleton<OaidObserverManager>::GetInstance()->RegisterObserver(observer);
+}
+}  // namespace Cloud
+}  // namespace OHOS

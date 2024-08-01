@@ -17,6 +17,8 @@
       *GetInstance*;
       *GetOAID*;
       *ResetOAID*;
+      *RegisterObserver*;
+      *RemoteConfigObserverStub*;
     };
   local:
     *;
