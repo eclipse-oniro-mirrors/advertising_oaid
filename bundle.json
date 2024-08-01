@@ -34,7 +34,6 @@
         "napi",
         "safwk",
         "samgr",
-        "hiappevent",
         "eventhandler"
       ],
       "third_party": [
