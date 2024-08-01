@@ -31,8 +31,8 @@ static const int32_t OAID_SYSTME_ID = 6101;
 
 /* communication settings define */
 static constexpr uint32_t KVSTORE_CONNECT_RETRY_COUNT = 5;
-static constexpr uint32_t KVSTORE_CONNECT_RETRY_DELAY_TIME = 3000; // Unit: ms
-static const int8_t CONNECT_TIME_OUT = 3;    // The connection timeout is 3s.
+static constexpr uint32_t KVSTORE_CONNECT_RETRY_DELAY_TIME = 3000;  // Unit: ms
+static const int8_t CONNECT_TIME_OUT = 3;                           // The connection timeout is 3s.
 
 /* not system app error code */
 static const int32_t OAID_ERROR_CODE_NOT_SYSTEM_APP = 202;
@@ -52,6 +52,7 @@ static const std::string OAID_TRUSTLIST_EXTENSION_CONFIG_PATH = "/etc/advertisin
 /* oaid check define */
 const std::string OAID_UPDATE = "/data/service/el1/public/database/oaid_service_manager/update_check.json";
 
+static const int32_t HA_UID = 7508;
 /* oaid service 按需停空闲等待时间。单位（ms） */
 static constexpr int32_t DELAY_TIME = 290000;
 static const std::string TASK_ID = "unload";

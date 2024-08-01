@@ -175,6 +175,26 @@ int32_t OAIDServiceClient::ResetOAID()
     return resetResult;
 }
 
+int32_t OAIDServiceClient::RegisterObserver(const sptr<IRemoteConfigObserver>& observer)
+{
+    OAID_HILOGI(OAID_MODULE_CLIENT, "Begin RegisterObserver.");
+
+    if (!LoadService()) {
+        OAID_HILOGW(OAID_MODULE_CLIENT, "Redo load oaid service.");
+        LoadService();
+    }
+
+    if (oaidServiceProxy_ == nullptr) {
+        OAID_HILOGE(OAID_MODULE_CLIENT, "Quit because redoing load oaid service failed.");
+        return RESET_OAID_DEFAULT_CODE;
+    }
+
+    int32_t resetResult = oaidServiceProxy_->RegisterObserver(observer);
+    OAID_HILOGI(OAID_MODULE_SERVICE, "End.resetResult = %{public}d", resetResult);
+
+    return resetResult;
+}
+
 void OAIDServiceClient::OnRemoteSaDied(const wptr<IRemoteObject>& remote)
 {
     OAID_HILOGE(OAID_MODULE_CLIENT, "OnRemoteSaDied");

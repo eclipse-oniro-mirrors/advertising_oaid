@@ -40,6 +40,8 @@ ohos_shared_library("oaid_service") {
   sources = [
     "oaid_manager/src/bundle_mgr_helper.cpp",
     "oaid_manager/src/oaid_death_recipient.cpp",
+    "oaid_manager/src/oaid_observer_manager.cpp",
+    "oaid_manager/src/oaid_remote_config_observer_proxy.cpp",
     "oaid_manager/src/oaid_service.cpp",
     "oaid_manager/src/oaid_service_stub.cpp",
   ]

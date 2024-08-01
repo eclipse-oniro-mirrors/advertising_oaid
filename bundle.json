@@ -15,13 +15,12 @@
     "syscap": [
       "SystemCapability.Advertising.OAID"
     ],
-    "features": [
-    ],
+    "features": [],
     "adapted_system_type": [
       "standard"
     ],
-    "rom":"300KB",
-    "ram":"1024KB",
+    "rom": "300KB",
+    "ram": "1024KB",
     "deps": {
       "components": [
         "access_token",
@@ -51,7 +50,9 @@
         {
           "header": {
             "header_base": "//domains/advertising/oaid/interfaces/innerkits/include/",
-            "header_files": []
+            "header_files": [
+              "oaid_remote_config_observer_stub.h"
+            ]
           },
           "name": "//domains/advertising/oaid/interfaces/innerkits:oaid_client"
         }

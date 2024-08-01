@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,17 +13,23 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_CLOUD_OAID_SERVICES_IPC_CODE_H
-#define OHOS_CLOUD_OAID_SERVICES_IPC_CODE_H
+#ifndef OHOS_CLOUD_OAID_IREMOTE_CONFIG_OBSERVER_H
+#define OHOS_CLOUD_OAID_IREMOTE_CONFIG_OBSERVER_H
 
-/* SAID:6101 */
+#include <string>
+
+#include "iremote_broker.h"
+
 namespace OHOS {
 namespace Cloud {
-    enum class OAIDInterfaceCode {
-        GET_OAID = 0,
-        RESET_OAID = 1,
-        REGISTER_CONTROL_CONFIG_OBSERVER = 2,
+class IRemoteConfigObserver : public IRemoteBroker {
+public:
+    DECLARE_INTERFACE_DESCRIPTOR(u"ohos.cloud.oaid.IRemoteConfigObserver");
+    enum class RegisterObserverCode {
+        OnOaidUpdated = 0,
     };
-} // namespace Cloud
+    virtual void OnOaidUpdated(const std::string& value) = 0;
+};
+} // namespace HaCloud
 } // namespace OHOS
-#endif // OHOS_CLOUD_OAID_SERVICES_IPC_CODE_H
+#endif // OHOS_CLOUD_HA_IREMOTE_CONFIG_OBSERVER_H

@@ -24,6 +24,7 @@
 #include "system_ability_definition.h"
 #include "oaid_service_stub.h"
 #include "oaid_service_define.h"
+#include "oaid_observer_manager.h"
 
 using namespace std::chrono;
 
@@ -32,7 +33,7 @@ namespace Cloud {
 namespace {
 char HexToChar(uint8_t hex)
 {
-    static const uint8_t MAX_SINGLE_DIGIT = 9; // 9 is the largest single digit
+    static const uint8_t MAX_SINGLE_DIGIT = 9;  // 9 is the largest single digit
     return (hex > MAX_SINGLE_DIGIT) ? (hex + 0x57) : (hex + 0x30);
 }
 
@@ -43,10 +44,10 @@ char HexToChar(uint8_t hex)
  */
 std::string GetUUID()
 {
-    static const int8_t UUID_LENGTH = 16;  // The UUID is 128 bits, that is 16 bytes.
-    static const int8_t VERSION_INDEX = 6; // Obtain the seventh byte of the randomly generated UUID, that is uuid[6].
-    static const int8_t CHAR_LOW_WIDTH = 4; // Lower 4 bits of the char type
-    static const int8_t N_INDEX = 8;       // Reset the ninth byte of the UUID, that is UUID[8].
+    static const int8_t UUID_LENGTH = 16;    // The UUID is 128 bits, that is 16 bytes.
+    static const int8_t VERSION_INDEX = 6;   // Obtain the seventh byte of the randomly generated UUID, that is uuid[6].
+    static const int8_t CHAR_LOW_WIDTH = 4;  // Lower 4 bits of the char type
+    static const int8_t N_INDEX = 8;         // Reset the ninth byte of the UUID, that is UUID[8].
     unsigned char uuid[UUID_LENGTH] = {0};
     int re = RAND_bytes(uuid, sizeof(uuid));
     if (re == 0) {
@@ -68,7 +69,7 @@ std::string GetUUID()
 
     static const size_t LINE_INDEX_MAX = 10;  // until i=10
     static const size_t LINE_INDEX_MIN = 4;   // Add a hyphen (-) every two bytes starting from i=4.
-    static const size_t EVEN_FACTOR = 2; // the even factor is assigned to 2, and all even numbers are divisible by 2.
+    static const size_t EVEN_FACTOR = 2;  // the even factor is assigned to 2, and all even numbers are divisible by 2.
     std::string formatUuid = "";
     for (size_t i = 0; i < sizeof(uuid); i++) {
         unsigned char value = uuid[i];
@@ -100,7 +101,7 @@ OAIDService::OAIDService(int32_t systemAbilityId, bool runOnCreate)
 OAIDService::OAIDService() : state_(ServiceRunningState::STATE_NOT_START)
 {}
 
-OAIDService::~OAIDService() {};
+OAIDService::~OAIDService(){};
 
 sptr<OAIDService> OAIDService::GetInstance()
 {
@@ -215,7 +216,7 @@ bool OAIDService::InitOaidKvStore()
     return true;
 }
 
-void OAIDService::OnAddSystemAbility(int32_t systemAbilityId, const std::string& deviceId)
+void OAIDService::OnAddSystemAbility(int32_t systemAbilityId, const std::string &deviceId)
 {
     OAID_HILOGI(OAID_MODULE_SERVICE, "OnAddSystemAbility OAIDService");
     bool result = false;
@@ -312,7 +313,7 @@ std::string OAIDService::GainOAID()
     }
     updateMutex_.unlock();
     bool result = ReadValueFromKvStore(OAID_KVSTORE_KEY, oaidKvStoreStr);
-    OAID_HILOGI(OAID_MODULE_SERVICE, "ReadValueFromKvStore %{public}s", result? "success" : "failed");
+    OAID_HILOGI(OAID_MODULE_SERVICE, "ReadValueFromKvStore %{public}s", result ? "success" : "failed");
 
     if (oaidKvStoreStr != OAID_ALLZERO_STR && !oaidKvStoreStr.empty()) {
         if (oaid_.empty()) {
@@ -349,6 +350,8 @@ int32_t OAIDService::ResetOAID()
     oaid_ = resetOaid;
     bool result = WriteValueToKvStore(OAID_KVSTORE_KEY, resetOaid);
     OAID_HILOGI(OAID_MODULE_SERVICE, "ResetOAID WriteValueToKvStore %{public}s", result == true ? "success" : "failed");
+    // 调用单例对象的oberser->OnUpdateOaid
+    DelayedSingleton<OaidObserverManager>::GetInstance()->OnUpdateOaid(resetOaid);
     return ERR_OK;
 }
 }  // namespace Cloud

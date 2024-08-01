@@ -24,6 +24,7 @@ config("oaid_client_config") {
 ohos_shared_library("oaid_client") {
   branch_protector_ret = "pac_ret"
   sources = [
+    "src/oaid_remote_config_observer_stub.cpp",
     "src/oaid_service_client.cpp",
     "src/oaid_service_proxy.cpp",
   ]
@@ -42,7 +43,6 @@ ohos_shared_library("oaid_client") {
   innerapi_tags = [ "platformsdk" ]
   deps = [ "${oaid_utils_path}:oaid_utils" ]
   external_deps = [
-    "hiappevent:hiappevent_innerapi",
     "hilog:libhilog",
     "ipc:ipc_single",
     "safwk:system_ability_fwk",
