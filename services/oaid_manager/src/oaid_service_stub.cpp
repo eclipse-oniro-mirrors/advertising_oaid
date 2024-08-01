@@ -159,6 +159,8 @@ int32_t OAIDServiceStub::SendCode(uint32_t code, MessageParcel &data, MessagePar
 int32_t OAIDServiceStub::OnRemoteRequest(
     uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
+    ExitIdleState();
+    PostDelayUnloadTask();
     OAID_HILOGI(OAID_MODULE_SERVICE, "Start, code is %{public}u.", code);
     std::string bundleName;
     pid_t uid = IPCSkeleton::GetCallingUid();
@@ -170,22 +172,11 @@ int32_t OAIDServiceStub::OnRemoteRequest(
         return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
     }
     if (code == static_cast<uint32_t>(OAIDInterfaceCode::RESET_OAID)) {
-        if (!LoadAndCheckOaidTrustList(bundleName)) {
-            OAID_HILOGW(
-                OAID_MODULE_SERVICE, "CheckOaidTrustList fail.errorCode = %{public}d", OAID_ERROR_NOT_IN_TRUST_LIST);
-            if (!reply.WriteInt32(OAID_ERROR_NOT_IN_TRUST_LIST)) {
-                OAID_HILOGE(OAID_MODULE_SERVICE, "write errorCode to reply failed.");
-                return ERR_SYSYTEM_ERROR;
-            }
-            return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
+        int32_t validateResult = ValidateResetOAIDPermission(bundleName, reply);
+        if (validateResult == ERR_SYSYTEM_ERROR) {
+            return ERR_SYSYTEM_ERROR;
         }
-        if (!CheckSystemApp()) {
-            OAID_HILOGW(
-                OAID_MODULE_SERVICE, "CheckSystemApp fail.errorCode = %{public}d", OAID_ERROR_CODE_NOT_SYSTEM_APP);
-            if (!reply.WriteInt32(OAID_ERROR_CODE_NOT_SYSTEM_APP)) {
-                OAID_HILOGE(OAID_MODULE_SERVICE, "write errorCode to reply failed.");
-                return ERR_SYSYTEM_ERROR;
-            }
+        if (validateResult == ERR_PERMISSION_ERROR) {
             return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
         }
     }
@@ -197,6 +188,30 @@ int32_t OAIDServiceStub::OnRemoteRequest(
     }
     OAID_HILOGI(OAID_MODULE_SERVICE, "Remote bundleName is %{public}s.", bundleName.c_str());
     return SendCode(code, data, reply);
+}
+
+int32_t OAIDServiceStub::ValidateResetOAIDPermission(std::string bundleName, MessageParcel &reply)
+{
+    if (!LoadAndCheckOaidTrustList(bundleName)) {
+        OAID_HILOGW(
+            OAID_MODULE_SERVICE, "CheckOaidTrustList fail.errorCode = %{public}d", OAID_ERROR_NOT_IN_TRUST_LIST);
+        if (!reply.WriteInt32(OAID_ERROR_NOT_IN_TRUST_LIST)) {
+            OAID_HILOGE(OAID_MODULE_SERVICE, "write errorCode to reply failed.");
+            return ERR_SYSYTEM_ERROR;
+        }
+        return ERR_PERMISSION_ERROR;
+    }
+
+    if (!CheckSystemApp()) {
+        OAID_HILOGW(
+            OAID_MODULE_SERVICE, "CheckSystemApp fail.errorCode = %{public}d", OAID_ERROR_CODE_NOT_SYSTEM_APP);
+        if (!reply.WriteInt32(OAID_ERROR_CODE_NOT_SYSTEM_APP)) {
+            OAID_HILOGE(OAID_MODULE_SERVICE, "write errorCode to reply failed.");
+            return ERR_SYSYTEM_ERROR;
+        }
+        return ERR_PERMISSION_ERROR;
+    }
+    return ERR_OK;
 }
 
 int32_t OAIDServiceStub::OnGetOAID(MessageParcel &data, MessageParcel &reply)
@@ -225,6 +240,45 @@ int32_t OAIDServiceStub::OnResetOAID(MessageParcel &data, MessageParcel &reply)
 
     OAID_HILOGI(OAID_MODULE_SERVICE, "Reset OAID End.");
     return ERR_OK;
+}
+
+void OAIDServiceStub::ExitIdleState()
+{
+    auto samgrProxy = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    if (samgrProxy == nullptr) {
+        OAID_HILOGE(OAID_MODULE_SERVICE, "Get samgr failed.");
+        return;
+    }
+    int32_t ret = samgrProxy->CancelUnloadSystemAbility(OAID_SYSTME_ID);
+    if (ret != ERR_OK) {
+        OAID_HILOGE(OAID_MODULE_SERVICE, "CancelUnload system ability %{public}d failed, result: %{public}d.",
+                    OAID_SYSTME_ID, ret);
+        return;
+    }
+}
+
+void OAIDServiceStub::PostDelayUnloadTask()
+{
+    if (unloadHandler_ == nullptr) {
+        const char *runnerName = "unlock";
+        auto runner = AppExecFwk::EventRunner::Create(runnerName);
+        unloadHandler_ = std::make_shared<AppExecFwk::EventHandler>(runner);
+    }
+    auto task = [this]() {
+        auto samgrProxy = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+        if (samgrProxy == nullptr) {
+            OAID_HILOGE(OAID_MODULE_SERVICE, "Get samgr failed.");
+            return;
+        }
+        int32_t ret = samgrProxy->UnloadSystemAbility(OAID_SYSTME_ID);
+        if (ret != ERR_OK) {
+            OAID_HILOGE(OAID_MODULE_SERVICE, "Unload system ability %{public}d failed, result: %{public}d.",
+                        OAID_SYSTME_ID, ret);
+            return;
+        }
+    };
+    unloadHandler_->RemoveTask(TASK_ID);
+    unloadHandler_->PostTask(task, TASK_ID, DELAY_TIME);
 }
 
 int32_t OAIDServiceStub::HandleRegisterControlConfigObserver(MessageParcel &data, MessageParcel &reply)

@@ -59,6 +59,7 @@ ohos_shared_library("oaid_service") {
     "bundle_framework:appexecfwk_core",
     "cJSON:cjson",
     "config_policy:configpolicy_util",
+    "eventhandler:libeventhandler",
     "hilog:libhilog",
     "ipc:ipc_single",
     "kv_store:distributeddata_inner",

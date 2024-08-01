@@ -33,7 +33,8 @@
         "ipc",
         "napi",
         "safwk",
-        "samgr"
+        "samgr",
+        "eventhandler"
       ],
       "third_party": [
         "libuv",

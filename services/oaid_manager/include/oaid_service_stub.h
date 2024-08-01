@@ -25,6 +25,8 @@
 #include "oaid_service_interface.h"
 #include "ipc_skeleton.h"
 #include "iremote_stub.h"
+#include "event_handler.h"
+#include "event_runner.h"
 
 namespace OHOS {
 namespace Cloud {
@@ -53,6 +55,11 @@ private:
 
     bool CheckPermission(const std::string &permissionName);
     bool CheckSystemApp();
+    void ExitIdleState();
+    void PostDelayUnloadTask();
+    int32_t ValidateResetOAIDPermission(std::string bundleName, MessageParcel &reply);
+
+    std::shared_ptr<AppExecFwk::EventHandler> unloadHandler_;
 };
 } // namespace Cloud
 } // namespace OHOS
