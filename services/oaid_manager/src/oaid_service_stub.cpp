@@ -29,7 +29,6 @@
 #include "oaid_remote_config_observer_stub.h"
 #include "oaid_remote_config_observer_proxy.h"
 #include "oaid_observer_manager.h"
-#include "iservice_registry.h"
 
 using namespace OHOS::Security::AccessToken;
 
@@ -173,22 +172,11 @@ int32_t OAIDServiceStub::OnRemoteRequest(
         return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
     }
     if (code == static_cast<uint32_t>(OAIDInterfaceCode::RESET_OAID)) {
-        if (!LoadAndCheckOaidTrustList(bundleName)) {
-            OAID_HILOGW(
-                OAID_MODULE_SERVICE, "CheckOaidTrustList fail.errorCode = %{public}d", OAID_ERROR_NOT_IN_TRUST_LIST);
-            if (!reply.WriteInt32(OAID_ERROR_NOT_IN_TRUST_LIST)) {
-                OAID_HILOGE(OAID_MODULE_SERVICE, "write errorCode to reply failed.");
-                return ERR_SYSYTEM_ERROR;
-            }
-            return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
+        int32_t validateResult = ValidateResetOAIDPermission(bundleName, reply);
+        if (validateResult == ERR_SYSYTEM_ERROR) {
+            return ERR_SYSYTEM_ERROR;
         }
-        if (!CheckSystemApp()) {
-            OAID_HILOGW(
-                OAID_MODULE_SERVICE, "CheckSystemApp fail.errorCode = %{public}d", OAID_ERROR_CODE_NOT_SYSTEM_APP);
-            if (!reply.WriteInt32(OAID_ERROR_CODE_NOT_SYSTEM_APP)) {
-                OAID_HILOGE(OAID_MODULE_SERVICE, "write errorCode to reply failed.");
-                return ERR_SYSYTEM_ERROR;
-            }
+        if (validateResult == ERR_PERMISSION_ERROR) {
             return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
         }
     }
@@ -200,6 +188,30 @@ int32_t OAIDServiceStub::OnRemoteRequest(
     }
     OAID_HILOGI(OAID_MODULE_SERVICE, "Remote bundleName is %{public}s.", bundleName.c_str());
     return SendCode(code, data, reply);
+}
+
+int32_t OAIDServiceStub::ValidateResetOAIDPermission(std::string bundleName, MessageParcel &reply)
+{
+    if (!LoadAndCheckOaidTrustList(bundleName)) {
+        OAID_HILOGW(
+            OAID_MODULE_SERVICE, "CheckOaidTrustList fail.errorCode = %{public}d", OAID_ERROR_NOT_IN_TRUST_LIST);
+        if (!reply.WriteInt32(OAID_ERROR_NOT_IN_TRUST_LIST)) {
+            OAID_HILOGE(OAID_MODULE_SERVICE, "write errorCode to reply failed.");
+            return ERR_SYSYTEM_ERROR;
+        }
+        return ERR_PERMISSION_ERROR;
+    }
+
+    if (!CheckSystemApp()) {
+        OAID_HILOGW(
+            OAID_MODULE_SERVICE, "CheckSystemApp fail.errorCode = %{public}d", OAID_ERROR_CODE_NOT_SYSTEM_APP);
+        if (!reply.WriteInt32(OAID_ERROR_CODE_NOT_SYSTEM_APP)) {
+            OAID_HILOGE(OAID_MODULE_SERVICE, "write errorCode to reply failed.");
+            return ERR_SYSYTEM_ERROR;
+        }
+        return ERR_PERMISSION_ERROR;
+    }
+    return ERR_OK;
 }
 
 int32_t OAIDServiceStub::OnGetOAID(MessageParcel &data, MessageParcel &reply)
