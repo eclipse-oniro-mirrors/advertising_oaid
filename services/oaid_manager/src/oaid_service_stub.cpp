@@ -249,6 +249,7 @@ int32_t OAIDServiceStub::HandleRegisterControlConfigObserver(MessageParcel &data
 
 int32_t OAIDServiceStub::RegisterObserver(const sptr<IRemoteConfigObserver> &observer)
 {
+    OAID_HILOGI(OAID_MODULE_SERVICE, "registerObserver success.");
     return DelayedSingleton<OaidObserverManager>::GetInstance()->RegisterObserver(observer);
 }
 }  // namespace Cloud
