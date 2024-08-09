@@ -134,7 +134,7 @@ void OAIDService::OnStart()
 
 int32_t OAIDService::Init()
 {
-    bool ret = Publish(OAIDService::GetInstance());
+    bool ret = Publish(this);
     if (!ret) {
         OAID_HILOGE(OAID_MODULE_SERVICE, "OAID service init failed.");
         return ERR_SYSYTEM_ERROR;
