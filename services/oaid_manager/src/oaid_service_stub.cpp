@@ -259,11 +259,6 @@ void OAIDServiceStub::ExitIdleState()
 
 void OAIDServiceStub::PostDelayUnloadTask()
 {
-    if (unloadHandler_ == nullptr) {
-        const char *runnerName = "unlock";
-        auto runner = AppExecFwk::EventRunner::Create(runnerName);
-        unloadHandler_ = std::make_shared<AppExecFwk::EventHandler>(runner);
-    }
     auto task = [this]() {
         auto samgrProxy = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
         if (samgrProxy == nullptr) {
