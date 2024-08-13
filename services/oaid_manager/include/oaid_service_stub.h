@@ -60,7 +60,6 @@ private:
     void PostDelayUnloadTask();
     int32_t ValidateResetOAIDPermission(std::string bundleName, MessageParcel &reply);
 
-
 };
 } // namespace Cloud
 } // namespace OHOS
