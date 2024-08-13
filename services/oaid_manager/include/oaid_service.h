@@ -62,6 +62,7 @@ private:
     bool ReadValueFromKvStore(const std::string &kvStoreKey, std::string &kvStoreValue);
     bool WriteValueToKvStore(const std::string &kvStoreKey, const std::string &kvStoreValue);
     std::string GainOAID();
+    void initEventHandle();
 
     ServiceRunningState state_;
     static std::mutex mutex_;
