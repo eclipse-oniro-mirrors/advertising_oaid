@@ -46,7 +46,6 @@ public:
     int32_t OnRemoteRequest(uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option) override;
 
     int32_t RegisterObserver(const sptr<IRemoteConfigObserver>& observer) override;
-    std::shared_ptr<AppExecFwk::EventHandler> unloadHandler_;
 
 private:
     int32_t OnGetOAID(MessageParcel& data, MessageParcel& reply);
@@ -59,6 +58,9 @@ private:
     void ExitIdleState();
     void PostDelayUnloadTask();
     int32_t ValidateResetOAIDPermission(std::string bundleName, MessageParcel &reply);
+
+    std::shared_ptr<AppExecFwk::EventHandler> unloadHandler_;
+    std::mutex init_eventHandler_Mutex_;
 };
 } // namespace Cloud
 } // namespace OHOS

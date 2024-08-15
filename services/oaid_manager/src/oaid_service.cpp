@@ -142,17 +142,7 @@ int32_t OAIDService::Init()
 
     OAID_HILOGI(OAID_MODULE_SERVICE, "OAID service init Success.");
     state_ = ServiceRunningState::STATE_RUNNING;
-    initEventHandle();
     return ERR_OK;
-}
-
-void OAIDService::initEventHandle()
-{
-    if (unloadHandler_ == nullptr) {
-        const char *runnerName = "unlock";
-        auto runner = AppExecFwk::EventRunner::Create(runnerName);
-        unloadHandler_ = std::make_shared<AppExecFwk::EventHandler>(runner);
-    }
 }
 
 void OAIDService::OnStop()
