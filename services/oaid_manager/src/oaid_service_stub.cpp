@@ -259,6 +259,13 @@ void OAIDServiceStub::ExitIdleState()
 
 void OAIDServiceStub::PostDelayUnloadTask()
 {
+    init_eventHandler_Mutex_.lock();
+    if (unloadHandler_ == nullptr) {
+        const char *runnerName = "unlock";
+        auto runner = AppExecFwk::EventRunner::Create(runnerName);
+        unloadHandler_ = std::make_shared<AppExecFwk::EventHandler>(runner);
+    }
+    init_eventHandler_Mutex_.unlock();
     auto task = [this]() {
         auto samgrProxy = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
         if (samgrProxy == nullptr) {
