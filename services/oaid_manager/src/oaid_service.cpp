@@ -30,6 +30,7 @@ using namespace std::chrono;
 
 namespace OHOS {
 namespace Cloud {
+const std::string OAID_VIRTUAL_STR = "-****-****-****-************";
 namespace {
 char HexToChar(uint8_t hex)
 {
@@ -338,7 +339,8 @@ std::string OAIDService::GetOAID()
     OAID_HILOGI(OAID_MODULE_SERVICE, "Begin.");
 
     std::string oaid = GainOAID();
-
+    std::string target = oaid.substr(0, 9).append(OAID_VIRTUAL_STR);
+    OAID_HILOGI(OAID_MODULE_SERVICE, "getOaid success oaid is: %{public}s", target.c_str());
     OAID_HILOGI(OAID_MODULE_SERVICE, "End.");
     return oaid;
 }
@@ -350,6 +352,8 @@ int32_t OAIDService::ResetOAID()
     oaid_ = resetOaid;
     bool result = WriteValueToKvStore(OAID_KVSTORE_KEY, resetOaid);
     OAID_HILOGI(OAID_MODULE_SERVICE, "ResetOAID WriteValueToKvStore %{public}s", result == true ? "success" : "failed");
+    std::string target = resetOaid.substr(0, 9).append(OAID_VIRTUAL_STR);
+    OAID_HILOGI(OAID_MODULE_SERVICE, "resetOaid success oaid is: %{public}s", target.c_str());
     // 调用单例对象的oberser->OnUpdateOaid
     DelayedSingleton<OaidObserverManager>::GetInstance()->OnUpdateOaid(resetOaid);
     return ERR_OK;

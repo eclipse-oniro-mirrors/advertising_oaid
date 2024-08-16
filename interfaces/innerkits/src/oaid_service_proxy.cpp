@@ -73,7 +73,7 @@ int32_t OAIDServiceProxy::ResetOAID()
 int32_t OAIDServiceProxy::RegisterObserver(const sptr<IRemoteConfigObserver> &observer)
 {
     if (!observer) {
-        OAID_HILOGE(OAID_MODULE_CLIENT, "Observer is null.");
+        OAID_HILOGE(OAID_MODULE_CLIENT, "Observer is null, error code is: %{public}d", ERR_NULL_POINTER);
         return ERR_NULL_POINTER;
     }
     MessageParcel data;
@@ -81,11 +81,13 @@ int32_t OAIDServiceProxy::RegisterObserver(const sptr<IRemoteConfigObserver> &ob
     MessageOption option;
 
     if (!data.WriteInterfaceToken(GetDescriptor())) {
-        OAID_HILOGE(OAID_MODULE_CLIENT, "Failed to write RegisterObserver InterfaceToken");
+        OAID_HILOGE(OAID_MODULE_CLIENT,
+            "Failed to write RegisterObserver InterfaceToken, error code is: %{public}d",
+            ERR_WRITE_PARCEL_FAILED);
         return ERR_WRITE_PARCEL_FAILED;
     }
     if (!data.WriteRemoteObject(observer->AsObject())) {
-        OAID_HILOGE(OAID_MODULE_CLIENT, "Observer write failed.");
+        OAID_HILOGE(OAID_MODULE_CLIENT, "Observer write failed, error code is: %{public}d", ERR_WRITE_PARCEL_FAILED);
         return ERR_WRITE_PARCEL_FAILED;
     }
     OAID_HILOGE(OAID_MODULE_CLIENT, "RegisterObserver proxy");
