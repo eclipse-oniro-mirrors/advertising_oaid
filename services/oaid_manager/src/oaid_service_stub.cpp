@@ -184,7 +184,7 @@ int32_t OAIDServiceStub::OnRemoteRequest(
     std::u16string remoteDescripter = data.ReadInterfaceToken();
     if (myDescripter != remoteDescripter) {
         OAID_HILOGE(OAID_MODULE_SERVICE, "Descriptor checked fail.");
-        return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
+        return ERR_SYSYTEM_ERROR;
     }
     OAID_HILOGI(OAID_MODULE_SERVICE, "Remote bundleName is %{public}s.", bundleName.c_str());
     return SendCode(code, data, reply);
