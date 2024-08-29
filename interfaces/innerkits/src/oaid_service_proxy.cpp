@@ -87,7 +87,7 @@ int32_t OAIDServiceProxy::RegisterObserver(const sptr<IRemoteConfigObserver> &ob
         return ERR_WRITE_PARCEL_FAILED;
     }
     if (!data.WriteRemoteObject(observer->AsObject())) {
-        OAID_HILOGE(OAID_MODULE_CLIENT, "Observer write failed.");
+        OAID_HILOGE(OAID_MODULE_CLIENT, "Observer write failed, error code is: %{public}d", ERR_WRITE_PARCEL_FAILED);
         return ERR_WRITE_PARCEL_FAILED;
     }
     OAID_HILOGE(OAID_MODULE_CLIENT, "RegisterObserver proxy");
