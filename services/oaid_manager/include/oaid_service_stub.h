@@ -60,6 +60,7 @@ private:
     int32_t ValidateResetOAIDPermission(std::string bundleName, MessageParcel &reply);
 
     std::shared_ptr<AppExecFwk::EventHandler> unloadHandler_;
+    std::mutex init_eventHandler_Mutex_;
 };
 } // namespace Cloud
 } // namespace OHOS

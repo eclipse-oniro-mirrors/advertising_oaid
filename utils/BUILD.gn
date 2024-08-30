@@ -21,6 +21,8 @@ config("utils_config") {
 }
 
 ohos_source_set("oaid_utils") {
+  branch_protector_ret = "pac_ret"
+
   configs = [ ":utils_config" ]
 
   sources = [ "native/src/oaid_file_operator.cpp" ]

@@ -21,6 +21,7 @@
 
 namespace OHOS {
 namespace Cloud {
+const std::string OAID_VIRTUAL_STR = "-****-****-****-************";
 OaidObserverManager::OaidObserverManager()
 {
     OAID_HILOGI(OAID_MODULE_SERVICE, "OaidObserverManager construct");
@@ -41,6 +42,8 @@ int32_t OaidObserverManager::RegisterObserver(const sptr<IRemoteConfigObserver> 
     observer_ = observer;
 
     auto oaid = OAIDService::GetInstance()->GetOAID();
+    std::string target = oaid.substr(0, 9).append(OAID_VIRTUAL_STR);
+    OAID_HILOGI(OAID_MODULE_SERVICE, "registerObserver success, getOaid is: %{public}s", target.c_str());
     observer->OnOaidUpdated(oaid);
     return ERR_OK;
 }
@@ -49,9 +52,11 @@ void OaidObserverManager::OnUpdateOaid(const std::string &oaid)
 {
     std::shared_lock<std::shared_mutex> lockUpdate(observerMutex_);
     if (observer_ == nullptr) {
-        OAID_HILOGI(OAID_MODULE_SERVICE, "observer is null");
+        OAID_HILOGI(OAID_MODULE_SERVICE, "observer is null, error code is: %{public}d", ERR_NULL_POINTER);
         return;
     }
+    std::string target = oaid.substr(0, 9).append(OAID_VIRTUAL_STR);
+    OAID_HILOGI(OAID_MODULE_SERVICE, "OnOaidUpdated success oaid is: %{public}s", target.c_str());
     observer_->OnOaidUpdated(oaid);
 }
 }  // namespace Cloud

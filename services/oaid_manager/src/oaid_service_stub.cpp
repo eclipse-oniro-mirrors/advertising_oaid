@@ -184,7 +184,7 @@ int32_t OAIDServiceStub::OnRemoteRequest(
     std::u16string remoteDescripter = data.ReadInterfaceToken();
     if (myDescripter != remoteDescripter) {
         OAID_HILOGE(OAID_MODULE_SERVICE, "Descriptor checked fail.");
-        return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
+        return ERR_SYSYTEM_ERROR;
     }
     OAID_HILOGI(OAID_MODULE_SERVICE, "Remote bundleName is %{public}s.", bundleName.c_str());
     return SendCode(code, data, reply);
@@ -203,8 +203,7 @@ int32_t OAIDServiceStub::ValidateResetOAIDPermission(std::string bundleName, Mes
     }
 
     if (!CheckSystemApp()) {
-        OAID_HILOGW(
-            OAID_MODULE_SERVICE, "CheckSystemApp fail.errorCode = %{public}d", OAID_ERROR_CODE_NOT_SYSTEM_APP);
+        OAID_HILOGW(OAID_MODULE_SERVICE, "CheckSystemApp fail.errorCode = %{public}d", OAID_ERROR_CODE_NOT_SYSTEM_APP);
         if (!reply.WriteInt32(OAID_ERROR_CODE_NOT_SYSTEM_APP)) {
             OAID_HILOGE(OAID_MODULE_SERVICE, "write errorCode to reply failed.");
             return ERR_SYSYTEM_ERROR;
@@ -251,19 +250,23 @@ void OAIDServiceStub::ExitIdleState()
     }
     int32_t ret = samgrProxy->CancelUnloadSystemAbility(OAID_SYSTME_ID);
     if (ret != ERR_OK) {
-        OAID_HILOGE(OAID_MODULE_SERVICE, "CancelUnload system ability %{public}d failed, result: %{public}d.",
-                    OAID_SYSTME_ID, ret);
+        OAID_HILOGE(OAID_MODULE_SERVICE,
+            "CancelUnload system ability %{public}d failed, result: %{public}d.",
+            OAID_SYSTME_ID,
+            ret);
         return;
     }
 }
 
 void OAIDServiceStub::PostDelayUnloadTask()
 {
+    init_eventHandler_Mutex_.lock();
     if (unloadHandler_ == nullptr) {
         const char *runnerName = "unlock";
         auto runner = AppExecFwk::EventRunner::Create(runnerName);
         unloadHandler_ = std::make_shared<AppExecFwk::EventHandler>(runner);
     }
+    init_eventHandler_Mutex_.unlock();
     auto task = [this]() {
         auto samgrProxy = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
         if (samgrProxy == nullptr) {
@@ -272,8 +275,10 @@ void OAIDServiceStub::PostDelayUnloadTask()
         }
         int32_t ret = samgrProxy->UnloadSystemAbility(OAID_SYSTME_ID);
         if (ret != ERR_OK) {
-            OAID_HILOGE(OAID_MODULE_SERVICE, "Unload system ability %{public}d failed, result: %{public}d.",
-                        OAID_SYSTME_ID, ret);
+            OAID_HILOGE(OAID_MODULE_SERVICE,
+                "Unload system ability %{public}d failed, result: %{public}d.",
+                OAID_SYSTME_ID,
+                ret);
             return;
         }
     };
@@ -285,24 +290,25 @@ int32_t OAIDServiceStub::HandleRegisterControlConfigObserver(MessageParcel &data
 {
     int32_t uid = IPCSkeleton::GetCallingUid();
     if (uid != HA_UID) {
-        OAID_HILOGE(OAID_MODULE_SERVICE, "callingUid error.");
+        OAID_HILOGE(OAID_MODULE_SERVICE, "callingUid error, error code is: %{public}d", ERR_INVALID_PARAM);
         return ERR_INVALID_PARAM;
     }
     auto remoteObject = data.ReadRemoteObject();
     if (!remoteObject) {
-        OAID_HILOGI(OAID_MODULE_SERVICE, "remoteObject is null");
-        return ERR_SYSYTEM_ERROR;
+        OAID_HILOGI(OAID_MODULE_SERVICE, "Observer is null, error code is: %{public}d", ERR_NULL_POINTER);
+        return ERR_NULL_POINTER;
     }
     auto observer = iface_cast<IRemoteConfigObserver>(remoteObject);
     if (observer == nullptr) {
-        OAID_HILOGI(OAID_MODULE_SERVICE, "Null observer.");
-        return ERR_SYSYTEM_ERROR;
+        OAID_HILOGI(OAID_MODULE_SERVICE, "Observer is null, error code is: %{public}d", ERR_NULL_POINTER);
+        return ERR_NULL_POINTER;
     }
     return RegisterObserver(observer);
 }
 
 int32_t OAIDServiceStub::RegisterObserver(const sptr<IRemoteConfigObserver> &observer)
 {
+    OAID_HILOGI(OAID_MODULE_SERVICE, "registerObserver success.");
     return DelayedSingleton<OaidObserverManager>::GetInstance()->RegisterObserver(observer);
 }
 }  // namespace Cloud
