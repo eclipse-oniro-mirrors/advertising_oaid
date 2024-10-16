@@ -35,12 +35,12 @@ ohos_fuzztest("OAIDFuzzTest") {
   deps = [
     "${innerkits_path}:oaid_client",
     "${oaid_service_path}:oaid_service",
-    "//base/security/access_token/interfaces/innerkits/nativetoken:libnativetoken",
-    "//base/security/access_token/interfaces/innerkits/token_setproc:libtoken_setproc",
   ]
 
   external_deps = [
     "access_token:libaccesstoken_sdk",
+    "access_token:libnativetoken",
+    "access_token:libtoken_setproc",
     "cJSON:cjson",
     "c_utils:utils",
     "hilog:libhilog",
