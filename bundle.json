@@ -34,11 +34,13 @@
         "napi",
         "safwk",
         "samgr",
-        "eventhandler"
+        "eventhandler",
+        "libuv",
+        "openssl",
+        "node"
       ],
       "third_party": [
-        "libuv",
-        "openssl"
+
       ]
     },
     "build": {

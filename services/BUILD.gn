@@ -48,7 +48,6 @@ ohos_shared_library("oaid_service") {
 
   deps = [
     "${oaid_utils_path}:oaid_utils",
-    "//third_party/openssl:libcrypto_shared",
   ]
 
   external_deps = [
@@ -65,6 +64,7 @@ ohos_shared_library("oaid_service") {
     "kv_store:distributeddata_inner",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
+    "openssl:libcrypto_shared",
   ]
   part_name = "oaid"
   subsystem_name = "advertising"

@@ -16,7 +16,6 @@ import("//domains/advertising/oaid/oaid.gni")
 config("utils_config") {
   include_dirs = [
     "native/include",
-    "//commonlibrary/c_utils/base/include",
   ]
 }
 
@@ -38,6 +37,7 @@ ohos_source_set("oaid_utils") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "c_utils:utilsbase",
   ]
 
   part_name = "oaid"
