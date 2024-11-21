@@ -72,3 +72,4 @@ ohos_shared_library("oaid") {
   part_name = "oaid"
 }
 
+
