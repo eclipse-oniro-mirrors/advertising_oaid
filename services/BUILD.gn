@@ -46,9 +46,7 @@ ohos_shared_library("oaid_service") {
     "oaid_manager/src/oaid_service_stub.cpp",
   ]
 
-  deps = [
-    "${oaid_utils_path}:oaid_utils",
-  ]
+  deps = [ "${oaid_utils_path}:oaid_utils" ]
 
   external_deps = [
     "access_token:libaccesstoken_sdk",
@@ -62,9 +60,9 @@ ohos_shared_library("oaid_service") {
     "hilog:libhilog",
     "ipc:ipc_single",
     "kv_store:distributeddata_inner",
+    "openssl:libcrypto_shared",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
-    "openssl:libcrypto_shared",
   ]
   part_name = "oaid"
   subsystem_name = "advertising"
@@ -76,3 +74,4 @@ ohos_prebuilt_etc("oaid_service_config_json") {
   part_name = "oaid"
   subsystem_name = "advertising"
 }
+
