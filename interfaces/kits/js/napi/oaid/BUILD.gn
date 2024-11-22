@@ -37,8 +37,6 @@ ohos_shared_library("oaid") {
     "${innerkits_path}/include",
     "../utils/native/include",
     "./include",
-    "//third_party/node/src",
-    "//third_party/libuv/include",
   ]
 
   sanitize = {
@@ -60,12 +58,12 @@ ohos_shared_library("oaid") {
   deps = [
     "${innerkits_path}:oaid_client",
     "${oaid_utils_path}:oaid_utils",
-    "//third_party/libuv:uv_static",
   ]
 
   external_deps = [
     "hilog:libhilog",
     "ipc:ipc_single",
+    "libuv:uv_static",
     "napi:ace_napi",
   ]
 

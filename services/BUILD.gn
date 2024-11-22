@@ -46,10 +46,7 @@ ohos_shared_library("oaid_service") {
     "oaid_manager/src/oaid_service_stub.cpp",
   ]
 
-  deps = [
-    "${oaid_utils_path}:oaid_utils",
-    "//third_party/openssl:libcrypto_shared",
-  ]
+  deps = [ "${oaid_utils_path}:oaid_utils" ]
 
   external_deps = [
     "access_token:libaccesstoken_sdk",
@@ -63,6 +60,7 @@ ohos_shared_library("oaid_service") {
     "hilog:libhilog",
     "ipc:ipc_single",
     "kv_store:distributeddata_inner",
+    "openssl:libcrypto_shared",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
