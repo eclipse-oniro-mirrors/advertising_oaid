@@ -74,4 +74,3 @@ ohos_prebuilt_etc("oaid_service_config_json") {
   part_name = "oaid"
   subsystem_name = "advertising"
 }
-

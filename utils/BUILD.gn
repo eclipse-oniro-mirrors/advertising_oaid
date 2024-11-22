@@ -40,4 +40,3 @@ ohos_source_set("oaid_utils") {
 
   part_name = "oaid"
 }
-
