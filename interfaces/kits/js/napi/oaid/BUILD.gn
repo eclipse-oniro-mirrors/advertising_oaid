@@ -71,4 +71,3 @@ ohos_shared_library("oaid") {
   subsystem_name = "advertising"
   part_name = "oaid"
 }
-
