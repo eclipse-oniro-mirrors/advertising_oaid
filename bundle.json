@@ -23,6 +23,7 @@
     "ram": "1024KB",
     "deps": {
       "components": [
+        "ability_runtime",
         "access_token",
         "bundle_framework",
         "cJSON",
