@@ -36,8 +36,7 @@
         "samgr",
         "eventhandler",
         "libuv",
-        "openssl",
-        "node"
+        "openssl"
       ],
       "third_party": [
 
