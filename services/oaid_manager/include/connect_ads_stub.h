@@ -28,26 +28,76 @@ using OHOS::sptr;
 
 namespace OHOS {
 namespace Cloud {
-class ConnectAdsStub: public AbilityConnectionStub {
+class AdsCallback : public IRemoteBroker {
 public:
+    DECLARE_INTERFACE_DESCRIPTOR(u"ohos.cloud.oaid.AdsCallback");
+};
+
+class ADSCallbackStub : public IRemoteStub<AdsCallback> {
+public:
+    DISALLOW_COPY_AND_MOVE(ADSCallbackStub);
+    ADSCallbackStub() = default;
+    virtual ~ADSCallbackStub() = default;
+
+    int OnRemoteRequest(
+            uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option) override;
+
+    int HandleCommand(int32_t action, const std::string& params);
+};
+
+class ConnectAdsStub : public AbilityConnectionStub {
+public:
+
     void OnAbilityConnectDone(const ElementName &element, const sptr<IRemoteObject> &remoteObject,
                               int resultCode) override
     {
         OAID_HILOGI(OAID_MODULE_SERVICE, "enter OnAbilityConnectDone");
         proxy_ = remoteObject;
+        SendMessage();
     }
+
     void OnAbilityDisconnectDone(const ElementName &element, int resultCode) override
     {
         OAID_HILOGI(OAID_MODULE_SERVICE, "enter OnAbilityDisconnectDone");
         proxy_ = nullptr;
     }
+
     sptr<IRemoteObject> GetRemoteObject()
     {
         return proxy_;
     }
+
+    void SendMessage()
+    {
+        OAID_HILOGI(OAID_MODULE_SERVICE, "SendMessage enter");
+        if (proxy_ == nullptr) {
+            return;
+        }
+        MessageParcel data;
+        MessageParcel reply;
+        MessageOption option;
+        if (!data.WriteInterfaceToken(OAID_INFO_TOKEN)) {
+            OAID_HILOGW(OAID_MODULE_SERVICE, "SendMessage WriteInterfaceToken failed");
+            return;
+        }
+        auto callback = new ADSCallbackStub();
+        if (!data.WriteRemoteObject(callback->AsObject())) {
+            OAID_HILOGW(OAID_MODULE_SERVICE, "Callback write failed.");
+            return;
+        }
+        proxy_->SendRequest(CODE_ALLOW_GET_OAID, data, reply, option);
+        OAID_HILOGI(OAID_MODULE_SERVICE, "SendMessage finished");
+    }
+
+    static void setToken(std::u16string token){
+        OAID_INFO_TOKEN = token;
+    }
+
 private:
     sptr<IRemoteObject> proxy_;
+    static std::u16string OAID_INFO_TOKEN;
 };
+std::u16string ConnectAdsStub::OAID_INFO_TOKEN = u"";
 
 class ConnectAdsManager {
 public:
@@ -61,14 +111,15 @@ public:
         OAID_HILOGI(OAID_MODULE_SERVICE, "destructor ConnectAdsManager");
     }
 
-    static ConnectAdsManager* GetInstance(){
+    static ConnectAdsManager* GetInstance()
+    {
         static ConnectAdsManager instance;
         return &instance;
     }
 
     bool ConnectToAds(Want want)
     {
-        OAID_HILOGI(OAID_MODULE_SERVICE, "enter ConnectToAds isConnect=%{public}d",isConnect);
+        OAID_HILOGI(OAID_MODULE_SERVICE, "enter ConnectToAds isConnect=%{public}d", isConnect);
         if (!isConnect) {
             OAID_HILOGI(OAID_MODULE_SERVICE, "start ConnectToAds ");
             int32_t resultNumber = AbilityManagerClient::GetInstance()->ConnectAbility(want, connectObject_, userId_);
@@ -84,7 +135,7 @@ public:
 
     int32_t DisconnectService()
     {
-        OAID_HILOGI(OAID_MODULE_SERVICE, "enter DisconnectService isConnect=%{public}d",isConnect);
+        OAID_HILOGI(OAID_MODULE_SERVICE, "enter DisconnectService isConnect=%{public}d", isConnect);
         if (isConnect) {
             OAID_HILOGI(OAID_MODULE_SERVICE, "start DisconnectService ");
             AbilityManagerClient::GetInstance()->DisconnectAbility(connectObject_);
@@ -93,25 +144,22 @@ public:
         return 0;
     }
 
-    void SendMessage();
-
     Want getWantInfo();
 
     bool checkAllowGetOaid();
 
-
-    static void getAllowGetOAIDFromKit() {
-        OAID_HILOGI(OAID_MODULE_SERVICE, "getAllowGetOAIDFromKit isConnect = %{public}d",isConnect);
+    static void getAllowGetOAIDFromKit()
+    {
+        OAID_HILOGI(OAID_MODULE_SERVICE, "getAllowGetOAIDFromKit isConnect = %{public}d", isConnect);
         if (!isConnect) {
             OAID_HILOGI(OAID_MODULE_SERVICE, "getAllowGetOAIDFromKit enter ConnectToAds");
             Want want = ConnectAdsManager::GetInstance()->getWantInfo();
             ConnectAdsManager::GetInstance()->ConnectToAds(want);
         }
-        OAID_HILOGI(OAID_MODULE_SERVICE, "getAllowGetOAIDFromKit enter SendMessage");
-        ConnectAdsManager::GetInstance()->SendMessage();
     }
 
-    sptr<ConnectAdsStub> getConnection(){
+    sptr<ConnectAdsStub> getConnection()
+    {
         return connectObject_;
     }
 
@@ -129,22 +177,6 @@ private:
 int32_t ConnectAdsManager::retryConnectAdsCount  = 0;
 bool ConnectAdsManager::isConnect = false;
 
-class AdsCallback : public IRemoteBroker {
-public:
-    DECLARE_INTERFACE_DESCRIPTOR(u"ohos.cloud.oaid.AdsCallback");
-};
-
-class ADSCallbackStub : public IRemoteStub<AdsCallback> {
-public:
-    DISALLOW_COPY_AND_MOVE(ADSCallbackStub);
-    ADSCallbackStub() = default;
-    virtual ~ADSCallbackStub() = default;
-
-    int OnRemoteRequest(
-            uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option) override;
-
-    int HandleCommand(int32_t action, const std::string& params);
-};
 } // namespace Cloud
 } // namespace OHOS
 #endif //PPSOPENHARMONYSA_OPEN_CONNECT_ADS_STUB_H

@@ -171,8 +171,8 @@ void OAIDService::OnAddSystemAbility(int32_t systemAbilityId, const std::string 
             initBaseKvResult = InitKvStore(OAID_DATA_BASE_STORE_ID);
             initUnderAgeKvResult = InitKvStore(OAID_UNDER_AGE_STORE_ID);
                 OAID_HILOGI(OAID_MODULE_SERVICE,
-                "OnAddSystemAbility InitOaidKvStore is %{public}d. InitUnderAgeKvStore is %{public}d", initBaseKvResult,
-                initUnderAgeKvResult);
+                    "OnAddSystemAbility InitOaidKvStore is %{public}d. InitUnderAgeKvStore is %{public}d",
+                        initBaseKvResult, initUnderAgeKvResult);
             break;
         default:
             OAID_HILOGI(OAID_MODULE_SERVICE, "OnAddSystemAbility unhandled sysabilityId:%{public}d", systemAbilityId);
@@ -309,7 +309,8 @@ int32_t OAIDService::ResetOAID()
     return ERR_OK;
 }
 
-bool OAIDService::InitKvStore(std::string storeIdStr){
+bool OAIDService::InitKvStore(std::string storeIdStr)
+{
     DistributedKv::DistributedKvDataManager manager;
     DistributedKv::Options options;
     DistributedKv::AppId appId;
@@ -373,7 +374,7 @@ bool OAIDService::CheckUnderAgeKvStore()
     if (oaidUnderAgeKvStore_ != nullptr) {
         return true;
     }
-    bool result = InitKvStore( OAID_UNDER_AGE_STORE_ID);
+    bool result = InitKvStore(OAID_UNDER_AGE_STORE_ID);
     OAID_HILOGI(OAID_MODULE_SERVICE, "InitUnderAgeKvStore: %{public}s", result == true ? "success" : "failed");
     return result;
 }
@@ -416,7 +417,8 @@ bool OAIDService::WriteValueToUnderAgeKvStore(const std::string &kvStoreKey, con
     return true;
 }
 
-Want ConnectAdsManager::getWantInfo(){
+Want ConnectAdsManager::getWantInfo()
+{
     OAID_HILOGI(OAID_MODULE_SERVICE, "enter getWantInfo ");
     OHOS::AAFwk::Want connectionWant;
     char pathBuff[MAX_PATH_LEN];
@@ -454,8 +456,18 @@ Want ConnectAdsManager::getWantInfo(){
         cJSON_Delete(root);
         return connectionWant;
     }
-    OAID_HILOGI(OAID_MODULE_SERVICE, "getWantInfo BundleName=%{public}s,AbilityName =%{public}s",
-        oaidProviderBundleNameConfig->valuestring, oaidProviderAbilityNameConfig->valuestring);
+    cJSON *oaidProviderTokenNameConfig = cJSON_GetObjectItem(root, "providerTokenName");
+    if (oaidProviderTokenNameConfig == nullptr || oaidProviderTokenNameConfig->type != cJSON_String) {
+        OAID_HILOGE(OAID_MODULE_SERVICE, "not contain providerTokenName node.");
+        cJSON_Delete(root);
+        return connectionWant;
+    }
+
+    OAID_HILOGI(OAID_MODULE_SERVICE,
+        "getWantInfo BundleName = %{public}s, AbilityName = %{public}s, providerToken = %{public}s",
+            oaidProviderBundleNameConfig->valuestring, oaidProviderAbilityNameConfig->valuestring,
+                oaidProviderTokenNameConfig->valuestring);
+    ConnectAdsStub::setToken(Str8ToStr16(oaidProviderTokenNameConfig->valuestring));
     connectionWant.SetElementName(oaidProviderBundleNameConfig->valuestring,
         oaidProviderAbilityNameConfig->valuestring);
     cJSON_Delete(root);
@@ -467,8 +479,8 @@ bool ConnectAdsManager::checkAllowGetOaid()
     OAID_HILOGI(OAID_MODULE_SERVICE, "checkAllowGetOaid enter ");
     DistributedKv::Value allowGetOaid;
     DistributedKv::Value updateTime;
-    OAIDService::GetInstance()->ReadValueFromUnderAgeKvStore(ALLOW_GET_OAID_KEY,allowGetOaid);
-    OAIDService::GetInstance()->ReadValueFromUnderAgeKvStore(LAST_UPDATE_TIME_KEY,updateTime);
+    OAIDService::GetInstance()->ReadValueFromUnderAgeKvStore(ALLOW_GET_OAID_KEY, allowGetOaid);
+    OAIDService::GetInstance()->ReadValueFromUnderAgeKvStore(LAST_UPDATE_TIME_KEY, updateTime);
     OAID_HILOGI(OAID_MODULE_SERVICE, "checkAllowGetOaid kvdata allowGetOaid = %{public}s  updateTime = %{public}s",
         allowGetOaid.ToString().c_str(), updateTime.ToString().c_str());
     if (allowGetOaid == nullptr || updateTime == nullptr) {
@@ -480,13 +492,17 @@ bool ConnectAdsManager::checkAllowGetOaid()
     unsigned long long updateTimestamp = std::stol(updateTimeStr);
     unsigned long long nowTimestamp = std::chrono::duration_cast<std::chrono::milliseconds>(
         std::chrono::system_clock::now().time_since_epoch()).count();
-    unsigned long long interval = nowTimestamp - updateTimestamp;
-    OAID_HILOGI(OAID_MODULE_SERVICE,
-        "checkAllowGetOaid kvdata nowTimestamp = %{public}lld  updateTime = %{public}s  interval =%{public}lld",
-        nowTimestamp, updateTimeStr.c_str(), interval);
-    if (interval >= EXPIRATION_TIME) {
-        OAID_HILOGI(OAID_MODULE_SERVICE,"checkAllowGetOaid info expiration");
-        std::future<void> resultFromDB = std::async(std::launch::async, ConnectAdsManager::getAllowGetOAIDFromKit);
+    if (nowTimestamp < updateTimestamp) {
+        OAID_HILOGW(OAID_MODULE_SERVICE, "user time illegal");
+    } else {
+        long long interval = nowTimestamp - updateTimestamp;
+        OAID_HILOGI(OAID_MODULE_SERVICE,
+                    "checkAllowGetOaid kvdata nowTimestamp = %{public}lld  updateTime = %{public}s  interval =%{public}lld",
+                    nowTimestamp, updateTimeStr.c_str(), interval);
+        if (interval >= EXPIRATION_TIME) {
+            OAID_HILOGI(OAID_MODULE_SERVICE, "checkAllowGetOaid info expiration");
+            std::future<void> resultFromDB = std::async(std::launch::async, ConnectAdsManager::getAllowGetOAIDFromKit);
+        }
     }
     if (allowGetOaid.ToString() == "true") {
         return true;
@@ -495,37 +511,15 @@ bool ConnectAdsManager::checkAllowGetOaid()
     }
 }
 
-void ConnectAdsManager::SendMessage()
-{
-    OAID_HILOGI(OAID_MODULE_SERVICE, "SendMessage enter");
-    sptr<IRemoteObject> proxy = ConnectAdsManager::GetInstance()->getConnection()->GetRemoteObject();
-    if (proxy == nullptr) {
-        return;
-    }
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    std::u16string OAID_INFO_TOKEN = u"com.huawei.hms.OAIDInfoService";
-    if (!data.WriteInterfaceToken(OAID_INFO_TOKEN)) {
-        OAID_HILOGW(OAID_MODULE_SERVICE, "SendMessage WriteInterfaceToken failed");
-        return;
-    }
-    auto callback = new ADSCallbackStub();
-    if (!data.WriteRemoteObject(callback->AsObject())) {
-        OAID_HILOGW(OAID_MODULE_SERVICE, "Callback write failed.");
-        return;
-    }
-    proxy->SendRequest(CODE_ALLOW_GET_OAID, data, reply, option);
-}
-
 int ADSCallbackStub::OnRemoteRequest(uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option)
 {
     OAID_HILOGI(OAID_MODULE_SERVICE, "OnRemoteRequest enter");
     int32_t respCode = data.ReadInt32();
-    OAID_HILOGI(OAID_MODULE_SERVICE, "OnRemoteRequest respCode = %{public}d",respCode);
+    OAID_HILOGI(OAID_MODULE_SERVICE, "OnRemoteRequest respCode = %{public}d", respCode);
     std::string isAllowGetOaid = Str16ToStr8(data.ReadString16());
     std::string updateTimeStr = Str16ToStr8(data.ReadString16());
-    OAID_HILOGI(OAID_MODULE_SERVICE, "isAllowGetOaid = %{public}s, updateTimeStr = %{public}s", isAllowGetOaid.c_str(), updateTimeStr.c_str());
+    OAID_HILOGI(OAID_MODULE_SERVICE, "isAllowGetOaid = %{public}s, updateTimeStr = %{public}s", isAllowGetOaid.c_str(),
+        updateTimeStr.c_str());
     if (isAllowGetOaid.empty() || updateTimeStr.empty()) {
         OAID_HILOGI(OAID_MODULE_SERVICE, "OnRemoteRequest return info is empty");
         return ERR_OK;
@@ -538,6 +532,7 @@ int ADSCallbackStub::OnRemoteRequest(uint32_t code, MessageParcel& data, Message
         "OnRemoteRequest Write AllowGetOaid result=%{public}s.OnRemoteRequest Write lastUpdateTime result=%{public}s",
         allowGetOaidResult == true ? "success" : "failed",
         lastUpdateTimeResult == true ? "success" : "failed");
+    ConnectAdsManager::GetInstance()->DisconnectService();
     return ERR_OK;
 }
 
@@ -545,6 +540,13 @@ std::string Str16ToStr8(const std::u16string &str)
 {
     std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> convert;
     std::string result = convert.to_bytes(str);
+    return result;
+}
+
+std::u16string Str8ToStr16(const std::string &str)
+{
+    std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> convert;
+    std::u16string result = convert.from_bytes(str);
     return result;
 }
 }  // namespace Cloud
