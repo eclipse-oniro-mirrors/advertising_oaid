@@ -309,12 +309,8 @@ int32_t OAIDService::ResetOAID()
     return ERR_OK;
 }
 
-bool OAIDService::InitKvStore(std::string storeIdStr)
+void getOptions(DistributedKv::Options options)
 {
-    DistributedKv::DistributedKvDataManager manager;
-    DistributedKv::Options options;
-    DistributedKv::AppId appId;
-    appId.appId = OAID_DATA_BASE_APP_ID;
     options.createIfMissing = true;
     options.encrypt = true;
     options.autoSync = false;
@@ -322,6 +318,16 @@ bool OAIDService::InitKvStore(std::string storeIdStr)
     options.area = DistributedKv::EL1;
     options.baseDir = OAID_DATA_BASE_DIR + appId.appId;
     options.securityLevel = DistributedKv::SecurityLevel::S1;
+    return options;
+}
+
+bool OAIDService::InitKvStore(std::string storeIdStr)
+{
+    DistributedKv::DistributedKvDataManager manager;
+    DistributedKv::Options options;
+    getOptions(options);
+    DistributedKv::AppId appId;
+    appId.appId = OAID_DATA_BASE_APP_ID;
     DistributedKv::StoreId storeId;
     storeId.storeId = storeIdStr;
     DistributedKv::Status status = DistributedKv::Status::SUCCESS;
@@ -329,16 +335,14 @@ bool OAIDService::InitKvStore(std::string storeIdStr)
     if (kvStore_ == nullptr) {
         uint32_t retries = 0;
         do {
-            OAID_HILOGI(OAID_MODULE_SERVICE, "InitOaidKvStore: retries=%{public}u!", retries);
             status = manager.GetSingleKvStore(options, appId, storeId, kvStore_);
             if (status == DistributedKv::Status::STORE_NOT_FOUND) {
                 OAID_HILOGE(OAID_MODULE_SERVICE, "InitOaidKvStore: STORE_NOT_FOUND!");
             }
-
             if ((status == DistributedKv::Status::SUCCESS) || (status == DistributedKv::Status::STORE_NOT_FOUND)) {
                 break;
             } else {
-                OAID_HILOGE(OAID_MODULE_SERVICE, "Kvstore Connect failed! Retrying.");
+                OAID_HILOGE(OAID_MODULE_SERVICE, "Kvstore Connect failed! Retrying.retries=%{public}u", retries);
                 retries++;
                 usleep(KVSTORE_CONNECT_RETRY_DELAY_TIME);
             }
@@ -348,7 +352,6 @@ bool OAIDService::InitKvStore(std::string storeIdStr)
         if (status == DistributedKv::Status::STORE_NOT_FOUND) {
             OAID_HILOGI(OAID_MODULE_SERVICE, "First Boot: Create OaidKvStore");
             options.createIfMissing = true;
-            // [create and] open and initialize kvstore instance.
             status = manager.GetSingleKvStore(options, appId, storeId, kvStore_);
             if (status == DistributedKv::Status::SUCCESS) {
                 OAID_HILOGE(OAID_MODULE_SERVICE, "Create OaidKvStore success!");
@@ -420,11 +423,10 @@ bool OAIDService::WriteValueToUnderAgeKvStore(const std::string &kvStoreKey, con
 Want ConnectAdsManager::getWantInfo()
 {
     OAID_HILOGI(OAID_MODULE_SERVICE, "enter getWantInfo ");
-    OHOS::AAFwk::Want connectionWant;
-    char pathBuff[MAX_PATH_LEN];
+    OHOS::AAFwk::Want connectionWant char pathBuff[MAX_PATH_LEN];
     GetOneCfgFile(OAID_TRUSTLIST_EXTENSION_CONFIG_PATH.c_str(), pathBuff, MAX_PATH_LEN);
     char realPath[PATH_MAX];
-    if (realpath(pathBuff, realPath) == nullptr) {
+    if (realpath(pathBuff, realPath) == nullptr || strlen(realPath) >= PATH_MAX) {
         GetOneCfgFile(OAID_TRUSTLIST_CONFIG_PATH.c_str(), pathBuff, MAX_PATH_LEN);
         if (realpath(pathBuff, realPath) == nullptr) {
             OAID_HILOGE(OAID_MODULE_SERVICE, "Parse realpath fail");
@@ -461,9 +463,6 @@ Want ConnectAdsManager::getWantInfo()
         cJSON_Delete(root);
         return connectionWant;
     }
-    OAID_HILOGI(OAID_MODULE_SERVICE,
-        "getWantInfo BundleName = %{public}s, AbilityName = %{public}s",
-            oaidProviderBundleNameConfig->valuestring, oaidProviderAbilityNameConfig->valuestring);
     ConnectAdsStub::setToken(Str8ToStr16(oaidProviderTokenNameConfig->valuestring));
     connectionWant.SetElementName(oaidProviderBundleNameConfig->valuestring,
         oaidProviderAbilityNameConfig->valuestring);
