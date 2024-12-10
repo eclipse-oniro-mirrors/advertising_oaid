@@ -89,7 +89,8 @@ public:
         OAID_HILOGI(OAID_MODULE_SERVICE, "SendMessage finished");
     }
 
-    static void setToken(std::u16string token){
+    static void setToken(std::u16string token)
+    {
         OAID_INFO_TOKEN = token;
     }
 

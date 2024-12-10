@@ -449,7 +449,6 @@ Want ConnectAdsManager::getWantInfo()
         cJSON_Delete(root);
         return connectionWant;
     }
-
     cJSON *oaidProviderAbilityNameConfig = cJSON_GetObjectItem(root, "providerAbilityName");
     if (oaidProviderAbilityNameConfig == nullptr || oaidProviderAbilityNameConfig->type != cJSON_String) {
         OAID_HILOGE(OAID_MODULE_SERVICE, "not contain providerAbilityName node.");
@@ -462,11 +461,9 @@ Want ConnectAdsManager::getWantInfo()
         cJSON_Delete(root);
         return connectionWant;
     }
-
     OAID_HILOGI(OAID_MODULE_SERVICE,
-        "getWantInfo BundleName = %{public}s, AbilityName = %{public}s, providerToken = %{public}s",
-            oaidProviderBundleNameConfig->valuestring, oaidProviderAbilityNameConfig->valuestring,
-                oaidProviderTokenNameConfig->valuestring);
+        "getWantInfo BundleName = %{public}s, AbilityName = %{public}s",
+            oaidProviderBundleNameConfig->valuestring, oaidProviderAbilityNameConfig->valuestring);
     ConnectAdsStub::setToken(Str8ToStr16(oaidProviderTokenNameConfig->valuestring));
     connectionWant.SetElementName(oaidProviderBundleNameConfig->valuestring,
         oaidProviderAbilityNameConfig->valuestring);
@@ -497,8 +494,8 @@ bool ConnectAdsManager::checkAllowGetOaid()
     } else {
         long long interval = nowTimestamp - updateTimestamp;
         OAID_HILOGI(OAID_MODULE_SERVICE,
-                    "checkAllowGetOaid kvdata nowTimestamp = %{public}lld  updateTime = %{public}s  interval =%{public}lld",
-                    nowTimestamp, updateTimeStr.c_str(), interval);
+            "checkAllowGetOaid kvdata nowTimestamp = %{public}lld  updateTime = %{public}s  interval =%{public}lld",
+                nowTimestamp, updateTimeStr.c_str(), interval);
         if (interval >= EXPIRATION_TIME) {
             OAID_HILOGI(OAID_MODULE_SERVICE, "checkAllowGetOaid info expiration");
             std::future<void> resultFromDB = std::async(std::launch::async, ConnectAdsManager::getAllowGetOAIDFromKit);
