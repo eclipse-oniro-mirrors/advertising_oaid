@@ -426,7 +426,7 @@ Want ConnectAdsManager::getWantInfo()
     OHOS::AAFwk::Want connectionWant;
     char pathBuff[MAX_PATH_LEN];
     GetOneCfgFile(OAID_TRUSTLIST_EXTENSION_CONFIG_PATH.c_str(), pathBuff, MAX_PATH_LEN);
-    char realPath[PATH_MAX];
+    char realPath[PATH_MAX + 1];
     if (realpath(pathBuff, realPath) == nullptr) {
         GetOneCfgFile(OAID_TRUSTLIST_CONFIG_PATH.c_str(), pathBuff, MAX_PATH_LEN);
         if (realpath(pathBuff, realPath) == nullptr) {
