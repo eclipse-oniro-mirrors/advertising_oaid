@@ -309,14 +309,15 @@ int32_t OAIDService::ResetOAID()
     return ERR_OK;
 }
 
-void getOptions(DistributedKv::Options options)
+DistributedKv::Options getOptions()
 {
+    DistributedKv::Options options;
     options.createIfMissing = true;
     options.encrypt = true;
     options.autoSync = false;
     options.kvStoreType = DistributedKv::KvStoreType::SINGLE_VERSION;
     options.area = DistributedKv::EL1;
-    options.baseDir = OAID_DATA_BASE_DIR + appId.appId;
+    options.baseDir = OAID_DATA_BASE_DIR + OAID_DATA_BASE_APP_ID;
     options.securityLevel = DistributedKv::SecurityLevel::S1;
     return options;
 }
@@ -324,8 +325,7 @@ void getOptions(DistributedKv::Options options)
 bool OAIDService::InitKvStore(std::string storeIdStr)
 {
     DistributedKv::DistributedKvDataManager manager;
-    DistributedKv::Options options;
-    getOptions(options);
+    DistributedKv::Options options = getOptions();
     DistributedKv::AppId appId;
     appId.appId = OAID_DATA_BASE_APP_ID;
     DistributedKv::StoreId storeId;
