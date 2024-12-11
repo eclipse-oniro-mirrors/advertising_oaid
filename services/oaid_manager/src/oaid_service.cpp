@@ -427,9 +427,9 @@ Want ConnectAdsManager::getWantInfo()
     char pathBuff[MAX_PATH_LEN];
     GetOneCfgFile(OAID_TRUSTLIST_EXTENSION_CONFIG_PATH.c_str(), pathBuff, MAX_PATH_LEN);
     char realPath[PATH_MAX];
-    if (realpath(pathBuff, realPath) == nullptr || strlen(realPath) >= PATH_MAX) {
+    if (realpath(pathBuff, realPath) == nullptr) {
         GetOneCfgFile(OAID_TRUSTLIST_CONFIG_PATH.c_str(), pathBuff, MAX_PATH_LEN);
-        if (realpath(pathBuff, realPath) == nullptr || strlen(realPath) >= PATH_MAX) {
+        if (realpath(pathBuff, realPath) == nullptr) {
             OAID_HILOGE(OAID_MODULE_SERVICE, "Parse realpath fail");
             return connectionWant;
         }
