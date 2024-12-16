@@ -15,14 +15,14 @@
 #ifndef PPSOPENHARMONYSA_OPEN_CONNECT_ADS_STUB_H
 #define PPSOPENHARMONYSA_OPEN_CONNECT_ADS_STUB_H
 
-#include "ability_manager_client.h"
+#include "extension_manager_client.h"
 #include "ability_connect_callback_stub.h"
 #include "oaid_common.h"
 #include "oaid_service_define.h"
-using OHOS::AAFwk::AbilityManagerClient;
+using OHOS::AAFwk::ExtensionManagerClient;
 using OHOS::AAFwk::AbilityConnectionStub;
 using OHOS::AppExecFwk::ElementName;
-using OHOS::AppExecFwk::Want;
+using OHOS::AAFwk::Want;
 using OHOS::IRemoteObject;
 using OHOS::sptr;
 
@@ -123,7 +123,8 @@ public:
         OAID_HILOGI(OAID_MODULE_SERVICE, "enter ConnectToAds isConnect=%{public}d", isConnect);
         if (!isConnect) {
             OAID_HILOGI(OAID_MODULE_SERVICE, "start ConnectToAds ");
-            int32_t resultNumber = AbilityManagerClient::GetInstance()->ConnectAbility(want, connectObject_, userId_);
+            int32_t resultNumber = ExtensionManagerClient::GetInstance().ConnectServiceExtensionAbility(want,
+                connectObject_, nullptr, userId_);
             OAID_HILOGI(OAID_MODULE_SERVICE, "ConnectToAds result=%{public}d", resultNumber);
             if (resultNumber != ERR_OK) {
                 OAID_HILOGI(OAID_MODULE_SERVICE, " failed to ConnectToAds ability");
@@ -139,7 +140,7 @@ public:
         OAID_HILOGI(OAID_MODULE_SERVICE, "enter DisconnectService isConnect=%{public}d", isConnect);
         if (isConnect) {
             OAID_HILOGI(OAID_MODULE_SERVICE, "start DisconnectService ");
-            AbilityManagerClient::GetInstance()->DisconnectAbility(connectObject_);
+            ExtensionManagerClient::GetInstance().DisconnectAbility(connectObject_);
             isConnect = false;
         }
         return 0;
