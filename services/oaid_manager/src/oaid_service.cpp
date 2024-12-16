@@ -34,8 +34,8 @@ const std::string OAID_VIRTUAL_STR = "-****-****-****-************";
 namespace {
 char HexToChar(uint8_t hex)
 {
-    static const uint8_t MAX_SINGLE_DIGIT = 9;  // 9 is the largest single digit
-    return (hex > MAX_SINGLE_DIGIT) ? (hex + 0x57) : (hex + 0x30);
+    static const uint8_t maxSingleDigit = 9;  // 9 is the largest single digit
+    return (hex > maxSingleDigit) ? (hex + 0x57) : (hex + 0x30);
 }
 
 /**
