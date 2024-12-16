@@ -45,7 +45,10 @@ static const std::string OAID_ALLZERO_STR = "00000000-0000-0000-0000-00000000000
 static const std::string OAID_DATA_BASE_DIR = "/data/service/el1/public/database/";
 static const std::string OAID_DATA_BASE_APP_ID = "oaid_service_manager";
 static const std::string OAID_DATA_BASE_STORE_ID = "oaidservice";
+static const std::string OAID_UNDER_AGE_STORE_ID = "underAgeInfo";
 static const std::string OAID_KVSTORE_KEY = "oaid_key";
+static const std::string ALLOW_GET_OAID_KEY = "ALLOW_GET_OAID_KEY";
+static const std::string LAST_UPDATE_TIME_KEY = "ALLOW_GET_OAID_UPDATE_KEY";
 static const std::string OAID_TRUSTLIST_CONFIG_PATH = "/etc/advertising/oaid/oaid_service_config.json";
 static const std::string OAID_TRUSTLIST_EXTENSION_CONFIG_PATH = "/etc/advertising/oaid/oaid_service_config_ext.json";
 
@@ -56,6 +59,8 @@ const std::string OAID_UPDATE = "/data/service/el1/public/database/oaid_service_
 static constexpr int32_t DELAY_TIME = 290000;
 static const std::string TASK_ID = "unload";
 static const int32_t HA_UID = 7508;
+static const int32_t EXPIRATION_TIME = 6 * 60 * 60 * 1000;
+static const int32_t CODE_ALLOW_GET_OAID = 1;
 }  // namespace Cloud
 }  // namespace OHOS
 #endif  // OHOS_CLOUD_OAID_SERVICE_DEFINE_H

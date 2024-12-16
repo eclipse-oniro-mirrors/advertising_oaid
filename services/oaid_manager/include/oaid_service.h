@@ -37,7 +37,7 @@ public:
     OAIDService(int32_t systemAbilityId, bool runOnCreate);
     static sptr<OAIDService> GetInstance();
     OAIDService();
-    bool InitOaidKvStore();
+    bool InitKvStore(std::string storeIdStr);
     virtual ~OAIDService() override;
 
     /**
@@ -51,7 +51,8 @@ public:
      * Reset open advertising id.
      */
     int32_t ResetOAID() override;
-
+    bool ReadValueFromUnderAgeKvStore(const std::string &kvStoreKey, DistributedKv::Value &kvStoreValue);
+    bool WriteValueToUnderAgeKvStore(const std::string &kvStoreKey, const DistributedKv::Value &kvStoreValue);
 protected:
     void OnStart() override;
     void OnStop() override;
@@ -61,6 +62,7 @@ private:
     bool CheckKvStore();
     bool ReadValueFromKvStore(const std::string &kvStoreKey, std::string &kvStoreValue);
     bool WriteValueToKvStore(const std::string &kvStoreKey, const std::string &kvStoreValue);
+    bool CheckUnderAgeKvStore();
     std::string GainOAID();
 
     ServiceRunningState state_;
@@ -68,6 +70,7 @@ private:
     static sptr<OAIDService> instance_;
 
     std::shared_ptr<DistributedKv::SingleKvStore> oaidKvStore_;
+    std::shared_ptr<DistributedKv::SingleKvStore> oaidUnderAgeKvStore_;
     std::mutex updateMutex_;
     std::string oaid_;
 };
