@@ -486,8 +486,8 @@ bool ConnectAdsManager::checkAllowGetOaid()
         return true;
     }
     std::string updateTimeStr = updateTime.ToString();
-    unsigned long long updateTimestamp = std::stol(updateTimeStr);
-    unsigned long long nowTimestamp = std::chrono::duration_cast<std::chrono::milliseconds>(
+    long long updateTimestamp = std::stol(updateTimeStr);
+    long long nowTimestamp = std::chrono::duration_cast<std::chrono::milliseconds>(
         std::chrono::system_clock::now().time_since_epoch()).count();
     if (nowTimestamp < updateTimestamp) {
         OAID_HILOGW(OAID_MODULE_SERVICE, "user time illegal");
