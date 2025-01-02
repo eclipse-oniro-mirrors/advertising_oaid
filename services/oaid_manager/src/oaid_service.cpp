@@ -171,11 +171,12 @@ void OAIDService::OnAddSystemAbility(int32_t systemAbilityId, const std::string 
             initBaseKvResult = InitKvStore(OAID_DATA_BASE_STORE_ID);
             initUnderAgeKvResult = InitKvStore(OAID_UNDER_AGE_STORE_ID);
                 OAID_HILOGI(OAID_MODULE_SERVICE,
-                    "OnAddSystemAbility InitOaidKvStore is %{public}d. InitUnderAgeKvStore is %{public}d",
-                        initBaseKvResult, initUnderAgeKvResult);
+                    "OnAddSystemAbility InitOaidKvStore is %{public}d, InitUnderAgeKvStore is %{public}d",
+                    initBaseKvResult,
+                    initUnderAgeKvResult);
             break;
         default:
-            OAID_HILOGI(OAID_MODULE_SERVICE, "OnAddSystemAbility unhandled sysabilityId:%{public}d", systemAbilityId);
+            OAID_HILOGI(OAID_MODULE_SERVICE, "OnAddSystemAbility unhandled sysabilityId: %{public}d", systemAbilityId);
             break;
     }
 }
@@ -494,8 +495,10 @@ bool ConnectAdsManager::checkAllowGetOaid()
     } else {
         long long interval = nowTimestamp - updateTimestamp;
         OAID_HILOGI(OAID_MODULE_SERVICE,
-            "checkAllowGetOaid kvdata nowTimestamp = %{public}lld  updateTime = %{public}s  interval =%{public}lld",
-                nowTimestamp, updateTimeStr.c_str(), interval);
+            "checkAllowGetOaid kvdata nowTimestamp = %{public}lld  updateTime = %{public}s  interval = %{public}lld",
+            nowTimestamp,
+            updateTimeStr.c_str(),
+            interval);
         if (interval >= EXPIRATION_TIME) {
             OAID_HILOGI(OAID_MODULE_SERVICE, "checkAllowGetOaid info expiration");
             std::future<void> resultFromDB = std::async(std::launch::async, ConnectAdsManager::getAllowGetOAIDFromKit);
