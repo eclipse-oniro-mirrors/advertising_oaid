@@ -171,9 +171,9 @@ void OAIDService::OnAddSystemAbility(int32_t systemAbilityId, const std::string 
             initBaseKvResult = InitKvStore(OAID_DATA_BASE_STORE_ID);
             initUnderAgeKvResult = InitKvStore(OAID_UNDER_AGE_STORE_ID);
                 OAID_HILOGI(OAID_MODULE_SERVICE,
-                "OnAddSystemAbility InitOaidKvStore is %{public}d, InitUnderAgeKvStore is %{public}d",
-                initBaseKvResult,
-                initUnderAgeKvResult);
+                    "OnAddSystemAbility InitOaidKvStore is %{public}d, InitUnderAgeKvStore is %{public}d",
+                    initBaseKvResult,
+                    initUnderAgeKvResult);
             break;
         default:
             OAID_HILOGI(OAID_MODULE_SERVICE, "OnAddSystemAbility unhandled sysabilityId: %{public}d", systemAbilityId);
