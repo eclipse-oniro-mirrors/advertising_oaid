@@ -146,6 +146,7 @@ std::string OAIDServiceClient::GetOAID()
         return OAID_ALLZERO_STR;
     }
 
+    std::unique_lock<std::mutex> lock(getOaidProxyMutex_);
     auto oaid = oaidServiceProxy_->GetOAID();
     if (oaid == "") {
         OAID_HILOGE(OAID_MODULE_CLIENT, "Get OAID failed.");

@@ -74,6 +74,7 @@ private:
     std::mutex loadServiceLock_;
     std::condition_variable loadServiceCondition_;
     std::mutex loadServiceConditionLock_;
+    std::mutex getOaidProxyMutex_;
 
     sptr<IOAIDService> oaidServiceProxy_;
     sptr<OAIDSaDeathRecipient> deathRecipient_;
