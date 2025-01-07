@@ -41,8 +41,6 @@ public:
 
     int OnRemoteRequest(
             uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option) override;
-
-    int HandleCommand(int32_t action, const std::string& params);
 };
 
 class ConnectAdsStub : public AbilityConnectionStub {
@@ -168,7 +166,6 @@ public:
 private:
     sptr<ConnectAdsStub> connectObject_;
     int32_t userId_ = 100;
-    static int32_t retryConnectAdsCount;
     static bool isConnect;
     ConnectAdsManager()
     {
@@ -176,7 +173,6 @@ private:
         OAID_HILOGI(OAID_MODULE_SERVICE, "constructor ConnectAdsManager");
     }
 };
-int32_t ConnectAdsManager::retryConnectAdsCount  = 0;
 bool ConnectAdsManager::isConnect = false;
 
 } // namespace Cloud
