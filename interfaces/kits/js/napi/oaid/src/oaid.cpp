@@ -124,11 +124,13 @@ napi_value ParseParameters(
     napi_valuetype valuetype = napi_undefined;
     std::string message = "wrong argument type, function expected."
     if (argc >= OAID_MAX_PARA) {
+        NAPI_CALL(env, napi_typeof(env, argv[0], &valuetype));
         if (valuetype != napi_function) {
             napi_throw_error(env,
                 std::to_string(OAID_ERROR_ARGUMENT_TYPE).c_str(),
                 message.c_str());
         }
+        NAPI_CALL(env, napi_create_reference(env, argv[0], 1, &callback));
     }
 
     OAID_HILOGI(OHOS::Cloud::OAID_MODULE_JS_NAPI, "End.");
