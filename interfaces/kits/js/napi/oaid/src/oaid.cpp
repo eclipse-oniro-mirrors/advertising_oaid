@@ -122,7 +122,7 @@ napi_value ParseParameters(
     NAPI_ASSERT(env, argc >= OAID_MAX_PARA - 1, "Wrong number of arguments.");
 
     napi_valuetype valuetype = napi_undefined;
-    std::string message = "wrong argument type, function expected."
+    std::string message = "wrong argument type, function expected.";
     if (argc >= OAID_MAX_PARA) {
         NAPI_CALL(env, napi_typeof(env, argv[0], &valuetype));
         if (valuetype != napi_function) {
