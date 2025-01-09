@@ -37,7 +37,7 @@ static const int32_t OAID_ERROR_CODE_NOT_SYSTEM_APP = 202;
 /* not in trust list error code */
 static const int32_t OAID_ERROR_NOT_IN_TRUST_LIST = 17300002;
 /* wrong argument type,function expected */
-static const int32_t OAID_ERROR_ARGUMENT_TYPE = 17300002;
+static const int32_t OAID_ERROR_ARGUMENT_TYPE = 401;
 }  // namespace
 
 std::mutex oaidLock_;
