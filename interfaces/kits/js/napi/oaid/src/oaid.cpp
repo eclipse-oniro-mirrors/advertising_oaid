@@ -212,7 +212,7 @@ napi_value GetOAID(napi_env env, napi_callback_info info)
             getOAIDCompleteCallBack,
             (void *)asynccallbackinfo,
             &asynccallbackinfo->asyncWork));
-    NAPI_CALL(env, napi_queue_async_work(env, asynccallbackinfo->asyncWork));
+    NAPI_CALL(env, napi_queue_async_work_with_qos(env, asynccallbackinfo->asyncWork, napi_qos_user_initiated));
 
     OAID_HILOGI(OHOS::Cloud::OAID_MODULE_JS_NAPI, "End.");
 
