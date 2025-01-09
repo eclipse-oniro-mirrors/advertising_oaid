@@ -33,7 +33,7 @@ std::string OAIDServiceProxy::GetOAID()
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
-
+    const int32_t NOPERMISSION = 305;
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         OAID_HILOGE(OAID_MODULE_CLIENT, "Failed to write parcelable");
         return "";
@@ -41,6 +41,13 @@ std::string OAIDServiceProxy::GetOAID()
 
     int32_t result = Remote()->SendRequest(static_cast<uint32_t>(OAIDInterfaceCode::GET_OAID), data, reply, option);
     if (result != ERR_NONE) {
+        if (result == NOPERMISSION) {
+            OAIDError curErrorCode = ERR_PERMISSION_ERROR;
+            result = curErrorCode;
+        } else {
+            OAIDError curError = ERR_SYSYTEM_ERROR;
+            result = curError;
+        }
         OAID_HILOGE(OAID_MODULE_CLIENT, "Get OAID failed, error code is: %{public}d", result);
         return "";
     }

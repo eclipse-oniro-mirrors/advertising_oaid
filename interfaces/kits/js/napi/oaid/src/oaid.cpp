@@ -36,6 +36,8 @@ const int8_t CALLBACK_RESULT = 1;
 static const int32_t OAID_ERROR_CODE_NOT_SYSTEM_APP = 202;
 /* not in trust list error code */
 static const int32_t OAID_ERROR_NOT_IN_TRUST_LIST = 17300002;
+/* wrong argument type,function expected */
+static const int32_t OAID_ERROR_ARGUMENT_TYPE = 17300002;
 }  // namespace
 
 std::mutex oaidLock_;
@@ -120,10 +122,13 @@ napi_value ParseParameters(
     NAPI_ASSERT(env, argc >= OAID_MAX_PARA - 1, "Wrong number of arguments.");
 
     napi_valuetype valuetype = napi_undefined;
+    std::string message = "wrong argument type, function expected."
     if (argc >= OAID_MAX_PARA) {
-        NAPI_CALL(env, napi_typeof(env, argv[0], &valuetype));
-        NAPI_ASSERT(env, valuetype == napi_function, "Wrong argument type, function expected.");
-        NAPI_CALL(env, napi_create_reference(env, argv[0], 1, &callback));
+        if (valuetype != napi_function) {
+            napi_throw_error(env,
+                std::to_string(OAID_ERROR_ARGUMENT_TYPE).c_str(),
+                message.c_str());
+        }
     }
 
     OAID_HILOGI(OHOS::Cloud::OAID_MODULE_JS_NAPI, "End.");
