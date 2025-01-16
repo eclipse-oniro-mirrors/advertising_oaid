@@ -44,11 +44,12 @@ std::string OAIDServiceProxy::GetOAID()
         if (result == NOPERMISSION) {
             OAIDError curErrorCode = ERR_PERMISSION_ERROR;
             result = curErrorCode;
+            OAID_HILOGE(OAID_MODULE_CLIENT, "Get OAID failed of No permission, error code is: %{public}d", result);
         } else {
             OAIDError curError = ERR_SYSYTEM_ERROR;
             result = curError;
+            OAID_HILOGE(OAID_MODULE_CLIENT, "Get OAID failed of System error, error code is: %{public}d", result);
         }
-        OAID_HILOGE(OAID_MODULE_CLIENT, "Get OAID failed, error code is: %{public}d", result);
         return "";
     }
     auto oaid = reply.ReadString();
