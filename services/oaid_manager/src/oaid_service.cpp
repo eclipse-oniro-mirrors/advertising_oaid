@@ -440,7 +440,7 @@ Want ConnectAdsManager::getWantInfo()
         OAID_HILOGE(OAID_MODULE_SERVICE, "Open file error.");
         return connectionWant;
     }
-    std::string fileContent((std::istreambuf_iterator<char>(inFile)), std::istreambuf_iterator<char>());
+    std::string fileContent((std::istreambuf_iterator<char>{inFile}), std::istreambuf_iterator<char>{});
     cJSON *root = cJSON_Parse(fileContent.c_str());
     inFile.close();
     if (root == nullptr) {
