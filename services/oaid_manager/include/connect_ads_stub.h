@@ -122,7 +122,7 @@ public:
         if (!isConnect) {
             OAID_HILOGI(OAID_MODULE_SERVICE, "start ConnectToAds ");
             int32_t resultNumber = ExtensionManagerClient::GetInstance().ConnectServiceExtensionAbility(want,
-                connectObject_, nullptr, userId_);
+                connectObject_, nullptr, DEFAULT_VALUE);
             OAID_HILOGI(OAID_MODULE_SERVICE, "ConnectToAds result=%{public}d", resultNumber);
             if (resultNumber != ERR_OK) {
                 OAID_HILOGI(OAID_MODULE_SERVICE, " failed to ConnectToAds ability");
@@ -165,7 +165,7 @@ public:
 
 private:
     sptr<ConnectAdsStub> connectObject_;
-    int32_t userId_ = 100;
+    int32_t DEFAULT_VALUE = -1;
     static bool isConnect;
     ConnectAdsManager()
     {
