@@ -98,8 +98,14 @@ int32_t OAIDServiceProxy::RegisterObserver(const sptr<IRemoteConfigObserver> &ob
         OAID_HILOGE(OAID_MODULE_CLIENT, "Observer write failed, error code is: %{public}d", ERR_WRITE_PARCEL_FAILED);
         return ERR_WRITE_PARCEL_FAILED;
     }
+    std::unique_lock<std::mutex> lock(registerObserverMutex_);
+    sptr<IRemoteObject> remote = Remote();
+    if (remote == nullptr) {
+        OAID_HILOGI(OAID_MODULE_CLIENT, "remote is null");
+        return ERR_NULL_POINTER;
+    }
     OAID_HILOGE(OAID_MODULE_CLIENT, "RegisterObserver proxy");
-    return Remote()->SendRequest(
+    return remote->SendRequest(
         static_cast<uint32_t>(OAIDInterfaceCode::REGISTER_CONTROL_CONFIG_OBSERVER), data, reply, option);
 }
 }  // namespace Cloud
