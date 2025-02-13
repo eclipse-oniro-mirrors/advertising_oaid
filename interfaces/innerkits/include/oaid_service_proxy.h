@@ -49,6 +49,7 @@ public:
 
 private:
     static inline BrokerDelegator<OAIDServiceProxy> delegator_;
+    std::mutex registerObserverMutex_;
 };
 } // namespace Cloud
 } // namespace OHOS
