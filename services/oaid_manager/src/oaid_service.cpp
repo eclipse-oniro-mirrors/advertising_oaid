@@ -460,7 +460,8 @@ Want ConnectAdsManager::getWantInfo()
         return connectionWant;
     }
     cJSON *oaidProviderTokenNameConfig = cJSON_GetObjectItem(root, "providerTokenName");
-    if (oaidProviderTokenNameConfig == nullptr || oaidProviderTokenNameConfig->type != cJSON_String) {
+    if (oaidProviderTokenNameConfig == nullptr || oaidProviderTokenNameConfig->type != cJSON_String
+        || oaidProviderTokenNameConfig->valuestring == nullptr) {
         OAID_HILOGE(OAID_MODULE_SERVICE, "not contain providerTokenName node.");
         cJSON_Delete(root);
         return connectionWant;
