@@ -74,7 +74,8 @@ public:
         MessageParcel data;
         MessageParcel reply;
         MessageOption option;
-        if (!data.WriteInterfaceToken(OAID_INFO_TOKEN)) {
+        std::lock_guard<std::mutex> lock(checkMutex_);
+        if (OAID_INFO_TOKEN.empty() || !data.WriteInterfaceToken(OAID_INFO_TOKEN)) {
             OAID_HILOGW(OAID_MODULE_SERVICE, "SendMessage WriteInterfaceToken failed");
             return;
         }
@@ -89,14 +90,18 @@ public:
 
     static void setToken(std::u16string token)
     {
+        OAID_HILOGI(OAID_MODULE_SERVICE, "setToken enter");
+        std::lock_guard<std::mutex> lock(checkMutex_);
         OAID_INFO_TOKEN = token;
     }
 
 private:
     sptr<IRemoteObject> proxy_;
     static std::u16string OAID_INFO_TOKEN;
+    static std::mutex checkMutex_;
 };
 std::u16string ConnectAdsStub::OAID_INFO_TOKEN = u"";
+std::mutex ConnectAdsStub::checkMutex_;
 
 class ConnectAdsManager {
 public:
