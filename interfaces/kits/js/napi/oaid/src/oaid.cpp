@@ -94,6 +94,7 @@ void SetCallback(const napi_env &env, const napi_ref &callbackIn, const int32_t 
 napi_value ParaError(const napi_env &env, const napi_ref &callback)
 {
     if (callback != nullptr) {
+        napi_delete_reference(env, callback);
         return NapiGetNull(env);
     }
 
