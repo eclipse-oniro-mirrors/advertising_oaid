@@ -135,7 +135,7 @@ bool OAIDServiceClient::LoadService()
 std::string OAIDServiceClient::GetOAID()
 {
     OAID_HILOGI(OAID_MODULE_CLIENT, "Begin.");
-
+    std::unique_lock<std::mutex> lock(getOaidProxyMutex_);
     if (!LoadService()) {
         OAID_HILOGW(OAID_MODULE_CLIENT, "Redo load oaid service.");
         LoadService();
@@ -146,7 +146,6 @@ std::string OAIDServiceClient::GetOAID()
         return OAID_ALLZERO_STR;
     }
 
-    std::unique_lock<std::mutex> lock(getOaidProxyMutex_);
     auto oaid = oaidServiceProxy_->GetOAID();
     if (oaid == "") {
         OAID_HILOGE(OAID_MODULE_CLIENT, "Get OAID failed.");
