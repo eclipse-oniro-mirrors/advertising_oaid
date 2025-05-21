@@ -66,7 +66,9 @@ bool OAIDServiceStub::CheckPermission(const std::string &permissionName)
         int32_t failCnt = 1 - successCnt;  // 1 means that there is only one visit in total
         // AddPermissionUsedRecord needs to transfer both the number of successful and failed permission access requests
         int32_t ret = PrivacyKit::AddPermissionUsedRecord(callingToken, permissionName, successCnt, failCnt);
-        OAID_HILOGI(OAID_MODULE_SERVICE, "AddPermissionUsedRecord ret=%{public}d", ret);
+        if (ret != 0) {
+            OAID_HILOGI(OAID_MODULE_SERVICE, "AddPermissionUsedRecord ret=%{public}d", ret);
+        }
     }
 
     if (result == TypePermissionState::PERMISSION_DENIED) {
