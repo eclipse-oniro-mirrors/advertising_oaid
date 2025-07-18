@@ -85,7 +85,7 @@ namespace OHOS {
     bool OAIDFuzzTest(const uint8_t* rawData, size_t size)
     {
         uint32_t startCode = static_cast<uint32_t>(OHOS::Cloud::OAIDInterfaceCode::GET_OAID);
-        uint32_t endCode = static_cast<uint32_t>(OHOS::Cloud::OAIDInterfaceCode::RESET_OAID);
+        uint32_t endCode = static_cast<uint32_t>(OHOS::Cloud::OAIDInterfaceCode::REGISTER_CONTROL_CONFIG_OBSERVER);
         for (uint32_t code = startCode; code <= endCode; code++) {
             MessageParcel data;
             data.WriteInterfaceToken(OAID_INTERFACE_TOKEN);
