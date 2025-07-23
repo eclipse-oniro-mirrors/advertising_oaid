@@ -24,6 +24,7 @@
 #include "accesstoken_kit.h"
 #include "nativetoken_kit.h"
 #include "token_setproc.h"
+#include "bundle_mgr_helper.h"
 #undef private
 
 using namespace std;
@@ -95,7 +96,13 @@ namespace OHOS {
                 sptr<Cloud::OAIDService>(new (std::nothrow) Cloud::OAIDService());
             oaidService->OnRemoteRequest(code, data, reply, option);
         }
-
+        std::vector<AppExecFwk::BundleInfo> bundleInfos;
+        AppExecFwk::BundleInfo bundleInfo;
+        bundleInfos.push_back(bundleInfo);
+        BundleMgrHelper::GetInstance()->GetBundleInfosV9ByReqPermission(bundleInfos, -1);
+        AppExecFwk::ApplicationInfo applicationInfo;
+        BundleMgrHelper::GetInstance()->GetApplicationInfoV9WithPermission("", -1, applicationInfo);
+        BundleMgrHelper::GetInstance()->ClearBundleMgrHelper();
         return true;
     }
 }
