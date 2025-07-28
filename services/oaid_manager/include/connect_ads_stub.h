@@ -58,6 +58,7 @@ public:
     {
         OAID_HILOGI(OAID_MODULE_SERVICE, "enter OnAbilityDisconnectDone");
         proxy_ = nullptr;
+        CODE_OAID = GET_ALLOW_OAID_CODE;
     }
 
     sptr<IRemoteObject> GetRemoteObject()
@@ -67,6 +68,7 @@ public:
 
     void SendMessage()
     {
+        std::lock_guard<std::mutex> lock(checkMutex_);
         OAID_HILOGI(OAID_MODULE_SERVICE, "SendMessage enter");
         if (proxy_ == nullptr) {
             return;
@@ -74,7 +76,6 @@ public:
         MessageParcel data;
         MessageParcel reply;
         MessageOption option;
-        std::lock_guard<std::mutex> lock(checkMutex_);
         if (OAID_INFO_TOKEN.empty() || !data.WriteInterfaceToken(OAID_INFO_TOKEN)) {
             OAID_HILOGW(OAID_MODULE_SERVICE, "SendMessage WriteInterfaceToken failed");
             return;
@@ -84,8 +85,10 @@ public:
             OAID_HILOGW(OAID_MODULE_SERVICE, "Callback write failed.");
             return;
         }
-        proxy_->SendRequest(CODE_ALLOW_GET_OAID, data, reply, option);
+        OAID_HILOGI(OAID_MODULE_SERVICE, "SendMessage CODE_OAID = %{public}d", CODE_OAID);
+        proxy_->SendRequest(CODE_OAID, data, reply, option);
         OAID_HILOGI(OAID_MODULE_SERVICE, "SendMessage finished");
+        CODE_OAID = GET_ALLOW_OAID_CODE;
     }
 
     static void setToken(std::u16string token)
@@ -95,13 +98,22 @@ public:
         OAID_INFO_TOKEN = token;
     }
 
+    static void setCodeOaid(std::int32_t code)
+    {
+        std::lock_guard<std::mutex> lock(checkMutex_);
+        OAID_HILOGI(OAID_MODULE_SERVICE, "setCodeOaid enter");
+        CODE_OAID = code;
+    }
+
 private:
     sptr<IRemoteObject> proxy_;
     static std::u16string OAID_INFO_TOKEN;
     static std::mutex checkMutex_;
+    static std::int32_t CODE_OAID;
 };
 std::u16string ConnectAdsStub::OAID_INFO_TOKEN = u"";
 std::mutex ConnectAdsStub::checkMutex_;
+std::int32_t ConnectAdsStub::CODE_OAID = 1;
 
 class ConnectAdsManager {
 public:
@@ -123,6 +135,7 @@ public:
 
     bool ConnectToAds(Want want)
     {
+        std::lock_guard<std::mutex> lock(connectMutex_);
         OAID_HILOGI(OAID_MODULE_SERVICE, "enter ConnectToAds isConnect=%{public}d", isConnect);
         if (!isConnect) {
             OAID_HILOGI(OAID_MODULE_SERVICE, "start ConnectToAds ");
@@ -134,6 +147,7 @@ public:
                 return false;
             }
             isConnect = true;
+            DisconnectService();
         }
         return true;
     }
@@ -153,12 +167,29 @@ public:
 
     bool checkAllowGetOaid();
 
-    static void getAllowGetOAIDFromKit()
+    static void notifyKitOfOaid(int32_t code)
     {
-        OAID_HILOGI(OAID_MODULE_SERVICE, "getAllowGetOAIDFromKit isConnect = %{public}d", isConnect);
+        static std::mutex timeMutex;
+        {
+            std::lock_guard<std::mutex> lock(timeMutex);
+            static std::chrono::steady_clock::time_point lastCallTime;
+            auto now = std::chrono::steady_clock::now();
+            auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - lastCallTime);
+            if (elapsed.count() < NOTIFY_INTERVAL) {
+                // 100ms间隔
+                OAID_HILOGI(OAID_MODULE_SERVICE, "Call too frequent, elapsed=%lldms", elapsed.count());
+                    return;
+                }
+                lastCallTime = now;
+        }
+        OAID_HILOGI(OAID_MODULE_SERVICE, "notifyKitOfOaid isConnect = %{public}d", isConnect);
         if (!isConnect) {
-            OAID_HILOGI(OAID_MODULE_SERVICE, "getAllowGetOAIDFromKit enter ConnectToAds");
+            OAID_HILOGI(OAID_MODULE_SERVICE, "notifyKitOfOaid enter ConnectToAds");
             Want want = ConnectAdsManager::GetInstance()->getWantInfo();
+            if (code == NOTIFY_OAID_CODE) {
+                ConnectAdsStub::setCodeOaid(code);
+                want.SetParam("code_oaid", code);
+            }
             ConnectAdsManager::GetInstance()->ConnectToAds(want);
         }
     }
@@ -169,6 +200,7 @@ public:
     }
 
 private:
+    static std::mutex connectMutex_;
     sptr<ConnectAdsStub> connectObject_;
     int32_t DEFAULT_VALUE = -1;
     static bool isConnect;
@@ -179,6 +211,7 @@ private:
     }
 };
 bool ConnectAdsManager::isConnect = false;
+std::mutex ConnectAdsManager::connectMutex_;
 
 } // namespace Cloud
 } // namespace OHOS

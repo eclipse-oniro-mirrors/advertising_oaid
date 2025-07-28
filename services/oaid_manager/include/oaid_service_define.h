@@ -41,6 +41,14 @@ static const int32_t OAID_ERROR_NOT_IN_TRUST_LIST = 17300002;
 
 static const std::string OAID_ALLZERO_STR = "00000000-0000-0000-0000-000000000000";
 
+/* refresh allow get oaid */
+static const int32_t GET_ALLOW_OAID_CODE = 1;
+
+/* NOTIFY OAID CHANGE */
+static const int32_t NOTIFY_OAID_CODE = 2;
+
+static const int32_t NOTIFY_INTERVAL = 100;
+
 /* database define */
 static const std::string OAID_DATA_BASE_DIR = "/data/service/el1/public/database/";
 static const std::string OAID_DATA_BASE_APP_ID = "oaid_service_manager";

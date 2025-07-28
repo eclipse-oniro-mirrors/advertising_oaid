@@ -35,6 +35,7 @@ using namespace std::chrono;
 namespace OHOS {
 namespace Cloud {
 const std::string OAID_VIRTUAL_STR = "-****-****-****-************";
+std::int32_t g_notifyFlag = 1;
 namespace {
 char HexToChar(uint8_t hex)
 {
@@ -292,6 +293,10 @@ std::string OAIDService::GetOAID()
     std::string oaid = GainOAID();
     std::string target = oaid.substr(0, 9).append(OAID_VIRTUAL_STR);
     OAID_HILOGI(OAID_MODULE_SERVICE, "getOaid success oaid is: %{public}s", target.c_str());
+    if (g_notifyFlag == GET_ALLOW_OAID_CODE) {
+        ConnectAdsManager::GetInstance()->notifyKitOfOaid(NOTIFY_OAID_CODE);
+        g_notifyFlag = NOTIFY_OAID_CODE;
+    }
     OAID_HILOGI(OAID_MODULE_SERVICE, "End.");
     return oaid;
 }
@@ -303,6 +308,7 @@ int32_t OAIDService::ResetOAID()
     oaid_ = resetOaid;
     bool result = WriteValueToKvStore(OAID_KVSTORE_KEY, resetOaid);
     OAID_HILOGI(OAID_MODULE_SERVICE, "ResetOAID WriteValueToKvStore %{public}s", result == true ? "success" : "failed");
+    ConnectAdsManager::GetInstance()->notifyKitOfOaid(NOTIFY_OAID_CODE);
     std::string target = resetOaid.substr(0, 9).append(OAID_VIRTUAL_STR);
     OAID_HILOGI(OAID_MODULE_SERVICE, "resetOaid success oaid is: %{public}s", target.c_str());
     // 调用单例对象的oberser->OnUpdateOaid
@@ -484,7 +490,9 @@ bool ConnectAdsManager::checkAllowGetOaid()
         allowGetOaid.ToString().c_str(), updateTime.ToString().c_str());
     if (allowGetOaid == nullptr || updateTime == nullptr) {
         OAID_HILOGI(OAID_MODULE_SERVICE, "checkAllowGetOaid get kvData failed");
-        std::future<void> resultFromDB = std::async(std::launch::async, ConnectAdsManager::getAllowGetOAIDFromKit);
+        std::async(std::launch::async, []() {
+            ConnectAdsManager::notifyKitOfOaid(GET_ALLOW_OAID_CODE);
+        });
         return true;
     }
     std::string updateTimeStr = updateTime.ToString();
@@ -496,13 +504,15 @@ bool ConnectAdsManager::checkAllowGetOaid()
     } else {
         long long interval = nowTimestamp - updateTimestamp;
         OAID_HILOGI(OAID_MODULE_SERVICE,
-            "checkAllowGetOaid kvdata nowTimestamp = %{public}lld  updateTime = %{public}s  interval = %{public}lld",
+            "checkAllowGetOaid kvdata nowTimestamp = %{public}lld  updateTime = %{public}s  interval = %{public}lld, ",
             nowTimestamp,
             updateTimeStr.c_str(),
             interval);
         if (interval >= EXPIRATION_TIME) {
             OAID_HILOGI(OAID_MODULE_SERVICE, "checkAllowGetOaid info expiration");
-            std::future<void> resultFromDB = std::async(std::launch::async, ConnectAdsManager::getAllowGetOAIDFromKit);
+            std::async(std::launch::async, []() {
+                ConnectAdsManager::notifyKitOfOaid(GET_ALLOW_OAID_CODE);
+            });
         }
     }
     if (allowGetOaid.ToString() == "true") {
