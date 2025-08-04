@@ -22,6 +22,12 @@
 #include "oaid_service_interface.h"
 #include "iremote_object.h"
 #include "refbase.h"
+#include "ipc_skeleton.h"
+#include "iremote_stub.h"
+#include "accesstoken_kit.h"
+#include "config_policy_utils.h"
+#include "privacy_kit.h"
+#include "tokenid_kit.h"
 
 namespace OHOS {
 namespace Cloud {
@@ -78,6 +84,7 @@ private:
 
     sptr<IOAIDService> oaidServiceProxy_;
     sptr<OAIDSaDeathRecipient> deathRecipient_;
+    bool CheckPermission(const std::string &permissionName);
 };
 } // namespace Cloud
 } // namespace OHOS
