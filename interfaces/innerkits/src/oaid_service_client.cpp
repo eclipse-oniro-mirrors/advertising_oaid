@@ -23,12 +23,16 @@
 #include "system_ability_definition.h"
 #include "system_ability_load_callback_stub.h"
 
+using namespace OHOS::Security::AccessToken;
+
 namespace OHOS {
 namespace Cloud {
 namespace {
 static const int32_t OAID_SYSTME_ID = 6101; // The system component ID of the OAID is 6101.
 
 static const std::string OAID_ALLZERO_STR = "00000000-0000-0000-0000-000000000000";
+
+static const std::string OAID_TRACKING_CONSENT_PERMISSION = "ohos.permission.APP_TRACKING_CONSENT";
 
 /**
  * load time out: 10s
@@ -136,6 +140,13 @@ std::string OAIDServiceClient::GetOAID()
 {
     OAID_HILOGI(OAID_MODULE_CLIENT, "Begin.");
     std::unique_lock<std::mutex> lock(getOaidProxyMutex_);
+    
+    if (!CheckPermission(OAID_TRACKING_CONSENT_PERMISSION)) {
+        OAID_HILOGW(
+            OAID_MODULE_SERVICE, "get oaid not granted the app tracking permission");
+        return OAID_ALLZERO_STR;
+    }
+
     if (!LoadService()) {
         OAID_HILOGW(OAID_MODULE_CLIENT, "Redo load oaid service.");
         LoadService();
@@ -173,6 +184,26 @@ int32_t OAIDServiceClient::ResetOAID()
     OAID_HILOGI(OAID_MODULE_SERVICE, "End.resetResult = %{public}d", resetResult);
 
     return resetResult;
+}
+
+bool OAIDServiceClient::CheckPermission(const std::string &permissionName)
+{
+    // Verify the invoker's permission.
+    AccessTokenID callingToken = IPCSkeleton::GetCallingTokenID();
+    ATokenTypeEnum callingType = AccessTokenKit::GetTokenTypeFlag(callingToken);
+    OAID_HILOGD(OAID_MODULE_SERVICE, "callingToken = %{public}u", callingToken);
+    ErrCode result = TypePermissionState::PERMISSION_DENIED;
+    if (callingType == TOKEN_INVALID) {
+        OAID_HILOGE(OAID_MODULE_SERVICE, "callingToken is invalid");
+        return false;
+    } else {
+        result = AccessTokenKit::VerifyAccessToken(callingToken, permissionName);
+    }
+    if (result == TypePermissionState::PERMISSION_DENIED) {
+        OAID_HILOGI(OAID_MODULE_SERVICE, "the caller not granted the app tracking permission");
+        return false;
+    }
+    return true;
 }
 
 int32_t OAIDServiceClient::RegisterObserver(const sptr<IRemoteConfigObserver>& observer)
