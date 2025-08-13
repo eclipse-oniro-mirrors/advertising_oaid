@@ -44,6 +44,7 @@ ohos_shared_library("oaid_service") {
     "oaid_manager/src/oaid_remote_config_observer_proxy.cpp",
     "oaid_manager/src/oaid_service.cpp",
     "oaid_manager/src/oaid_service_stub.cpp",
+    "oaid_manager/src/connect_ads_stub.cpp",
   ]
 
   deps = [ "${oaid_utils_path}:oaid_utils" ]

@@ -29,6 +29,7 @@
 #include "oaid_remote_config_observer_stub.h"
 #include "oaid_remote_config_observer_proxy.h"
 #include "oaid_observer_manager.h"
+#include "connect_ads_stub.h"
 
 using namespace OHOS::Security::AccessToken;
 
@@ -91,11 +92,11 @@ bool OAIDServiceStub::CheckSystemApp()
 
 bool LoadAndCheckOaidTrustList(const std::string &bundleName)
 {
-    char pathBuff[MAX_PATH_LEN];
-    GetOneCfgFile(OAID_TRUSTLIST_EXTENSION_CONFIG_PATH.c_str(), pathBuff, MAX_PATH_LEN);
-    char realPath[PATH_MAX];
+    char pathBuff[MAX_PATH_LEN] = {0};
+    GetOneCfgFile(OAID_TRUSTLIST_EXTENSION_CONFIG_PATH.c_str(), pathBuff, MAX_PATH_LEN - 1);
+    char realPath[PATH_MAX] = {0};
     if (realpath(pathBuff, realPath) == nullptr) {
-        GetOneCfgFile(OAID_TRUSTLIST_CONFIG_PATH.c_str(), pathBuff, MAX_PATH_LEN);
+        GetOneCfgFile(OAID_TRUSTLIST_CONFIG_PATH.c_str(), pathBuff, MAX_PATH_LEN - 1);
         if (realpath(pathBuff, realPath) == nullptr) {
             OAID_HILOGE(OAID_MODULE_SERVICE, "Parse realpath fail");
             return false;
@@ -231,6 +232,49 @@ int32_t OAIDServiceStub::OnGetOAID(MessageParcel &data, MessageParcel &reply)
     }
     OAID_HILOGI(OAID_MODULE_SERVICE, "End.");
     return ERR_OK;
+}
+
+void OAIDServiceStub::checkProviderBundleName()
+{
+    OAID_HILOGI(OAID_MODULE_SERVICE, "enter checkProviderBundleName ");
+    char pathBuff[PATH_MAX];
+    GetOneCfgFile(OAID_TRUSTLIST_EXTENSION_CONFIG_PATH.c_str(), pathBuff, PATH_MAX);
+    char realPath[PATH_MAX];
+    if (realpath(pathBuff, realPath) == nullptr) {
+        GetOneCfgFile(OAID_TRUSTLIST_CONFIG_PATH.c_str(), pathBuff, PATH_MAX);
+        if (realpath(pathBuff, realPath) == nullptr) {
+            OAID_HILOGE(OAID_MODULE_SERVICE, "Parse realpath fail");
+            return;
+        }
+    }
+    std::ifstream inFile(realPath, std::ios::in);
+    if (!inFile.is_open()) {
+        OAID_HILOGE(OAID_MODULE_SERVICE, "Open file error.");
+        return;
+    }
+    std::string fileContent((std::istreambuf_iterator<char>{inFile}), std::istreambuf_iterator<char>{});
+    cJSON *root = cJSON_Parse(fileContent.c_str());
+    inFile.close();
+    if (root == nullptr) {
+        OAID_HILOGE(OAID_MODULE_SERVICE, "ParseJsonFromFile is not in JSON format.");
+        return;
+    }
+    cJSON *oaidProviderBundleNameConfig = cJSON_GetObjectItem(root, "providerBundleName");
+    if (oaidProviderBundleNameConfig == nullptr || oaidProviderBundleNameConfig->type != cJSON_String) {
+        OAID_HILOGE(OAID_MODULE_SERVICE, "not contain providerBundleName node.");
+        cJSON_Delete(root);
+        return;
+    }
+    std::string bundleName;
+    const char *providerBundleName = oaidProviderBundleNameConfig->valuestring;
+    pid_t uid = IPCSkeleton::GetCallingUid();
+    DelayedSingleton<BundleMgrHelper>::GetInstance()->GetBundleNameByUid(static_cast<int>(uid), bundleName);
+    if (bundleName.compare(providerBundleName) == 0) {
+        OAID_HILOGI(OAID_MODULE_SERVICE, "match current bundleName success");
+        ConnectAdsManager::GetInstance()->notifyKit(NOTIFY_GET_OAID_CODE);
+    }
+    cJSON_Delete(root);
+    OAID_HILOGI(OAID_MODULE_SERVICE, "end checkProviderBundleName ");
 }
 
 int32_t OAIDServiceStub::OnResetOAID(MessageParcel &data, MessageParcel &reply)

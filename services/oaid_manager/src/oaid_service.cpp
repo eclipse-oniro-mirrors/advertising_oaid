@@ -35,7 +35,6 @@ using namespace std::chrono;
 namespace OHOS {
 namespace Cloud {
 const std::string OAID_VIRTUAL_STR = "-****-****-****-************";
-std::int32_t g_notifyFlag = 1;
 namespace {
 char HexToChar(uint8_t hex)
 {
@@ -293,10 +292,6 @@ std::string OAIDService::GetOAID()
     std::string oaid = GainOAID();
     std::string target = oaid.substr(0, 9).append(OAID_VIRTUAL_STR);
     OAID_HILOGI(OAID_MODULE_SERVICE, "getOaid success oaid is: %{public}s", target.c_str());
-    if (g_notifyFlag == GET_ALLOW_OAID_CODE) {
-        ConnectAdsManager::GetInstance()->notifyKitOfOaid(NOTIFY_OAID_CODE);
-        g_notifyFlag = NOTIFY_OAID_CODE;
-    }
     OAID_HILOGI(OAID_MODULE_SERVICE, "End.");
     return oaid;
 }
@@ -308,7 +303,7 @@ int32_t OAIDService::ResetOAID()
     oaid_ = resetOaid;
     bool result = WriteValueToKvStore(OAID_KVSTORE_KEY, resetOaid);
     OAID_HILOGI(OAID_MODULE_SERVICE, "ResetOAID WriteValueToKvStore %{public}s", result == true ? "success" : "failed");
-    ConnectAdsManager::GetInstance()->notifyKitOfOaid(NOTIFY_OAID_CODE);
+    ConnectAdsManager::GetInstance()->notifyKit(NOTIFY_RESET_OAID_CODE);
     std::string target = resetOaid.substr(0, 9).append(OAID_VIRTUAL_STR);
     OAID_HILOGI(OAID_MODULE_SERVICE, "resetOaid success oaid is: %{public}s", target.c_str());
     // 调用单例对象的oberser->OnUpdateOaid
@@ -425,126 +420,6 @@ bool OAIDService::WriteValueToUnderAgeKvStore(const std::string &kvStoreKey, con
         return false;
     }
     return true;
-}
-
-Want ConnectAdsManager::getWantInfo()
-{
-    OAID_HILOGI(OAID_MODULE_SERVICE, "enter getWantInfo ");
-    OHOS::AAFwk::Want connectionWant;
-    char pathBuff[MAX_PATH_LEN];
-    GetOneCfgFile(OAID_TRUSTLIST_EXTENSION_CONFIG_PATH.c_str(), pathBuff, MAX_PATH_LEN);
-    char realPath[PATH_MAX];
-    if (realpath(pathBuff, realPath) == nullptr) {
-        GetOneCfgFile(OAID_TRUSTLIST_CONFIG_PATH.c_str(), pathBuff, MAX_PATH_LEN);
-        if (realpath(pathBuff, realPath) == nullptr) {
-            OAID_HILOGE(OAID_MODULE_SERVICE, "Parse realpath fail");
-            return connectionWant;
-        }
-    }
-    std::ifstream inFile(realPath, std::ios::in);
-    if (!inFile.is_open()) {
-        OAID_HILOGE(OAID_MODULE_SERVICE, "Open file error.");
-        return connectionWant;
-    }
-    std::string fileContent((std::istreambuf_iterator<char>{inFile}), std::istreambuf_iterator<char>{});
-    cJSON *root = cJSON_Parse(fileContent.c_str());
-    inFile.close();
-    if (root == nullptr) {
-        OAID_HILOGE(OAID_MODULE_SERVICE, "ParseJsonFromFile is not in JSON format.");
-        return connectionWant;
-    }
-    cJSON *oaidProviderBundleNameConfig = cJSON_GetObjectItem(root, "providerBundleName");
-    if (oaidProviderBundleNameConfig == nullptr || oaidProviderBundleNameConfig->type != cJSON_String) {
-        OAID_HILOGE(OAID_MODULE_SERVICE, "not contain providerBundleName node.");
-        cJSON_Delete(root);
-        return connectionWant;
-    }
-    cJSON *oaidProviderAbilityNameConfig = cJSON_GetObjectItem(root, "providerAbilityName");
-    if (oaidProviderAbilityNameConfig == nullptr || oaidProviderAbilityNameConfig->type != cJSON_String) {
-        OAID_HILOGE(OAID_MODULE_SERVICE, "not contain providerAbilityName node.");
-        cJSON_Delete(root);
-        return connectionWant;
-    }
-    cJSON *oaidProviderTokenNameConfig = cJSON_GetObjectItem(root, "providerTokenName");
-    if (oaidProviderTokenNameConfig == nullptr || oaidProviderTokenNameConfig->type != cJSON_String
-        || oaidProviderTokenNameConfig->valuestring == nullptr) {
-        OAID_HILOGE(OAID_MODULE_SERVICE, "not contain providerTokenName node.");
-        cJSON_Delete(root);
-        return connectionWant;
-    }
-    ConnectAdsStub::setToken(Str8ToStr16(oaidProviderTokenNameConfig->valuestring));
-    connectionWant.SetElementName(oaidProviderBundleNameConfig->valuestring,
-        oaidProviderAbilityNameConfig->valuestring);
-    cJSON_Delete(root);
-    return connectionWant;
-}
-
-bool ConnectAdsManager::checkAllowGetOaid()
-{
-    OAID_HILOGI(OAID_MODULE_SERVICE, "checkAllowGetOaid enter ");
-    DistributedKv::Value allowGetOaid;
-    DistributedKv::Value updateTime;
-    OAIDService::GetInstance()->ReadValueFromUnderAgeKvStore(ALLOW_GET_OAID_KEY, allowGetOaid);
-    OAIDService::GetInstance()->ReadValueFromUnderAgeKvStore(LAST_UPDATE_TIME_KEY, updateTime);
-    OAID_HILOGI(OAID_MODULE_SERVICE, "checkAllowGetOaid kvdata allowGetOaid = %{public}s  updateTime = %{public}s",
-        allowGetOaid.ToString().c_str(), updateTime.ToString().c_str());
-    if (allowGetOaid == nullptr || updateTime == nullptr) {
-        OAID_HILOGI(OAID_MODULE_SERVICE, "checkAllowGetOaid get kvData failed");
-        std::async(std::launch::async, []() {
-            ConnectAdsManager::notifyKitOfOaid(GET_ALLOW_OAID_CODE);
-        });
-        return true;
-    }
-    std::string updateTimeStr = updateTime.ToString();
-    long long updateTimestamp = std::stol(updateTimeStr);
-    long long nowTimestamp = std::chrono::duration_cast<std::chrono::milliseconds>(
-        std::chrono::system_clock::now().time_since_epoch()).count();
-    if (nowTimestamp < updateTimestamp) {
-        OAID_HILOGW(OAID_MODULE_SERVICE, "user time illegal");
-    } else {
-        long long interval = nowTimestamp - updateTimestamp;
-        OAID_HILOGI(OAID_MODULE_SERVICE,
-            "checkAllowGetOaid kvdata nowTimestamp = %{public}lld  updateTime = %{public}s  interval = %{public}lld, ",
-            nowTimestamp,
-            updateTimeStr.c_str(),
-            interval);
-        if (interval >= EXPIRATION_TIME) {
-            OAID_HILOGI(OAID_MODULE_SERVICE, "checkAllowGetOaid info expiration");
-            std::async(std::launch::async, []() {
-                ConnectAdsManager::notifyKitOfOaid(GET_ALLOW_OAID_CODE);
-            });
-        }
-    }
-    if (allowGetOaid.ToString() == "true") {
-        return true;
-    } else {
-        return false;
-    }
-}
-
-int ADSCallbackStub::OnRemoteRequest(uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option)
-{
-    OAID_HILOGI(OAID_MODULE_SERVICE, "OnRemoteRequest enter");
-    int32_t respCode = data.ReadInt32();
-    OAID_HILOGI(OAID_MODULE_SERVICE, "OnRemoteRequest respCode = %{public}d", respCode);
-    std::string isAllowGetOaid = Str16ToStr8(data.ReadString16());
-    std::string updateTimeStr = Str16ToStr8(data.ReadString16());
-    OAID_HILOGI(OAID_MODULE_SERVICE, "isAllowGetOaid = %{public}s, updateTimeStr = %{public}s", isAllowGetOaid.c_str(),
-        updateTimeStr.c_str());
-    if (isAllowGetOaid.empty() || updateTimeStr.empty()) {
-        OAID_HILOGI(OAID_MODULE_SERVICE, "OnRemoteRequest return info is empty");
-        return ERR_OK;
-    }
-    DistributedKv::Value value1(isAllowGetOaid);
-    DistributedKv::Value value2(updateTimeStr);
-    bool allowGetOaidResult = OAIDService::GetInstance()->WriteValueToUnderAgeKvStore(ALLOW_GET_OAID_KEY, value1);
-    bool lastUpdateTimeResult = OAIDService::GetInstance()->WriteValueToUnderAgeKvStore(LAST_UPDATE_TIME_KEY, value2);
-    OAID_HILOGI(OAID_MODULE_SERVICE,
-        "OnRemoteRequest Write AllowGetOaid result=%{public}s.OnRemoteRequest Write lastUpdateTime result=%{public}s",
-        allowGetOaidResult == true ? "success" : "failed",
-        lastUpdateTimeResult == true ? "success" : "failed");
-    ConnectAdsManager::GetInstance()->DisconnectService();
-    return ERR_OK;
 }
 
 std::string Str16ToStr8(const std::u16string &str)

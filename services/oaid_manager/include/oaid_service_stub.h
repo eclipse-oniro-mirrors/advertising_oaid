@@ -56,6 +56,7 @@ private:
     bool CheckPermission(const std::string &permissionName);
     bool CheckSystemApp();
     void ExitIdleState();
+    void checkProviderBundleName();
     void PostDelayUnloadTask();
     int32_t ValidateResetOAIDPermission(std::string bundleName, MessageParcel &reply);
 
