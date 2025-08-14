@@ -45,9 +45,11 @@ static const std::string OAID_ALLZERO_STR = "00000000-0000-0000-0000-00000000000
 static const int32_t GET_ALLOW_OAID_CODE = 1;
 
 /* NOTIFY OAID CHANGE */
-static const int32_t NOTIFY_OAID_CODE = 2;
+static const int32_t NOTIFY_RESET_OAID_CODE = 2;
 
-static const int32_t NOTIFY_INTERVAL = 100;
+static const int32_t NOTIFY_GET_OAID_CODE = 3;
+
+static const int32_t DEFAULT_TIMEOUT_MS = 2000;
 
 /* database define */
 static const std::string OAID_DATA_BASE_DIR = "/data/service/el1/public/database/";

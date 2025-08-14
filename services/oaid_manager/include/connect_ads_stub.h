@@ -19,15 +19,28 @@
 #include "ability_connect_callback_stub.h"
 #include "oaid_common.h"
 #include "oaid_service_define.h"
-using OHOS::AAFwk::ExtensionManagerClient;
-using OHOS::AAFwk::AbilityConnectionStub;
-using OHOS::AppExecFwk::ElementName;
-using OHOS::AAFwk::Want;
-using OHOS::IRemoteObject;
-using OHOS::sptr;
+#include "config_policy_utils.h"
+#include "distributed_kv_data_manager.h"
+#include "oaid_service.h"
+#include "iremote_broker.h"
+#include "iremote_stub.h"
+#include "message_parcel.h"
+#include "message_option.h"
+#include "oaid_file_operator.h"
+#include "cJSON.h"
+#include <mutex>
+#include <queue>
+#include <unordered_set>
 
 namespace OHOS {
 namespace Cloud {
+
+// 连接状态枚举
+enum class ConnectionState {
+    DISCONNECTED,
+    CONNECTING,
+    CONNECTED
+};
 class AdsCallback : public IRemoteBroker {
 public:
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.cloud.oaid.AdsCallback");
@@ -43,175 +56,60 @@ public:
             uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option) override;
 };
 
-class ConnectAdsStub : public AbilityConnectionStub {
+class ConnectAdsStub : public AAFwk::AbilityConnectionStub {
 public:
+    void OnAbilityConnectDone(const AppExecFwk::ElementName &element,
+                             const sptr<IRemoteObject> &remoteObject,
+                             int resultCode) override;
+    void OnAbilityDisconnectDone(const AppExecFwk::ElementName &element,
+                                int resultCode) override;
 
-    void OnAbilityConnectDone(const ElementName &element, const sptr<IRemoteObject> &remoteObject,
-                              int resultCode) override
-    {
-        OAID_HILOGI(OAID_MODULE_SERVICE, "enter OnAbilityConnectDone");
-        proxy_ = remoteObject;
-        SendMessage();
-    }
+    sptr<IRemoteObject> GetRemoteObject();
+    ConnectionState GetConnectionState() const;
+    void SetConnectionState(ConnectionState state);
+    sptr<IRemoteObject> GetProxy() const;
+    void SetProxy(const sptr<IRemoteObject> &remoteObject);
+    void AddMessageToQueue(int32_t code);
+    void ProcessMessageQueue();
+    void DisconnectIfIdle();
+    void SendMessage(int32_t code);
 
-    void OnAbilityDisconnectDone(const ElementName &element, int resultCode) override
-    {
-        OAID_HILOGI(OAID_MODULE_SERVICE, "enter OnAbilityDisconnectDone");
-        proxy_ = nullptr;
-        CODE_OAID = GET_ALLOW_OAID_CODE;
-    }
-
-    sptr<IRemoteObject> GetRemoteObject()
-    {
-        return proxy_;
-    }
-
-    void SendMessage()
-    {
-        std::lock_guard<std::mutex> lock(checkMutex_);
-        OAID_HILOGI(OAID_MODULE_SERVICE, "SendMessage enter");
-        if (proxy_ == nullptr) {
-            return;
-        }
-        MessageParcel data;
-        MessageParcel reply;
-        MessageOption option;
-        if (OAID_INFO_TOKEN.empty() || !data.WriteInterfaceToken(OAID_INFO_TOKEN)) {
-            OAID_HILOGW(OAID_MODULE_SERVICE, "SendMessage WriteInterfaceToken failed");
-            return;
-        }
-        auto callback = new ADSCallbackStub();
-        if (!data.WriteRemoteObject(callback->AsObject())) {
-            OAID_HILOGW(OAID_MODULE_SERVICE, "Callback write failed.");
-            return;
-        }
-        OAID_HILOGI(OAID_MODULE_SERVICE, "SendMessage CODE_OAID = %{public}d", CODE_OAID);
-        proxy_->SendRequest(CODE_OAID, data, reply, option);
-        OAID_HILOGI(OAID_MODULE_SERVICE, "SendMessage finished");
-        CODE_OAID = GET_ALLOW_OAID_CODE;
-    }
-
-    static void setToken(std::u16string token)
-    {
-        OAID_HILOGI(OAID_MODULE_SERVICE, "setToken enter");
-        std::lock_guard<std::mutex> lock(checkMutex_);
-        OAID_INFO_TOKEN = token;
-    }
-
-    static void setCodeOaid(std::int32_t code)
-    {
-        std::lock_guard<std::mutex> lock(checkMutex_);
-        OAID_HILOGI(OAID_MODULE_SERVICE, "setCodeOaid enter");
-        CODE_OAID = code;
-    }
+    static void setToken(std::u16string token);
+    static void setCodeOaid(std::int32_t code);
 
 private:
     sptr<IRemoteObject> proxy_;
+    ConnectionState connectionState_ = ConnectionState::DISCONNECTED;
+    std::queue<int32_t> messageQueue_;
+    std::unordered_set<int32_t> messageSet_;
     static std::u16string OAID_INFO_TOKEN;
-    static std::mutex checkMutex_;
+    static std::mutex queueMutex_;
     static std::int32_t CODE_OAID;
+    static std::mutex setTokenMutex_;
+    static std::mutex setOaidMutex_;
+    static std::mutex stateMutex_;
+    static std::mutex proxyMutex_;
 };
-std::u16string ConnectAdsStub::OAID_INFO_TOKEN = u"";
-std::mutex ConnectAdsStub::checkMutex_;
-std::int32_t ConnectAdsStub::CODE_OAID = 1;
 
 class ConnectAdsManager {
 public:
-
-    ConnectAdsManager(ConnectAdsManager &) = delete;
-    ConnectAdsManager& operator=(const ConnectAdsManager&)=delete;
-
-    ~ConnectAdsManager()
-    {
-        DisconnectService();
-        OAID_HILOGI(OAID_MODULE_SERVICE, "destructor ConnectAdsManager");
-    }
-
-    static ConnectAdsManager* GetInstance()
-    {
-        static ConnectAdsManager instance;
-        return &instance;
-    }
-
-    bool ConnectToAds(Want want)
-    {
-        std::lock_guard<std::mutex> lock(connectMutex_);
-        OAID_HILOGI(OAID_MODULE_SERVICE, "enter ConnectToAds isConnect=%{public}d", isConnect);
-        if (!isConnect) {
-            OAID_HILOGI(OAID_MODULE_SERVICE, "start ConnectToAds ");
-            int32_t resultNumber = ExtensionManagerClient::GetInstance().ConnectServiceExtensionAbility(want,
-                connectObject_, nullptr, DEFAULT_VALUE);
-            OAID_HILOGI(OAID_MODULE_SERVICE, "ConnectToAds result=%{public}d", resultNumber);
-            if (resultNumber != ERR_OK) {
-                OAID_HILOGI(OAID_MODULE_SERVICE, " failed to ConnectToAds ability");
-                return false;
-            }
-            isConnect = true;
-            DisconnectService();
-        }
-        return true;
-    }
-
-    int32_t DisconnectService()
-    {
-        OAID_HILOGI(OAID_MODULE_SERVICE, "enter DisconnectService isConnect=%{public}d", isConnect);
-        if (isConnect) {
-            OAID_HILOGI(OAID_MODULE_SERVICE, "start DisconnectService ");
-            ExtensionManagerClient::GetInstance().DisconnectAbility(connectObject_);
-            isConnect = false;
-        }
-        return 0;
-    }
-
-    Want getWantInfo();
-
+    static ConnectAdsManager* GetInstance();
+    int32_t DisconnectService();
+    AAFwk::Want getWantInfo();
     bool checkAllowGetOaid();
-
-    static void notifyKitOfOaid(int32_t code)
-    {
-        static std::mutex timeMutex;
-        {
-            std::lock_guard<std::mutex> lock(timeMutex);
-            static std::chrono::steady_clock::time_point lastCallTime;
-            auto now = std::chrono::steady_clock::now();
-            auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - lastCallTime);
-            if (elapsed.count() < NOTIFY_INTERVAL) {
-                // 100ms间隔
-                OAID_HILOGI(OAID_MODULE_SERVICE, "Call too frequent, elapsed=%lldms", elapsed.count());
-                    return;
-                }
-                lastCallTime = now;
-        }
-        OAID_HILOGI(OAID_MODULE_SERVICE, "notifyKitOfOaid isConnect = %{public}d", isConnect);
-        if (!isConnect) {
-            OAID_HILOGI(OAID_MODULE_SERVICE, "notifyKitOfOaid enter ConnectToAds");
-            Want want = ConnectAdsManager::GetInstance()->getWantInfo();
-            if (code == NOTIFY_OAID_CODE) {
-                ConnectAdsStub::setCodeOaid(code);
-                want.SetParam("code_oaid", code);
-            }
-            ConnectAdsManager::GetInstance()->ConnectToAds(want);
-        }
-    }
-
-    sptr<ConnectAdsStub> getConnection()
-    {
-        return connectObject_;
-    }
+    void notifyKit(int32_t code);
+    sptr<ConnectAdsStub> getConnection();
 
 private:
+    ConnectAdsManager();
+    ~ConnectAdsManager();
+    ConnectAdsManager(const ConnectAdsManager&) = delete;
+    ConnectAdsManager& operator=(const ConnectAdsManager&) = delete;
+
     static std::mutex connectMutex_;
     sptr<ConnectAdsStub> connectObject_;
     int32_t DEFAULT_VALUE = -1;
-    static bool isConnect;
-    ConnectAdsManager()
-    {
-        connectObject_ = sptr<ConnectAdsStub>(new ConnectAdsStub);
-        OAID_HILOGI(OAID_MODULE_SERVICE, "constructor ConnectAdsManager");
-    }
 };
-bool ConnectAdsManager::isConnect = false;
-std::mutex ConnectAdsManager::connectMutex_;
 
 } // namespace Cloud
 } // namespace OHOS
