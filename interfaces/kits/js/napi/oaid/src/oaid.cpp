@@ -27,7 +27,7 @@ namespace CloudNapi {
 namespace OAIDNapi {
 namespace {
 const int32_t NO_ERROR = 0;
-const int32_t ERROR = -1;
+const int32_t ERROR = 17300001;
 const size_t OAID_MAX_PARA = 1;
 const size_t CALLBACK_ARGS_LENGTH = 2;
 const int8_t CALLBACK_CODE = 0;
@@ -240,6 +240,10 @@ napi_value ResetOAID(napi_env env, napi_callback_info info)
 
     if (errorCode == OAID_ERROR_NOT_IN_TRUST_LIST) {
         napi_throw_error(env, std::to_string(errorCode).c_str(), "Not in the trust list");
+    }
+
+    if (errorCode == ERROR) {
+        napi_throw_error(env, std::to_string(errorCode).c_str(), "System internal error.");
     }
 
     OAID_HILOGI(OHOS::Cloud::OAID_MODULE_JS_NAPI, "ResetOAID End.");
