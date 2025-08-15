@@ -209,11 +209,11 @@ Want ConnectAdsManager::getWantInfo()
 {
     OAID_HILOGI(OAID_MODULE_SERVICE, "enter getWantInfo ");
     Want connectionWant;
-    char pathBuff[MAX_PATH_LEN] = {0};
-    GetOneCfgFile(OAID_TRUSTLIST_EXTENSION_CONFIG_PATH.c_str(), pathBuff, MAX_PATH_LEN - 1);
+    char pathBuff[PATH_MAX] = {0};
+    GetOneCfgFile(OAID_TRUSTLIST_EXTENSION_CONFIG_PATH.c_str(), pathBuff, PATH_MAX);
     char realPath[PATH_MAX] = {0};
     if (realpath(pathBuff, realPath) == nullptr) {
-        GetOneCfgFile(OAID_TRUSTLIST_CONFIG_PATH.c_str(), pathBuff, MAX_PATH_LEN - 1);
+        GetOneCfgFile(OAID_TRUSTLIST_CONFIG_PATH.c_str(), pathBuff, PATH_MAX);
         if (realpath(pathBuff, realPath) == nullptr) {
             OAID_HILOGE(OAID_MODULE_SERVICE, "Parse realpath fail");
             return connectionWant;

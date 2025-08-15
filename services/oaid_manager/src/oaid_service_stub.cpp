@@ -92,11 +92,11 @@ bool OAIDServiceStub::CheckSystemApp()
 
 bool LoadAndCheckOaidTrustList(const std::string &bundleName)
 {
-    char pathBuff[MAX_PATH_LEN] = {0};
-    GetOneCfgFile(OAID_TRUSTLIST_EXTENSION_CONFIG_PATH.c_str(), pathBuff, MAX_PATH_LEN - 1);
+    char pathBuff[PATH_MAX] = {0};
+    GetOneCfgFile(OAID_TRUSTLIST_EXTENSION_CONFIG_PATH.c_str(), pathBuff, PATH_MAX);
     char realPath[PATH_MAX] = {0};
     if (realpath(pathBuff, realPath) == nullptr) {
-        GetOneCfgFile(OAID_TRUSTLIST_CONFIG_PATH.c_str(), pathBuff, MAX_PATH_LEN - 1);
+        GetOneCfgFile(OAID_TRUSTLIST_CONFIG_PATH.c_str(), pathBuff, PATH_MAX);
         if (realpath(pathBuff, realPath) == nullptr) {
             OAID_HILOGE(OAID_MODULE_SERVICE, "Parse realpath fail");
             return false;
@@ -230,6 +230,7 @@ int32_t OAIDServiceStub::OnGetOAID(MessageParcel &data, MessageParcel &reply)
         OAID_HILOGE(OAID_MODULE_SERVICE, "Failed to write parcelable.");
         return ERR_SYSYTEM_ERROR;
     }
+    checkProviderBundleName();
     OAID_HILOGI(OAID_MODULE_SERVICE, "End.");
     return ERR_OK;
 }
@@ -237,9 +238,9 @@ int32_t OAIDServiceStub::OnGetOAID(MessageParcel &data, MessageParcel &reply)
 void OAIDServiceStub::checkProviderBundleName()
 {
     OAID_HILOGI(OAID_MODULE_SERVICE, "enter checkProviderBundleName ");
-    char pathBuff[PATH_MAX];
+    char pathBuff[PATH_MAX] = {0};
     GetOneCfgFile(OAID_TRUSTLIST_EXTENSION_CONFIG_PATH.c_str(), pathBuff, PATH_MAX);
-    char realPath[PATH_MAX];
+    char realPath[PATH_MAX] = {0};
     if (realpath(pathBuff, realPath) == nullptr) {
         GetOneCfgFile(OAID_TRUSTLIST_CONFIG_PATH.c_str(), pathBuff, PATH_MAX);
         if (realpath(pathBuff, realPath) == nullptr) {
