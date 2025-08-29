@@ -15,6 +15,7 @@
 
 #include "connect_ads_stub.h"
 #include <fstream>
+#include <charconv>
 
 namespace OHOS {
 namespace Cloud {
@@ -272,7 +273,17 @@ bool ConnectAdsManager::checkAllowGetOaid()
         return true;
     }
     std::string updateTimeStr = updateTime.ToString();
-    long long updateTimestamp = std::stol(updateTimeStr);
+    long long updateTimestamp = 0;
+    // 使用 std::from_chars 转换字符串为 long long
+    auto [ptr, ec] = std::from_chars(
+        updateTimeStr.data(),
+        updateTimeStr.data() + updateTimeStr.size(),
+        updateTimestamp);
+    // 检查转换是否成功
+    if (ec != std::errc() || ptr != updateTimeStr.data() + updateTimeStr.size()) {
+        OAID_HILOGE(OAID_MODULE_SERVICE, "Failed to convert timestamp: invalid or out of range");
+        return true;
+    }
     long long nowTimestamp = std::chrono::duration_cast<std::chrono::milliseconds>(
         std::chrono::system_clock::now().time_since_epoch()).count();
     if (nowTimestamp < updateTimestamp) {
