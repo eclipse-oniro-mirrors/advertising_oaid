@@ -34,12 +34,18 @@ std::string OAIDServiceProxy::GetOAID()
     MessageParcel reply;
     MessageOption option;
     const int32_t NOPERMISSION = 305;
+    std::unique_lock<std::mutex> lock(getProxyMutex_);
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         OAID_HILOGE(OAID_MODULE_CLIENT, "Failed to write parcelable");
         return "";
     }
 
-    int32_t result = Remote()->SendRequest(static_cast<uint32_t>(OAIDInterfaceCode::GET_OAID), data, reply, option);
+    sptr<IRemoteObject> remote = Remote();
+    if (remote == nullptr) {
+        OAID_HILOGE(OAID_MODULE_CLIENT, "getoaid get remote failed");
+        return "";
+    }
+    int32_t result = remote->SendRequest(static_cast<uint32_t>(OAIDInterfaceCode::GET_OAID), data, reply, option);
     if (result != ERR_NONE) {
         if (result == NOPERMISSION) {
             OAIDError curErrorCode = ERR_PERMISSION_ERROR;
@@ -64,11 +70,17 @@ int32_t OAIDServiceProxy::ResetOAID()
     MessageParcel reply;
     MessageOption option;
 
+    std::unique_lock<std::mutex> lock(resetProxyMutex_);
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         OAID_HILOGE(OAID_MODULE_CLIENT, "Failed to write parcelable");
     }
 
-    int32_t result = Remote()->SendRequest(static_cast<uint32_t>(OAIDInterfaceCode::RESET_OAID), data, reply, option);
+    sptr<IRemoteObject> remote = Remote();
+    if (remote == nullptr) {
+        OAID_HILOGE(OAID_MODULE_CLIENT, "resetoaid get remote failed");
+        return ERR_SYSYTEM_ERROR;
+    }
+    int32_t result = remote->SendRequest(static_cast<uint32_t>(OAIDInterfaceCode::RESET_OAID), data, reply, option);
     if (result != ERR_NONE) {
         OAID_HILOGE(OAID_MODULE_CLIENT, "Reset OAID failed, error code is: %{public}d", result);
     }
