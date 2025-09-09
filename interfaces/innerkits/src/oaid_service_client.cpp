@@ -139,7 +139,6 @@ bool OAIDServiceClient::LoadService()
 std::string OAIDServiceClient::GetOAID()
 {
     OAID_HILOGI(OAID_MODULE_CLIENT, "Begin.");
-    std::unique_lock<std::mutex> lock(getOaidProxyMutex_);
     
     if (!CheckPermission(OAID_TRACKING_CONSENT_PERMISSION)) {
         OAID_HILOGW(
@@ -152,6 +151,7 @@ std::string OAIDServiceClient::GetOAID()
         LoadService();
     }
 
+    std::unique_lock<std::mutex> lock(getOaidProxyMutex_);
     if (oaidServiceProxy_ == nullptr) {
         OAID_HILOGE(OAID_MODULE_CLIENT, "Quit because redoing load oaid service failed.");
         return OAID_ALLZERO_STR;
@@ -174,7 +174,7 @@ int32_t OAIDServiceClient::ResetOAID()
         OAID_HILOGW(OAID_MODULE_CLIENT, "Redo load oaid service.");
         LoadService();
     }
-
+    std::unique_lock<std::mutex> lock(getOaidProxyMutex_);
     if (oaidServiceProxy_ == nullptr) {
         OAID_HILOGE(OAID_MODULE_CLIENT, "Quit because redoing load oaid service failed.");
         return RESET_OAID_DEFAULT_CODE;

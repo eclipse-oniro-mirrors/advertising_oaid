@@ -157,11 +157,18 @@ void ConnectAdsStub::SendMessage(int32_t code)
     MessageOption option(MessageOption::TF_ASYNC);
     if (OAID_INFO_TOKEN.empty() || !data.WriteInterfaceToken(OAID_INFO_TOKEN)) {
         OAID_HILOGW(OAID_MODULE_SERVICE, "SendMessage WriteInterfaceToken failed");
+        AddMessageToQueue(code);
         return;
     }
-    sptr<ADSCallbackStub> callback = new ADSCallbackStub();
+    sptr<ADSCallbackStub> callback = new (std::nothrow) ADSCallbackStub();
+    if (callback == nullptr) {
+        OAID_HILOGW(OAID_MODULE_SERVICE, "Memory allocation failed for ADSCallbackStub");
+        AddMessageToQueue(code);
+        return;
+    }
     if (!data.WriteRemoteObject(callback->AsObject())) {
         OAID_HILOGW(OAID_MODULE_SERVICE, "Callback write failed.");
+        AddMessageToQueue(code);
         return;
     }
 

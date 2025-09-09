@@ -54,8 +54,8 @@ std::string GetUUID()
     static const int8_t CHAR_LOW_WIDTH = 4;  // Lower 4 bits of the char type
     static const int8_t N_INDEX = 8;         // Reset the ninth byte of the UUID, that is UUID[8].
     unsigned char uuid[UUID_LENGTH] = {0};
-    int re = RAND_bytes(uuid, sizeof(uuid));
-    if (re == 0) {
+    if (RAND_bytes(uuid, sizeof(uuid)) != 1) {
+        OAID_HILOGE(OAID_MODULE_SERVICE, "RAND_bytes failed, using fallback");
         return "";
     }
 
@@ -276,12 +276,15 @@ std::string OAIDService::GainOAID()
     } else {
         if (oaid_.empty()) {
             oaid_ = GetUUID();
+            if (oaid_.empty()) {
+                OAID_HILOGE(OAID_MODULE_SERVICE, "GainOAID GetUUID failed! Using fallback OAID_ALLZERO_STR");
+                return OAID_ALLZERO_STR;
+            }
             OAID_HILOGI(OAID_MODULE_SERVICE, "The oaid has been regenerated.");
         }
     }
     result = WriteValueToKvStore(OAID_KVSTORE_KEY, oaid_);
     OAID_HILOGI(OAID_MODULE_SERVICE, "WriteValueToKvStore %{public}s", result == true ? "success" : "failed");
-    OAID_HILOGI(OAID_MODULE_SERVICE, "Gain OAID Finish.");
     return oaid_;
 }
 
@@ -300,6 +303,11 @@ int32_t OAIDService::ResetOAID()
 {
     OAID_HILOGI(OAID_MODULE_SERVICE, "ResetOAID.");
     std::string resetOaid = GetUUID();
+    // GetUUID的RAND_bytes可能为空，新增判空保护
+    if (resetOaid.empty()) {
+        OAID_HILOGE(OAID_MODULE_SERVICE, "ResetOAID GetUUID failed!");
+        return ERR_SYSYTEM_ERROR;
+    }
     oaid_ = resetOaid;
     bool result = WriteValueToKvStore(OAID_KVSTORE_KEY, resetOaid);
     OAID_HILOGI(OAID_MODULE_SERVICE, "ResetOAID WriteValueToKvStore %{public}s", result == true ? "success" : "failed");
