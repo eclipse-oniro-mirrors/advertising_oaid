@@ -29,7 +29,7 @@ OAIDServiceProxy::OAIDServiceProxy(const sptr<IRemoteObject> &object) : IRemoteP
 
 std::string OAIDServiceProxy::GetOAID()
 {
-    OAID_HILOGI(OAID_MODULE_CLIENT, "GetOAID Begin.");
+    OAID_HILOGD(OAID_MODULE_CLIENT, "GetOAID Begin.");
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -65,7 +65,6 @@ std::string OAIDServiceProxy::GetOAID()
 
 int32_t OAIDServiceProxy::ResetOAID()
 {
-    OAID_HILOGI(OAID_MODULE_CLIENT, "Reset OAID Begin.");
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -116,7 +115,7 @@ int32_t OAIDServiceProxy::RegisterObserver(const sptr<IRemoteConfigObserver> &ob
         OAID_HILOGI(OAID_MODULE_CLIENT, "remote is null");
         return ERR_NULL_POINTER;
     }
-    OAID_HILOGE(OAID_MODULE_CLIENT, "RegisterObserver proxy");
+    OAID_HILOGD(OAID_MODULE_CLIENT, "RegisterObserver proxy");
     return remote->SendRequest(
         static_cast<uint32_t>(OAIDInterfaceCode::REGISTER_CONTROL_CONFIG_OBSERVER), data, reply, option);
 }

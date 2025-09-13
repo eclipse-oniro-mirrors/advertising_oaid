@@ -43,7 +43,7 @@ int32_t OaidObserverManager::RegisterObserver(const sptr<IRemoteConfigObserver> 
 
     auto oaid = OAIDService::GetInstance()->GetOAID();
     std::string target = oaid.substr(0, 9).append(OAID_VIRTUAL_STR);
-    OAID_HILOGI(OAID_MODULE_SERVICE, "registerObserver success, getOaid is: %{public}s", target.c_str());
+    OAID_HILOGD(OAID_MODULE_SERVICE, "registerObserver success");
     observer->OnOaidUpdated(oaid);
     return ERR_OK;
 }
@@ -56,7 +56,7 @@ void OaidObserverManager::OnUpdateOaid(const std::string &oaid)
         return;
     }
     std::string target = oaid.substr(0, 9).append(OAID_VIRTUAL_STR);
-    OAID_HILOGI(OAID_MODULE_SERVICE, "OnOaidUpdated success oaid is: %{public}s", target.c_str());
+    OAID_HILOGD(OAID_MODULE_SERVICE, "OnOaidUpdated success oaid is: %{public}s", target.c_str());
     observer_->OnOaidUpdated(oaid);
 }
 }  // namespace Cloud
