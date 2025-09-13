@@ -32,7 +32,6 @@ bool OAIDFileOperator::IsFileExsit(const std::string &fileName)
         return false;
     }
     if (access(fileName.c_str(), F_OK) != 0) {
-        OAID_HILOGW(OAID_MODULE_COMMON, "file not exist");
         return false;
     }
     return true;

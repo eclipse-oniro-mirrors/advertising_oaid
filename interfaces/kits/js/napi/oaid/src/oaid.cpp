@@ -117,7 +117,6 @@ void ReturnCallbackPromise(const napi_env &env, AsyncCallbackInfoOAID *&info, co
 napi_value ParseParameters(
     const napi_env &env, const napi_value (&argv)[OAID_MAX_PARA], const size_t &argc, napi_ref &callback)
 {
-    OAID_HILOGI(OHOS::Cloud::OAID_MODULE_JS_NAPI, "Begin.");
     NAPI_ASSERT(env, argc >= OAID_MAX_PARA - 1, "Wrong number of arguments.");
 
     napi_valuetype valuetype = napi_undefined;
@@ -127,7 +126,6 @@ napi_value ParseParameters(
         NAPI_CALL(env, napi_create_reference(env, argv[0], 1, &callback));
     }
 
-    OAID_HILOGI(OHOS::Cloud::OAID_MODULE_JS_NAPI, "End.");
     return NapiGetNull(env);
 }
 
@@ -193,7 +191,6 @@ AsyncCallbackInfoOAID *GetAsyncCallbackInfoOAID(
 
 napi_value GetOAID(napi_env env, napi_callback_info info)
 {
-    OAID_HILOGI(OHOS::Cloud::OAID_MODULE_JS_NAPI, "Begin.");
     napi_ref callback = nullptr;
     napi_value promise = nullptr;
     AsyncCallbackInfoOAID *asynccallbackinfo = GetAsyncCallbackInfoOAID(env, info, callback, promise);
@@ -214,8 +211,6 @@ napi_value GetOAID(napi_env env, napi_callback_info info)
             (void *)asynccallbackinfo,
             &asynccallbackinfo->asyncWork));
     NAPI_CALL(env, napi_queue_async_work_with_qos(env, asynccallbackinfo->asyncWork, napi_qos_user_initiated));
-
-    OAID_HILOGI(OHOS::Cloud::OAID_MODULE_JS_NAPI, "End.");
 
     if (asynccallbackinfo->isCallback) {
         return NapiGetNull(env);

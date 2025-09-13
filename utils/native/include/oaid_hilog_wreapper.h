@@ -47,7 +47,7 @@ static constexpr OHOS::HiviewDFX::HiLogLabel OAID_MODULE_LABEL[OAID_MODULE_BUTT]
 };
 
 #define R_FILENAME (__builtin_strrchr(__FILE__, '/') ? __builtin_strrchr(__FILE__, '/') + 1 : __FILE__)
-#define R_FORMATED(fmt, ...) "[%{public}s] %{public}s# " fmt, R_FILENAME, __FUNCTION__, ##__VA_ARGS__
+#define R_FORMATED(fmt, ...) fmt, ##__VA_ARGS__
 
 // In order to improve performance, do not check the module range.
 // Besides, make sure module is less than OAID_MODULE_BUTT.

@@ -189,7 +189,6 @@ int32_t OAIDServiceStub::OnRemoteRequest(
         OAID_HILOGE(OAID_MODULE_SERVICE, "Descriptor checked fail.");
         return ERR_SYSYTEM_ERROR;
     }
-    OAID_HILOGI(OAID_MODULE_SERVICE, "Remote bundleName is %{public}s.", bundleName.c_str());
     return SendCode(code, data, reply);
 }
 
@@ -218,8 +217,6 @@ int32_t OAIDServiceStub::ValidateResetOAIDPermission(std::string bundleName, Mes
 
 int32_t OAIDServiceStub::OnGetOAID(MessageParcel &data, MessageParcel &reply)
 {
-    OAID_HILOGI(OAID_MODULE_SERVICE, "Start.");
-
     auto oaid = GetOAID();
     if (oaid == "") {
         OAID_HILOGE(OAID_MODULE_SERVICE, "Get OAID failed.");
@@ -231,13 +228,11 @@ int32_t OAIDServiceStub::OnGetOAID(MessageParcel &data, MessageParcel &reply)
         return ERR_SYSYTEM_ERROR;
     }
     checkProviderBundleName();
-    OAID_HILOGI(OAID_MODULE_SERVICE, "End.");
     return ERR_OK;
 }
 
 void OAIDServiceStub::checkProviderBundleName()
 {
-    OAID_HILOGI(OAID_MODULE_SERVICE, "enter checkProviderBundleName ");
     char pathBuff[PATH_MAX] = {0};
     GetOneCfgFile(OAID_TRUSTLIST_EXTENSION_CONFIG_PATH.c_str(), pathBuff, PATH_MAX);
     char realPath[PATH_MAX] = {0};
@@ -271,11 +266,10 @@ void OAIDServiceStub::checkProviderBundleName()
     pid_t uid = IPCSkeleton::GetCallingUid();
     DelayedSingleton<BundleMgrHelper>::GetInstance()->GetBundleNameByUid(static_cast<int>(uid), bundleName);
     if (bundleName.compare(providerBundleName) == 0) {
-        OAID_HILOGI(OAID_MODULE_SERVICE, "match current bundleName success");
         ConnectAdsManager::GetInstance()->notifyKit(NOTIFY_GET_OAID_CODE);
     }
     cJSON_Delete(root);
-    OAID_HILOGI(OAID_MODULE_SERVICE, "end checkProviderBundleName ");
+    OAID_HILOGD(OAID_MODULE_SERVICE, "end checkProviderBundleName ");
 }
 
 int32_t OAIDServiceStub::OnResetOAID(MessageParcel &data, MessageParcel &reply)
@@ -355,7 +349,7 @@ int32_t OAIDServiceStub::HandleRegisterControlConfigObserver(MessageParcel &data
 
 int32_t OAIDServiceStub::RegisterObserver(const sptr<IRemoteConfigObserver> &observer)
 {
-    OAID_HILOGI(OAID_MODULE_SERVICE, "registerObserver success.");
+    OAID_HILOGD(OAID_MODULE_SERVICE, "registerObserver success.");
     return DelayedSingleton<OaidObserverManager>::GetInstance()->RegisterObserver(observer);
 }
 }  // namespace Cloud

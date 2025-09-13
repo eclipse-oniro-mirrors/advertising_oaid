@@ -112,7 +112,6 @@ bool BundleMgrHelper::GetApplicationInfoV9WithPermission(
 
 void BundleMgrHelper::GetBundleNameByUid(const int uid, std::string &name)
 {
-    OAID_HILOGI(OAID_MODULE_SERVICE, "GetBundleNameByUid");
     std::lock_guard<std::mutex> lock(mutex_);
 
     if (!GetBundleMgrProxy()) {
@@ -125,7 +124,7 @@ void BundleMgrHelper::GetBundleNameByUid(const int uid, std::string &name)
         OAID_HILOGE(OAID_MODULE_SERVICE, "Failed to GetNameForUid");
         return;
     }
-    OAID_HILOGI(OAID_MODULE_SERVICE, "GetBundleNameByUid success");
+    OAID_HILOGD(OAID_MODULE_SERVICE, "GetBundleNameByUid success");
     return;
 }
 

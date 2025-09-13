@@ -138,8 +138,6 @@ bool OAIDServiceClient::LoadService()
 
 std::string OAIDServiceClient::GetOAID()
 {
-    OAID_HILOGI(OAID_MODULE_CLIENT, "Begin.");
-    
     if (!CheckPermission(OAID_TRACKING_CONSENT_PERMISSION)) {
         OAID_HILOGW(
             OAID_MODULE_SERVICE, "get oaid not granted the app tracking permission");
@@ -162,14 +160,11 @@ std::string OAIDServiceClient::GetOAID()
         OAID_HILOGE(OAID_MODULE_CLIENT, "Get OAID failed.");
         return OAID_ALLZERO_STR;
     }
-    OAID_HILOGI(OAID_MODULE_SERVICE, "Get OAID id %{public}zu.", oaid.size());
     return oaid;
 }
 
 int32_t OAIDServiceClient::ResetOAID()
 {
-    OAID_HILOGI(OAID_MODULE_CLIENT, "Begin.");
-
     if (!LoadService()) {
         OAID_HILOGW(OAID_MODULE_CLIENT, "Redo load oaid service.");
         LoadService();
@@ -208,8 +203,6 @@ bool OAIDServiceClient::CheckPermission(const std::string &permissionName)
 
 int32_t OAIDServiceClient::RegisterObserver(const sptr<IRemoteConfigObserver>& observer)
 {
-    OAID_HILOGI(OAID_MODULE_CLIENT, "Begin RegisterObserver.");
-
     if (!LoadService()) {
         OAID_HILOGW(OAID_MODULE_CLIENT, "Redo load oaid service.");
         LoadService();
@@ -254,7 +247,6 @@ void OAIDServiceClient::LoadServerSuccess(const sptr<IRemoteObject>& remoteObjec
     oaidServiceProxy_ = iface_cast<IOAIDService>(remoteObject);
     loadServiceReady_ = true;
     loadServiceCondition_.notify_one();
-    OAID_HILOGI(OAID_MODULE_CLIENT, "Load OAID service success.");
 }
 
 void OAIDServiceClient::LoadServerFail()

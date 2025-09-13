@@ -100,7 +100,7 @@ sptr<OAIDService> OAIDService::instance_;
 OAIDService::OAIDService(int32_t systemAbilityId, bool runOnCreate)
     : SystemAbility(systemAbilityId, runOnCreate), state_(ServiceRunningState::STATE_NOT_START)
 {
-    OAID_HILOGI(OAID_MODULE_SERVICE, "Start.");
+    OAID_HILOGD(OAID_MODULE_SERVICE, "Start.");
 }
 
 OAIDService::OAIDService() : state_(ServiceRunningState::STATE_NOT_START)
@@ -113,7 +113,7 @@ sptr<OAIDService> OAIDService::GetInstance()
     if (instance_ == nullptr) {
         std::lock_guard<std::mutex> autoLock(mutex_);
         if (instance_ == nullptr) {
-            OAID_HILOGI(OAID_MODULE_SERVICE, "Instance success.");
+            OAID_HILOGD(OAID_MODULE_SERVICE, "Instance success.");
             instance_ = new OAIDService;
         }
     }
@@ -133,7 +133,7 @@ void OAIDService::OnStart()
     }
     AddSystemAbilityListener(OAID_SYSTME_ID);
 
-    OAID_HILOGI(OAID_MODULE_SERVICE, "Start OAID service success.");
+    OAID_HILOGD(OAID_MODULE_SERVICE, "Start OAID OK");
     return;
 }
 
@@ -162,21 +162,20 @@ void OAIDService::OnStop()
 
 void OAIDService::OnAddSystemAbility(int32_t systemAbilityId, const std::string &deviceId)
 {
-    OAID_HILOGI(OAID_MODULE_SERVICE, "OnAddSystemAbility OAIDService");
     bool initBaseKvResult = false;
     bool initUnderAgeKvResult = false;
     switch (systemAbilityId) {
         case OAID_SYSTME_ID:
-            OAID_HILOGI(OAID_MODULE_SERVICE, "OnAddSystemAbility kv data service start");
+            OAID_HILOGD(OAID_MODULE_SERVICE, "sa kv data service start");
             initBaseKvResult = InitKvStore(OAID_DATA_BASE_STORE_ID);
             initUnderAgeKvResult = InitKvStore(OAID_UNDER_AGE_STORE_ID);
-                OAID_HILOGI(OAID_MODULE_SERVICE,
-                    "OnAddSystemAbility InitOaidKvStore is %{public}d, InitUnderAgeKvStore is %{public}d",
+                OAID_HILOGD(OAID_MODULE_SERVICE,
+                    "sa InitOaidKv is %{public}d, InitUnderAgeKv is %{public}d",
                     initBaseKvResult,
                     initUnderAgeKvResult);
             break;
         default:
-            OAID_HILOGI(OAID_MODULE_SERVICE, "OnAddSystemAbility unhandled sysabilityId: %{public}d", systemAbilityId);
+            OAID_HILOGI(OAID_MODULE_SERVICE, "sa unhandled sysabilityId: %{public}d", systemAbilityId);
             break;
     }
 }
@@ -187,7 +186,7 @@ bool OAIDService::CheckKvStore()
         return true;
     }
     bool result = InitKvStore(OAID_DATA_BASE_STORE_ID);
-    OAID_HILOGI(OAID_MODULE_SERVICE, "InitOaidKvStore: %{public}s", result == true ? "success" : "failed");
+    OAID_HILOGD(OAID_MODULE_SERVICE, "InitOaidKvStore: %{public}s", result == true ? "success" : "failed");
     return result;
 }
 
@@ -204,9 +203,9 @@ bool OAIDService::ReadValueFromKvStore(const std::string &kvStoreKey, std::strin
     DistributedKv::Value value;
     DistributedKv::Status status = oaidKvStore_->Get(key, value);
     if (status == DistributedKv::Status::SUCCESS) {
-        OAID_HILOGI(OAID_MODULE_SERVICE, "%{public}d get value from kvStore", status);
+        OAID_HILOGD(OAID_MODULE_SERVICE, "%{public}d get value from kvStore", status);
     } else {
-        OAID_HILOGE(OAID_MODULE_SERVICE, "%{public}d get value from kvStore failed", status);
+        OAID_HILOGD(OAID_MODULE_SERVICE, "%{public}d get value from kvStore failed", status);
         return false;
     }
     kvStoreValue = value.ToString();
@@ -238,7 +237,6 @@ bool OAIDService::WriteValueToKvStore(const std::string &kvStoreKey, const std::
 
 std::string OAIDService::GainOAID()
 {
-    OAID_HILOGI(OAID_MODULE_SERVICE, "Gain OAID Begin.");
     std::string oaidKvStoreStr = OAID_ALLZERO_STR;
     updateMutex_.lock();
     if (OAIDFileOperator::IsFileExsit(OAID_UPDATE)) {
@@ -265,19 +263,17 @@ std::string OAIDService::GainOAID()
         return OAID_ALLZERO_STR;
     }
     bool result = ReadValueFromKvStore(OAID_KVSTORE_KEY, oaidKvStoreStr);
-    OAID_HILOGI(OAID_MODULE_SERVICE, "ReadValueFromKvStore %{public}s", result ? "success" : "failed");
 
     if (oaidKvStoreStr != OAID_ALLZERO_STR && !oaidKvStoreStr.empty()) {
         if (oaid_.empty()) {
             oaid_ = oaidKvStoreStr;
-            OAID_HILOGI(OAID_MODULE_SERVICE, "The Oaid in the memory is empty, it get oaid from kvdb successfully");
+            OAID_HILOGI(OAID_MODULE_SERVICE, "Oaid in the memory is empty");
         }
         return oaid_;
     } else {
         if (oaid_.empty()) {
             oaid_ = GetUUID();
             if (oaid_.empty()) {
-                OAID_HILOGE(OAID_MODULE_SERVICE, "GainOAID GetUUID failed! Using fallback OAID_ALLZERO_STR");
                 return OAID_ALLZERO_STR;
             }
             OAID_HILOGI(OAID_MODULE_SERVICE, "The oaid has been regenerated.");
@@ -290,18 +286,14 @@ std::string OAIDService::GainOAID()
 
 std::string OAIDService::GetOAID()
 {
-    OAID_HILOGI(OAID_MODULE_SERVICE, "Begin.");
-
     std::string oaid = GainOAID();
     std::string target = oaid.substr(0, 9).append(OAID_VIRTUAL_STR);
-    OAID_HILOGI(OAID_MODULE_SERVICE, "getOaid success oaid is: %{public}s", target.c_str());
-    OAID_HILOGI(OAID_MODULE_SERVICE, "End.");
+    OAID_HILOGI(OAID_MODULE_SERVICE, "getOaid success");
     return oaid;
 }
 
 int32_t OAIDService::ResetOAID()
 {
-    OAID_HILOGI(OAID_MODULE_SERVICE, "ResetOAID.");
     std::string resetOaid = GetUUID();
     // GetUUID的RAND_bytes可能为空，新增判空保护
     if (resetOaid.empty()) {
@@ -313,7 +305,7 @@ int32_t OAIDService::ResetOAID()
     OAID_HILOGI(OAID_MODULE_SERVICE, "ResetOAID WriteValueToKvStore %{public}s", result == true ? "success" : "failed");
     ConnectAdsManager::GetInstance()->notifyKit(NOTIFY_RESET_OAID_CODE);
     std::string target = resetOaid.substr(0, 9).append(OAID_VIRTUAL_STR);
-    OAID_HILOGI(OAID_MODULE_SERVICE, "resetOaid success oaid is: %{public}s", target.c_str());
+    OAID_HILOGD(OAID_MODULE_SERVICE, "resetOaid success oaid is: %{public}s", target.c_str());
     // 调用单例对象的oberser->OnUpdateOaid
     DelayedSingleton<OaidObserverManager>::GetInstance()->OnUpdateOaid(resetOaid);
     return ERR_OK;
@@ -388,7 +380,7 @@ bool OAIDService::CheckUnderAgeKvStore()
         return true;
     }
     bool result = InitKvStore(OAID_UNDER_AGE_STORE_ID);
-    OAID_HILOGI(OAID_MODULE_SERVICE, "InitUnderAgeKvStore: %{public}s", result == true ? "success" : "failed");
+    OAID_HILOGD(OAID_MODULE_SERVICE, "InitUnderAgeKvStore: %{public}s", result == true ? "success" : "failed");
     return result;
 }
 
@@ -402,9 +394,9 @@ bool OAIDService::ReadValueFromUnderAgeKvStore(const std::string &kvStoreKey, Di
     DistributedKv::Key key(kvStoreKey);
     DistributedKv::Status status = oaidUnderAgeKvStore_->Get(key, kvStoreValue);
     if (status == DistributedKv::Status::SUCCESS) {
-        OAID_HILOGI(OAID_MODULE_SERVICE, "%{public}d get value from kvStore", status);
+        OAID_HILOGD(OAID_MODULE_SERVICE, "%{public}d get value from kvStore", status);
     } else {
-        OAID_HILOGE(OAID_MODULE_SERVICE, "%{public}d get value from kvStore failed", status);
+        OAID_HILOGD(OAID_MODULE_SERVICE, "%{public}d get value from kvStore failed", status);
         return false;
     }
     return true;
