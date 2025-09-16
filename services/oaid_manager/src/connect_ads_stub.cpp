@@ -145,7 +145,8 @@ void ConnectAdsStub::DisconnectIfIdle()
 
 void ConnectAdsStub::SendMessage(int32_t code)
 {
-    if (GetConnectionState() != ConnectionState::CONNECTED || GetProxy() == nullptr) {
+    sptr<IRemoteObject> rpcProxy = GetProxy();
+    if (GetConnectionState() != ConnectionState::CONNECTED || rpcProxy == nullptr) {
         OAID_HILOGI(OAID_MODULE_SERVICE, "SendMessage failed - not connected");
         AddMessageToQueue(code);
         return;
@@ -172,7 +173,7 @@ void ConnectAdsStub::SendMessage(int32_t code)
     }
 
     OAID_HILOGI(OAID_MODULE_SERVICE, "SendMessage CODE_OAID = %{public}d", code);
-    GetProxy()->SendRequest(code, data, reply, option);
+    rpcProxy->SendRequest(code, data, reply, option);
     setCodeOaid(GET_ALLOW_OAID_CODE);
 }
 
