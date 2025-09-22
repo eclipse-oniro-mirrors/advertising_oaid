@@ -208,6 +208,7 @@ int32_t OAIDServiceClient::RegisterObserver(const sptr<IRemoteConfigObserver>& o
         LoadService();
     }
 
+    std::unique_lock<std::mutex> lock(getOaidProxyMutex_);
     if (oaidServiceProxy_ == nullptr) {
         OAID_HILOGE(OAID_MODULE_CLIENT, "Quit because redoing load oaid service failed.");
         return RESET_OAID_DEFAULT_CODE;
@@ -222,7 +223,7 @@ int32_t OAIDServiceClient::RegisterObserver(const sptr<IRemoteConfigObserver>& o
 void OAIDServiceClient::OnRemoteSaDied(const wptr<IRemoteObject>& remote)
 {
     OAID_HILOGE(OAID_MODULE_CLIENT, "OnRemoteSaDied");
-    std::unique_lock<std::mutex> lock(loadServiceConditionLock_);
+    std::unique_lock<std::mutex> lock(getOaidProxyMutex_);
     if (oaidServiceProxy_ != nullptr) {
         auto remoteObject = oaidServiceProxy_->AsObject();
         if (remoteObject != nullptr && deathRecipient_ != nullptr) {
