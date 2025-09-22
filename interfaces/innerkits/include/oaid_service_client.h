@@ -75,6 +75,7 @@ private:
     static std::mutex instanceLock_;
     static sptr<OAIDServiceClient> instance_;
 
+    sptr<IOAIDService> GetProxy();
     bool LoadService();
     bool loadServiceReady_ = false;
     std::mutex loadServiceLock_;
