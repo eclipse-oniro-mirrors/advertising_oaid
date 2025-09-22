@@ -169,6 +169,7 @@ void ConnectAdsStub::SendMessage(int32_t code)
     if (!data.WriteRemoteObject(callback->AsObject())) {
         OAID_HILOGW(OAID_MODULE_SERVICE, "Callback write failed.");
         AddMessageToQueue(code);
+        callback = nullptr;
         return;
     }
 

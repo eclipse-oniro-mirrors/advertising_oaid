@@ -149,13 +149,13 @@ std::string OAIDServiceClient::GetOAID()
         LoadService();
     }
 
-    std::unique_lock<std::mutex> lock(getOaidProxyMutex_);
-    if (oaidServiceProxy_ == nullptr) {
+    sptr<IOAIDService> proxy = GetProxy();
+    if (proxy == nullptr) {
         OAID_HILOGE(OAID_MODULE_CLIENT, "Quit because redoing load oaid service failed.");
         return OAID_ALLZERO_STR;
     }
 
-    auto oaid = oaidServiceProxy_->GetOAID();
+    auto oaid = proxy->GetOAID();
     if (oaid == "") {
         OAID_HILOGE(OAID_MODULE_CLIENT, "Get OAID failed.");
         return OAID_ALLZERO_STR;
@@ -169,16 +169,22 @@ int32_t OAIDServiceClient::ResetOAID()
         OAID_HILOGW(OAID_MODULE_CLIENT, "Redo load oaid service.");
         LoadService();
     }
-    std::unique_lock<std::mutex> lock(getOaidProxyMutex_);
-    if (oaidServiceProxy_ == nullptr) {
+    sptr<IOAIDService> proxy = GetProxy();
+    if (proxy == nullptr) {
         OAID_HILOGE(OAID_MODULE_CLIENT, "Quit because redoing load oaid service failed.");
         return RESET_OAID_DEFAULT_CODE;
     }
 
-    int32_t resetResult = oaidServiceProxy_->ResetOAID();
+    int32_t resetResult = proxy->ResetOAID();
     OAID_HILOGI(OAID_MODULE_SERVICE, "End.resetResult = %{public}d", resetResult);
 
     return resetResult;
+}
+
+sptr<IOAIDService> OAIDServiceClient::GetProxy()
+{
+    std::lock_guard<std::mutex> lock(getOaidProxyMutex_);
+    return oaidServiceProxy_;
 }
 
 bool OAIDServiceClient::CheckPermission(const std::string &permissionName)
