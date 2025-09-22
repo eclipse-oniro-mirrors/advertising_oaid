@@ -34,7 +34,6 @@ std::string OAIDServiceProxy::GetOAID()
     MessageParcel reply;
     MessageOption option;
     const int32_t NOPERMISSION = 305;
-    std::unique_lock<std::mutex> lock(getProxyMutex_);
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         OAID_HILOGE(OAID_MODULE_CLIENT, "Failed to write parcelable");
         return "";
@@ -69,7 +68,6 @@ int32_t OAIDServiceProxy::ResetOAID()
     MessageParcel reply;
     MessageOption option;
 
-    std::unique_lock<std::mutex> lock(resetProxyMutex_);
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         OAID_HILOGE(OAID_MODULE_CLIENT, "Failed to write parcelable");
     }
