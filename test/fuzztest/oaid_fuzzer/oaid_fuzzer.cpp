@@ -87,6 +87,8 @@ namespace OHOS {
 
     bool OAIDFuzzTest(const uint8_t* rawData, size_t size)
     {
+        (void)rawData;
+        (void)size;
         uint32_t startCode = static_cast<uint32_t>(OHOS::Cloud::OAIDInterfaceCode::GET_OAID);
         uint32_t endCode = static_cast<uint32_t>(OHOS::Cloud::OAIDInterfaceCode::REGISTER_CONTROL_CONFIG_OBSERVER) + 1;
         for (uint32_t code = startCode; code <= endCode; code++) {
