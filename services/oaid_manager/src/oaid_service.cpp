@@ -369,14 +369,26 @@ bool OAIDService::InitKvStore(std::string storeIdStr)
     if (storeIdStr == OAID_DATA_BASE_STORE_ID) {
         oaidKvStore_ = kvStore_;
     } else if (storeIdStr == OAID_UNDER_AGE_STORE_ID) {
-        oaidUnderAgeKvStore_ = kvStore_;
+        setOaidUnderAgeKv(kvStore_);
     }
     return true;
 }
 
+std::shared_ptr<DistributedKv::SingleKvStore> OAIDService::getOaidUnderAgeKv()
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    return oaidUnderAgeKvStore_;
+}
+ 
+void OAIDService::setOaidUnderAgeKv(std::shared_ptr<DistributedKv::SingleKvStore> kvStore)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    oaidUnderAgeKvStore_ = kvStore;
+}
+
 bool OAIDService::CheckUnderAgeKvStore()
 {
-    if (oaidUnderAgeKvStore_ != nullptr) {
+    if (getOaidUnderAgeKv() != nullptr) {
         return true;
     }
     bool result = InitKvStore(OAID_UNDER_AGE_STORE_ID);
@@ -392,7 +404,7 @@ bool OAIDService::ReadValueFromUnderAgeKvStore(const std::string &kvStoreKey, Di
         return false;
     }
     DistributedKv::Key key(kvStoreKey);
-    DistributedKv::Status status = oaidUnderAgeKvStore_->Get(key, kvStoreValue);
+    DistributedKv::Status status = getOaidUnderAgeKv()->Get(key, kvStoreValue);
     if (status == DistributedKv::Status::SUCCESS) {
         OAID_HILOGD(OAID_MODULE_SERVICE, "%{public}d get value from kvStore", status);
     } else {
@@ -404,15 +416,13 @@ bool OAIDService::ReadValueFromUnderAgeKvStore(const std::string &kvStoreKey, Di
 
 bool OAIDService::WriteValueToUnderAgeKvStore(const std::string &kvStoreKey, const DistributedKv::Value &kvStoreValue)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
-
     if (!CheckUnderAgeKvStore()) {
         OAID_HILOGE(OAID_MODULE_SERVICE, "WriteValueToUnderAgeKvStore:oaidKvStore_ is nullptr");
         return false;
     }
 
     DistributedKv::Key key(kvStoreKey);
-    DistributedKv::Status status = oaidUnderAgeKvStore_->Put(key, kvStoreValue);
+    DistributedKv::Status status = getOaidUnderAgeKv()->Put(key, kvStoreValue);
     if (status == DistributedKv::Status::SUCCESS) {
         OAID_HILOGI(OAID_MODULE_SERVICE, "%{public}d updated to kvStore", status);
     } else {
