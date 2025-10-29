@@ -73,6 +73,8 @@ private:
     std::shared_ptr<DistributedKv::SingleKvStore> oaidUnderAgeKvStore_;
     std::mutex updateMutex_;
     std::string oaid_;
+    std::shared_ptr<DistributedKv::SingleKvStore> getOaidUnderAgeKv();
+    void setOaidUnderAgeKv(std::shared_ptr<DistributedKv::SingleKvStore> kvStore);
 };
 } // namespace Cloud
 } // namespace OHOS

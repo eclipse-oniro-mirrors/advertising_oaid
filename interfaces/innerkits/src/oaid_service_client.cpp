@@ -75,8 +75,9 @@ OAIDServiceClient::OAIDServiceClient()
 
 OAIDServiceClient::~OAIDServiceClient()
 {
-    if (oaidServiceProxy_ != nullptr) {
-        auto remoteObject = oaidServiceProxy_->AsObject();
+    auto proxy = GetProxy();
+    if (proxy != nullptr) {
+        auto remoteObject = proxy->AsObject();
         if (remoteObject != nullptr && deathRecipient_ != nullptr) {
             remoteObject->RemoveDeathRecipient(deathRecipient_);
         }
@@ -187,6 +188,22 @@ sptr<IOAIDService> OAIDServiceClient::GetProxy()
     return oaidServiceProxy_;
 }
 
+void OAIDServiceClient::SetProxy(const sptr<IOAIDService>& proxy)
+{
+    std::lock_guard<std::mutex> lock(getOaidProxyMutex_);
+    if (oaidServiceProxy_ != nullptr) {
+        auto remoteObject = oaidServiceProxy_->AsObject();
+        if (remoteObject != nullptr && deathRecipient_ != nullptr) {
+            remoteObject->RemoveDeathRecipient(deathRecipient_);
+        }
+    }
+    oaidServiceProxy_ = proxy;
+    if (proxy != nullptr && deathRecipient_ != nullptr) {
+        proxy->AsObject()->AddDeathRecipient(deathRecipient_);
+    }
+}
+
+
 bool OAIDServiceClient::CheckPermission(const std::string &permissionName)
 {
     // Verify the invoker's permission.
@@ -214,13 +231,13 @@ int32_t OAIDServiceClient::RegisterObserver(const sptr<IRemoteConfigObserver>& o
         LoadService();
     }
 
-    std::unique_lock<std::mutex> lock(getOaidProxyMutex_);
-    if (oaidServiceProxy_ == nullptr) {
+    sptr<IOAIDService> proxy = GetProxy();
+    if (proxy == nullptr) {
         OAID_HILOGE(OAID_MODULE_CLIENT, "Quit because redoing load oaid service failed.");
         return RESET_OAID_DEFAULT_CODE;
     }
 
-    int32_t resetResult = oaidServiceProxy_->RegisterObserver(observer);
+    int32_t resetResult = proxy->RegisterObserver(observer);
     OAID_HILOGI(OAID_MODULE_SERVICE, "End.resetResult = %{public}d", resetResult);
 
     return resetResult;
@@ -229,14 +246,7 @@ int32_t OAIDServiceClient::RegisterObserver(const sptr<IRemoteConfigObserver>& o
 void OAIDServiceClient::OnRemoteSaDied(const wptr<IRemoteObject>& remote)
 {
     OAID_HILOGE(OAID_MODULE_CLIENT, "OnRemoteSaDied");
-    std::unique_lock<std::mutex> lock(getOaidProxyMutex_);
-    if (oaidServiceProxy_ != nullptr) {
-        auto remoteObject = oaidServiceProxy_->AsObject();
-        if (remoteObject != nullptr && deathRecipient_ != nullptr) {
-            remoteObject->RemoveDeathRecipient(deathRecipient_);
-        }
-        oaidServiceProxy_ = nullptr;
-    }
+    SetProxy(nullptr);
     loadServiceReady_ = false;
 }
 
@@ -248,10 +258,7 @@ void OAIDServiceClient::LoadServerSuccess(const sptr<IRemoteObject>& remoteObjec
         return;
     }
 
-    if (deathRecipient_ != nullptr) {
-        remoteObject->AddDeathRecipient(deathRecipient_);
-    }
-    oaidServiceProxy_ = iface_cast<IOAIDService>(remoteObject);
+    SetProxy(iface_cast<IOAIDService>(remoteObject));
     loadServiceReady_ = true;
     loadServiceCondition_.notify_one();
 }
