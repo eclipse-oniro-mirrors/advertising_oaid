@@ -86,7 +86,6 @@ private:
     sptr<IOAIDService> oaidServiceProxy_;
     sptr<OAIDSaDeathRecipient> deathRecipient_;
     bool CheckPermission(const std::string &permissionName);
-    void SetProxy(const sptr<IOAIDService>& proxy);
 };
 } // namespace Cloud
 } // namespace OHOS
