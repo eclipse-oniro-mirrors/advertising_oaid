@@ -75,6 +75,7 @@ OAIDServiceClient::OAIDServiceClient()
 
 OAIDServiceClient::~OAIDServiceClient()
 {
+    std::lock_guard<std::mutex> lock(getOaidProxyMutex_);
     if (oaidServiceProxy_ != nullptr) {
         auto remoteObject = oaidServiceProxy_->AsObject();
         if (remoteObject != nullptr && deathRecipient_ != nullptr) {
@@ -149,13 +150,13 @@ std::string OAIDServiceClient::GetOAID()
         LoadService();
     }
 
-    sptr<IOAIDService> proxy = GetProxy();
-    if (proxy == nullptr) {
+    std::lock_guard<std::mutex> lock(getOaidProxyMutex_);
+    if (oaidServiceProxy_ == nullptr) {
         OAID_HILOGE(OAID_MODULE_CLIENT, "Quit because redoing load oaid service failed.");
         return OAID_ALLZERO_STR;
     }
 
-    auto oaid = proxy->GetOAID();
+    auto oaid = oaidServiceProxy_->GetOAID();
     if (oaid == "") {
         OAID_HILOGE(OAID_MODULE_CLIENT, "Get OAID failed.");
         return OAID_ALLZERO_STR;
@@ -169,22 +170,16 @@ int32_t OAIDServiceClient::ResetOAID()
         OAID_HILOGW(OAID_MODULE_CLIENT, "Redo load oaid service.");
         LoadService();
     }
-    sptr<IOAIDService> proxy = GetProxy();
-    if (proxy == nullptr) {
+    std::lock_guard<std::mutex> lock(getOaidProxyMutex_);
+    if (oaidServiceProxy_ == nullptr) {
         OAID_HILOGE(OAID_MODULE_CLIENT, "Quit because redoing load oaid service failed.");
         return RESET_OAID_DEFAULT_CODE;
     }
 
-    int32_t resetResult = proxy->ResetOAID();
+    int32_t resetResult = oaidServiceProxy_->ResetOAID();
     OAID_HILOGI(OAID_MODULE_SERVICE, "End.resetResult = %{public}d", resetResult);
 
     return resetResult;
-}
-
-sptr<IOAIDService> OAIDServiceClient::GetProxy()
-{
-    std::lock_guard<std::mutex> lock(getOaidProxyMutex_);
-    return oaidServiceProxy_;
 }
 
 bool OAIDServiceClient::CheckPermission(const std::string &permissionName)
@@ -214,14 +209,14 @@ int32_t OAIDServiceClient::RegisterObserver(const sptr<IRemoteConfigObserver>& o
         LoadService();
     }
 
-    std::unique_lock<std::mutex> lock(getOaidProxyMutex_);
+    std::lock_guard<std::mutex> lock(getOaidProxyMutex_);
     if (oaidServiceProxy_ == nullptr) {
         OAID_HILOGE(OAID_MODULE_CLIENT, "Quit because redoing load oaid service failed.");
         return RESET_OAID_DEFAULT_CODE;
     }
 
     int32_t resetResult = oaidServiceProxy_->RegisterObserver(observer);
-    OAID_HILOGI(OAID_MODULE_SERVICE, "End.resetResult = %{public}d", resetResult);
+    OAID_HILOGI(OAID_MODULE_SERVICE, "End.oaid rgisterObserver resetResult = %{public}d", resetResult);
 
     return resetResult;
 }
@@ -229,20 +224,22 @@ int32_t OAIDServiceClient::RegisterObserver(const sptr<IRemoteConfigObserver>& o
 void OAIDServiceClient::OnRemoteSaDied(const wptr<IRemoteObject>& remote)
 {
     OAID_HILOGE(OAID_MODULE_CLIENT, "OnRemoteSaDied");
-    std::unique_lock<std::mutex> lock(getOaidProxyMutex_);
+    std::unique_lock<std::mutex> conditionLock(loadServiceConditionLock_);
+    loadServiceReady_ = false;
+    std::unique_lock<std::mutex> proxyLock(getOaidProxyMutex_);
     if (oaidServiceProxy_ != nullptr) {
         auto remoteObject = oaidServiceProxy_->AsObject();
         if (remoteObject != nullptr && deathRecipient_ != nullptr) {
             remoteObject->RemoveDeathRecipient(deathRecipient_);
         }
         oaidServiceProxy_ = nullptr;
+        OAID_HILOGI(OAID_MODULE_CLIENT, "OnRemoteSaDied END");
     }
-    loadServiceReady_ = false;
 }
 
 void OAIDServiceClient::LoadServerSuccess(const sptr<IRemoteObject>& remoteObject)
 {
-    std::unique_lock<std::mutex> lock(loadServiceConditionLock_);
+    std::unique_lock<std::mutex> conditionLock(loadServiceConditionLock_);
     if (remoteObject == nullptr) {
         OAID_HILOGE(OAID_MODULE_CLIENT, "Load OAID service is null.");
         return;
@@ -251,9 +248,11 @@ void OAIDServiceClient::LoadServerSuccess(const sptr<IRemoteObject>& remoteObjec
     if (deathRecipient_ != nullptr) {
         remoteObject->AddDeathRecipient(deathRecipient_);
     }
+    std::unique_lock<std::mutex> proxyLock(getOaidProxyMutex_);
     oaidServiceProxy_ = iface_cast<IOAIDService>(remoteObject);
     loadServiceReady_ = true;
     loadServiceCondition_.notify_one();
+    OAID_HILOGI(OAID_MODULE_CLIENT, "Load OAID service success.");
 }
 
 void OAIDServiceClient::LoadServerFail()
