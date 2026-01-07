@@ -47,7 +47,7 @@
       "sub_component": [
         "//domains/advertising/oaid:oaid_native_packages"
       ],
-      "inner_api": [
+      "inner_kits": [
         {
           "header": {
             "header_base": "//domains/advertising/oaid/interfaces/innerkits/include/",
