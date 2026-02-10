@@ -26,7 +26,6 @@
 #include "iremote_stub.h"
 #include "accesstoken_kit.h"
 #include "config_policy_utils.h"
-#include "privacy_kit.h"
 #include "tokenid_kit.h"
 
 namespace OHOS {
