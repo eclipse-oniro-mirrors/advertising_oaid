@@ -300,7 +300,10 @@ int32_t OAIDService::ResetOAID()
         OAID_HILOGE(OAID_MODULE_SERVICE, "ResetOAID GetUUID failed!");
         return ERR_SYSYTEM_ERROR;
     }
-    oaid_ = resetOaid;
+    {
+        std::lock_guard<std::mutex> autoLock(updateMutex_);
+        oaid_ = resetOaid;
+    }
     bool result = WriteValueToKvStore(OAID_KVSTORE_KEY, resetOaid);
     OAID_HILOGI(OAID_MODULE_SERVICE, "ResetOAID WriteValueToKvStore %{public}s", result == true ? "success" : "failed");
     ConnectAdsManager::GetInstance()->notifyKit(NOTIFY_RESET_OAID_CODE);
