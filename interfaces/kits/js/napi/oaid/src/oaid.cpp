@@ -146,7 +146,7 @@ void PaddingCallbackInfo(
 void GetOAIDExecuteCallBack(napi_env env, void *data)
 {
     std::lock_guard<std::mutex> autoLock(oaidLock_);
-    AsyncCallbackInfoOAID *asynccallbackinfo = (AsyncCallbackInfoOAID *)data;
+    AsyncCallbackInfoOAID *asynccallbackinfo = reinterpret_cast<AsyncCallbackInfoOAID *>(data);
 
     asynccallbackinfo->oaid = Cloud::OAIDServiceClient::GetInstance()->GetOAID();
     if (asynccallbackinfo->oaid.empty()) {
@@ -157,7 +157,7 @@ void GetOAIDExecuteCallBack(napi_env env, void *data)
 
 void GetOAIDCompleteCallBack(napi_env env, napi_status status, void *data)
 {
-    AsyncCallbackInfoOAID *asynccallbackinfo = (AsyncCallbackInfoOAID *)data;
+    AsyncCallbackInfoOAID *asynccallbackinfo = reinterpret_cast<AsyncCallbackInfoOAID *>(data);
     napi_value result = nullptr;
     NAPI_CALL_RETURN_VOID(
         env, napi_create_string_utf8(env, asynccallbackinfo->oaid.c_str(), NAPI_AUTO_LENGTH, &result));
@@ -208,7 +208,7 @@ napi_value GetOAID(napi_env env, napi_callback_info info)
             resourceName,
             getOAIDExecuteCallBack,
             getOAIDCompleteCallBack,
-            (void *)asynccallbackinfo,
+            static_cast<void *>(asynccallbackinfo),
             &asynccallbackinfo->asyncWork));
     NAPI_CALL(env, napi_queue_async_work_with_qos(env, asynccallbackinfo->asyncWork, napi_qos_user_initiated));
 
