@@ -406,11 +406,8 @@ int32_t OAIDServiceStub::OnSetAncoSwitchStatus(MessageParcel &data, MessageParce
     std::string bundleName = data.ReadString();
     std::string uid = data.ReadString();
     int32_t status = data.ReadInt32();
-
     OAID_HILOGI(OAID_MODULE_SERVICE, "OnSetAncoSwitchStatus called");
-
     bool result = SetAncoSwitchStatus(userId, bundleName, uid, status);
-
     if (!reply.WriteBool(result)) {
         OAID_HILOGE(OAID_MODULE_SERVICE, "Failed to write result to reply");
         return ERR_WRITE_PARCEL_FAILED;

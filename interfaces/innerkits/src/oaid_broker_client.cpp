@@ -28,12 +28,12 @@ std::vector<bool> OAIDBrokerClient::RequestAuthorization(const std::string packa
 {
     pid_t GetCallingUid = IPCSkeleton::GetCallingUid();
     OAID_HILOGI(OAID_MODULE_SERVICE, "RequestAuthorization GetCallingUid = %{public}d", GetCallingUid);    
-    if(VALID_UID != GetCallingUid) {
+    if (VALID_UID != GetCallingUid) {
         OAID_HILOGE(OAID_MODULE_SERVICE, "invalid callingUid %{public}d", GetCallingUid);
         return {};
     }
-    OAID_HILOGI(OAID_MODULE_SERVICE, "RequestAuthorization packageName = %{public}s uid = %{public}s"
-	    , packageName.c_str(), uid.c_str());
+    OAID_HILOGI(OAID_MODULE_SERVICE, "RequestAuthorization packageName = %{public}s uid = %{public}s",
+        packageName.c_str(), uid.c_str());
     int32_t userId = GetUserId();
     OAID_HILOGI(OAID_MODULE_SERVICE, "RequestAuthorization GetUserId userId = %{public}d", userId);
     bool globalSwitch = GetGlobalSwitch(userId);
@@ -53,15 +53,15 @@ bool OAIDBrokerClient::WriteAuthorization(const std::string packageName, const s
 {
     pid_t GetCallingUid = IPCSkeleton::GetCallingUid();
     OAID_HILOGI(OAID_MODULE_SERVICE, "WriteAuthorization GetCallingUid = %{public}d", GetCallingUid);
-    if(VALID_UID != GetCallingUid) {
+    if (VALID_UID != GetCallingUid) {
         OAID_HILOGE(OAID_MODULE_SERVICE, "invalid callingUid %{public}d", GetCallingUid);
         return false;
-    }        
-    OAID_HILOGI(OAID_MODULE_SERVICE, "WriteAuthorization packageName = %{public}s uid = %{public}s status = %{public}d"
-         , packageName.c_str(), uid.c_str(), status);
+    }
+    OAID_HILOGI(OAID_MODULE_SERVICE, "WriteAuthorization packageName = %{public}s uid = %{public}s status = %{public}d",
+        packageName.c_str(), uid.c_str(), status);
     // 调用接口写入授权结果
     int32_t userId = GetUserId();
-	OAID_HILOGI(OAID_MODULE_SERVICE, "WriteAuthorization GetUserId userId = %{public}d", userId);
+    OAID_HILOGI(OAID_MODULE_SERVICE, "WriteAuthorization GetUserId userId = %{public}d", userId);
     return Cloud::OAIDServiceClient::GetInstance()->SetAncoSwitchStatus(userId, packageName, uid, status);
 }
 
@@ -69,12 +69,12 @@ std::string OAIDBrokerClient::GetAncoOaid(const std::string packageName, const s
 {
     pid_t GetCallingUid = IPCSkeleton::GetCallingUid();
     OAID_HILOGI(OAID_MODULE_SERVICE, "GetAncoOaid GetCallingUid = %{public}d", GetCallingUid);
-    if(VALID_UID != GetCallingUid) {
+    if (VALID_UID != GetCallingUid) {
         OAID_HILOGE(OAID_MODULE_SERVICE, "invalid callingUid %{public}d", GetCallingUid);
         return "";
     }        
-    OAID_HILOGI(OAID_MODULE_SERVICE, "GetAncoOaid packageName = %{public}s uid = %{public}s flag = %{public}d"
-        , packageName.c_str(), uid.c_str(), flag);
+    OAID_HILOGI(OAID_MODULE_SERVICE, "GetAncoOaid packageName = %{public}s uid = %{public}s flag = %{public}d",
+        packageName.c_str(), uid.c_str(), flag);
     int32_t userId = GetUserId();
     OAID_HILOGI(OAID_MODULE_SERVICE, "GetAncoOaid GetUserId userId = %{public}d", userId);
     bool globalSwitch = GetGlobalSwitch(userId);
@@ -99,8 +99,7 @@ std::string OAIDBrokerClient::GetAncoOaid(const std::string packageName, const s
     OAID_HILOGI(OAID_MODULE_SERVICE, "GetAncoOaid enter end oaid = %{public}s", val.c_str());
     bool temp = val != OAID_ALLZERO_STR && !flag;
     OAID_HILOGI(OAID_MODULE_SERVICE, "GetAncoOaid enter end temp = %{public}d flag = %{public}d", temp, flag);
-    if(val != OAID_ALLZERO_STR && !flag)
-    {
+    if (val != OAID_ALLZERO_STR && !flag) {
         OAID_HILOGI(OAID_MODULE_SERVICE, "GetAncoOaid enter insert Record");
         Cloud::OAIDServiceClient::GetInstance()->InsertAccessRecord(userId, packageName, uid);
     }
@@ -112,7 +111,7 @@ bool OAIDBrokerClient::GetGlobalSwitch(const int32_t userId)
     uint32_t status;
     std::int32_t ret = Security::AccessToken::AccessTokenKit::GetPermissionRequestToggleStatus(
         "ohos.permission.APP_TRACKING_CONSENT", status, userId);
- 	OAID_HILOGI(OAID_MODULE_SERVICE, "GetGlobalSwitch ret=%{public}d  status=%{public}d", ret ,status);
+    OAID_HILOGI(OAID_MODULE_SERVICE, "GetGlobalSwitch ret=%{public}d status=%{public}d", ret, status);
     return status;
 }
 

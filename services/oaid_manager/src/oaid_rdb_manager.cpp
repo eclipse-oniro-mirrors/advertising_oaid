@@ -109,14 +109,14 @@ int32_t OaidRdbManager::Init()
     OaidRdbOpenCallback callback;
     rdbStore_ = NativeRdb::RdbHelper::GetRdbStore(config, DATABASE_VERSION, callback, errCode);
     if (errCode != NativeRdb::E_OK || rdbStore_ == nullptr) {
-        OAID_HILOGE(OAID_MODULE_SERVICE, "RDB may be corrupted, trying to delete and recreate, errCode=%{public}d"
-            , errCode);
+        OAID_HILOGE(OAID_MODULE_SERVICE, "RDB may be corrupted, trying to delete and recreate, errCode=%{public}d",
+            errCode);
         NativeRdb::RdbHelper::DeleteRdbStore(DB_PATH);
         rdbStore_ = nullptr;
         rdbStore_ = NativeRdb::RdbHelper::GetRdbStore(config, DATABASE_VERSION, callback, errCode);
         if (errCode != NativeRdb::E_OK || rdbStore_ == nullptr) {
-            OAID_HILOGE(OAID_MODULE_SERVICE, "Failed to recreate RdbStore after corruption recovery, errCode=%{public}d"
-                 , errCode);
+            OAID_HILOGE(OAID_MODULE_SERVICE, "Failed to recreate RdbStore after corruption recovery, "
+                "errCode=%{public}d", errCode);
             return ERR_DB_CONNECT_FAILED;
         }
     }
@@ -130,7 +130,7 @@ int32_t OaidRdbManager::InsertOrReplaceSwitchStatus(int32_t userId,
     std::unique_lock<std::shared_mutex> lock(mutex_);
     OAID_HILOGI(OAID_MODULE_SERVICE,
         "OaidRdbManager InsertOrReplaceSwitchStatus called userId%{public}d， bundleName%{public}s，"
-        " uid  %{public}s，status = %{public}d", userId, bundleName.c_str(), uid.c_str(),status);
+        " uid  %{public}s，status = %{public}d", userId, bundleName.c_str(), uid.c_str(), status);
     if (rdbStore_ == nullptr) {
         OAID_HILOGE(OAID_MODULE_SERVICE, "RDB not initialized");
         return ERR_DB_CONNECT_FAILED;
@@ -420,34 +420,28 @@ std::pair<std::string, std::vector<NativeRdb::ValueObject>> OaidRdbManager::Buil
         args.push_back(NativeRdb::ValueObject(bundleNames[i]));
     }
     sql += ")";
-
     return std::make_pair(sql, args);
-  }
+}
 
 int32_t OaidRdbManager::CleanExpiredAccessRecords(int32_t userId)
 {
     std::unique_lock<std::shared_mutex> lock(mutex_);
-
     if (rdbStore_ == nullptr) {
         OAID_HILOGE(OAID_MODULE_SERVICE, "RDB not initialized");
         return ERR_DB_CONNECT_FAILED;
     }
-
     int64_t currentTime = std::chrono::duration_cast<std::chrono::milliseconds>(
         std::chrono::system_clock::now().time_since_epoch()).count();
     int64_t tenDaysAgo = currentTime - TEN_DAYS_MS;
-
     NativeRdb::RdbPredicates predicates(ACCESS_RECORD_TABLE);
     predicates.EqualTo("user_id", NativeRdb::ValueObject(userId));
     predicates.LessThan("time", NativeRdb::ValueObject(tenDaysAgo));
-
     int deletedRows = 0;
     int32_t ret = rdbStore_->Delete(deletedRows, predicates);
     if (ret != NativeRdb::E_OK) {
         OAID_HILOGE(OAID_MODULE_SERVICE, "Failed to clean expired access records, ret=%{public}d", ret);
         return ERR_DB_CONNECT_FAILED;
     }
-
     OAID_HILOGI(OAID_MODULE_SERVICE, "CleanExpiredAccessRecords success, deletedRows=%{public}d", deletedRows);
     return ERR_OK;
 }
