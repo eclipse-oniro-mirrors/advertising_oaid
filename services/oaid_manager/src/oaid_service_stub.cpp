@@ -427,16 +427,12 @@ int32_t OAIDServiceStub::OnGetAncoSwitchStatus(MessageParcel &data, MessageParce
     int32_t userId = data.ReadInt32();
     std::string bundleName = data.ReadString();
     std::string uid = data.ReadString();
-
     OAID_HILOGI(OAID_MODULE_SERVICE, "OnGetAncoSwitchStatus called");
-
     auto result = GetAncoSwitchStatus(userId, bundleName, uid);
-
     if (!reply.WriteInt32(static_cast<int32_t>(result.size()))) {
         OAID_HILOGE(OAID_MODULE_SERVICE, "Failed to write vector size to reply");
         return ERR_WRITE_PARCEL_FAILED;
     }
-
     for (const auto& info : result) {
         if (!reply.WriteInt32(info.userId)) {
             OAID_HILOGE(OAID_MODULE_SERVICE, "Failed to write userId to reply");
@@ -455,7 +451,6 @@ int32_t OAIDServiceStub::OnGetAncoSwitchStatus(MessageParcel &data, MessageParce
             return ERR_WRITE_PARCEL_FAILED;
         }
     }
-
     OAID_HILOGI(OAID_MODULE_SERVICE, "OnGetAncoSwitchStatus End, size=%{public}zu", result.size());
     return ERR_OK;
 }

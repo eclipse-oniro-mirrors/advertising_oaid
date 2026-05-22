@@ -114,13 +114,15 @@ int32_t OaidRdbManager::Init()
     rdbStore_ = NativeRdb::RdbHelper::GetRdbStore(config, DATABASE_VERSION, callback, errCode);
 
     if (errCode != NativeRdb::E_OK || rdbStore_ == nullptr) {
-        OAID_HILOGE(OAID_MODULE_SERVICE, "RDB may be corrupted, trying to delete and recreate, errCode=%{public}d", errCode);
+        OAID_HILOGE(OAID_MODULE_SERVICE, "RDB may be corrupted, trying to delete and recreate, errCode=%{public}d"
+            , errCode);
         NativeRdb::RdbHelper::DeleteRdbStore(DB_PATH);
         rdbStore_ = nullptr;
 
         rdbStore_ = NativeRdb::RdbHelper::GetRdbStore(config, DATABASE_VERSION, callback, errCode);
         if (errCode != NativeRdb::E_OK || rdbStore_ == nullptr) {
-            OAID_HILOGE(OAID_MODULE_SERVICE, "Failed to recreate RdbStore after corruption recovery, errCode=%{public}d", errCode);
+            OAID_HILOGE(OAID_MODULE_SERVICE, "Failed to recreate RdbStore after corruption recovery, errCode=%{public}d"
+                , errCode);
             return ERR_DB_CONNECT_FAILED;
         }
     }
@@ -134,8 +136,8 @@ int32_t OaidRdbManager::InsertOrReplaceSwitchStatus(int32_t userId,
 {
     std::unique_lock<std::shared_mutex> lock(mutex_);
     OAID_HILOGI(OAID_MODULE_SERVICE,
-     "OaidRdbManager InsertOrReplaceSwitchStatus called userId%{public}d， bundleName%{public}s， uid  %{public}s，status = %{public}d"
-    , userId, bundleName.c_str(), uid.c_str(),status);
+        "OaidRdbManager InsertOrReplaceSwitchStatus called userId%{public}d， bundleName%{public}s，"
+        " uid  %{public}s，status = %{public}d", userId, bundleName.c_str(), uid.c_str(),status);
     if (rdbStore_ == nullptr) {
         OAID_HILOGE(OAID_MODULE_SERVICE, "RDB not initialized");
         return ERR_DB_CONNECT_FAILED;
@@ -452,7 +454,7 @@ int32_t OaidRdbManager::CleanUninstalledAppRecords(int32_t userId)
     }
 
     OAID_HILOGI(OAID_MODULE_SERVICE, "CleanUninstalledAppRecords success, cleaned=%{public}zu",
-                 uninstalledBundles.size());
+        uninstalledBundles.size());
     return ERR_OK;
 }
 

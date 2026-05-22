@@ -28,22 +28,25 @@ std::vector<bool> OAIDBrokerClient::RequestAuthorization(const std::string packa
 {
     pid_t GetCallingUid = IPCSkeleton::GetCallingUid();
     OAID_HILOGI(OAID_MODULE_SERVICE, "RequestAuthorization GetCallingUid = %{public}d", GetCallingUid);    
-    if(VALID_UID != GetCallingUid){
+    if(VALID_UID != GetCallingUid)
+    {
         OAID_HILOGE(OAID_MODULE_SERVICE, "invalid callingUid %{public}d", GetCallingUid);
         return {};
     }
-	OAID_HILOGI(OAID_MODULE_SERVICE, "RequestAuthorization packageName = %{public}s uid = %{public}s",packageName.c_str(),uid.c_str());
+	OAID_HILOGI(OAID_MODULE_SERVICE, "RequestAuthorization packageName = %{public}s uid = %{public}s"
+	    , packageName.c_str(), uid.c_str());
     int32_t userId = GetUserId();
-	OAID_HILOGI(OAID_MODULE_SERVICE, "RequestAuthorization GetUserId userId = %{public}d",userId);
+	OAID_HILOGI(OAID_MODULE_SERVICE, "RequestAuthorization GetUserId userId = %{public}d", userId);
     bool globalSwitch = GetGlobalSwitch(userId);
-	OAID_HILOGI(OAID_MODULE_SERVICE, "RequestAuthorization globalSwitch = %{public}d",globalSwitch);
-    std::vector<AncoSwitchStatusInfo> appSwitch = Cloud::OAIDServiceClient::GetInstance()->GetAncoSwitchStatus(userId, packageName, uid);
+	OAID_HILOGI(OAID_MODULE_SERVICE, "RequestAuthorization globalSwitch = %{public}d", globalSwitch);
+    std::vector<AncoSwitchStatusInfo> appSwitch =
+        Cloud::OAIDServiceClient::GetInstance()->GetAncoSwitchStatus(userId, packageName, uid);
     if (!appSwitch.empty()) {
-	int32_t statVal = appSwitch[0].status;
-	OAID_HILOGI(OAID_MODULE_SERVICE, "RequestAuthorization appSwitch appSwitch[0].status = %{public}d", statVal);
+    int32_t statVal = appSwitch[0].status;
+    OAID_HILOGI(OAID_MODULE_SERVICE, "RequestAuthorization appSwitch appSwitch[0].status = %{public}d", statVal);
         return {globalSwitch, statVal, false};
     }
-	OAID_HILOGI(OAID_MODULE_SERVICE, "RequestAuthorization appSwitch empty");
+    OAID_HILOGI(OAID_MODULE_SERVICE, "RequestAuthorization appSwitch empty");
     return {globalSwitch, false, true};
 }
 
@@ -55,10 +58,11 @@ bool OAIDBrokerClient::WriteAuthorization(const std::string packageName, const s
         OAID_HILOGE(OAID_MODULE_SERVICE, "invalid callingUid %{public}d", GetCallingUid);
         return false;
     }        
-    OAID_HILOGI(OAID_MODULE_SERVICE, "WriteAuthorization packageName = %{public}s uid = %{public}s status = %{public}d",packageName.c_str(),uid.c_str(),status);
+    OAID_HILOGI(OAID_MODULE_SERVICE, "WriteAuthorization packageName = %{public}s uid = %{public}s status = %{public}d"
+        , packageName.c_str(), uid.c_str(), status);
     // 调用接口写入授权结果
     int32_t userId = GetUserId();
-	OAID_HILOGI(OAID_MODULE_SERVICE, "WriteAuthorization GetUserId userId = %{public}d",userId);
+	OAID_HILOGI(OAID_MODULE_SERVICE, "WriteAuthorization GetUserId userId = %{public}d", userId);
     return Cloud::OAIDServiceClient::GetInstance()->SetAncoSwitchStatus(userId, packageName, uid, status);
 }
 
@@ -70,13 +74,15 @@ std::string OAIDBrokerClient::GetAncoOaid(const std::string packageName, const s
         OAID_HILOGE(OAID_MODULE_SERVICE, "invalid callingUid %{public}d", GetCallingUid);
         return "";
     }        
-    OAID_HILOGI(OAID_MODULE_SERVICE, "GetAncoOaid packageName = %{public}s uid = %{public}s flag = %{public}d",packageName.c_str(),uid.c_str(),flag);
+    OAID_HILOGI(OAID_MODULE_SERVICE, "GetAncoOaid packageName = %{public}s uid = %{public}s flag = %{public}d"
+        , packageName.c_str(), uid.c_str(), flag);
     int32_t userId = GetUserId();
-	OAID_HILOGI(OAID_MODULE_SERVICE, "GetAncoOaid GetUserId userId = %{public}d",userId);
+	OAID_HILOGI(OAID_MODULE_SERVICE, "GetAncoOaid GetUserId userId = %{public}d", userId);
     bool globalSwitch = GetGlobalSwitch(userId);
-	OAID_HILOGI(OAID_MODULE_SERVICE, "GetAncoOaid globalSwitch = %{public}d",globalSwitch);
+	OAID_HILOGI(OAID_MODULE_SERVICE, "GetAncoOaid globalSwitch = %{public}d", globalSwitch);
     if (!flag) {
-        std::vector<AncoSwitchStatusInfo> appSwitch = Cloud::OAIDServiceClient::GetInstance()->GetAncoSwitchStatus(userId, packageName, uid);
+        std::vector<AncoSwitchStatusInfo> appSwitch =
+            Cloud::OAIDServiceClient::GetInstance()->GetAncoSwitchStatus(userId, packageName, uid);
         if (globalSwitch){
             if (appSwitch.empty() || appSwitch[0].status) {
                 OAID_HILOGI(OAID_MODULE_SERVICE, "GetAncoOaid enter globalSwitch = true return 0");
@@ -105,7 +111,8 @@ std::string OAIDBrokerClient::GetAncoOaid(const std::string packageName, const s
 bool OAIDBrokerClient::GetGlobalSwitch(const int32_t userId)
 {
     uint32_t status;
-    std::int32_t ret = Security::AccessToken::AccessTokenKit::GetPermissionRequestToggleStatus("ohos.permission.APP_TRACKING_CONSENT", status, userId);
+    std::int32_t ret = Security::AccessToken::AccessTokenKit::GetPermissionRequestToggleStatus(
+        "ohos.permission.APP_TRACKING_CONSENT", status, userId);
  	OAID_HILOGI(OAID_MODULE_SERVICE, "GetGlobalSwitch ret=%{public}d  status=%{public}d", ret ,status);
     return status;
 }

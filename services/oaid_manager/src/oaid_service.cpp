@@ -369,7 +369,8 @@ std::vector<AncoAccessRecordInfo> OAIDService::GetAncoAccessRecords(int32_t user
     return OaidRdbManager::GetInstance().QueryAccessRecords(userId, bundleName, uid);
 }
 
-std::string OAIDService::GetAncoOAID(){
+std::string OAIDService::GetAncoOAID()
+{
     return "";
 }
 
