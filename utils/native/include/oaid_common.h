@@ -41,8 +41,8 @@ enum OAIDError : int32_t {
 };
 
 enum AncoSwitchStatus: int32_t {
-  SWITCH_ON = 0,
-  SWITCH_OFF = 1,
+    SWITCH_ON = 0,
+    SWITCH_OFF = 1,
 };
 
 static std::map<int32_t, std::string> oaidErrCodeMsgMap = {

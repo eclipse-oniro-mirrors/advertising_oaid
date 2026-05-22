@@ -319,9 +319,8 @@ int32_t OAIDService::ResetOAID()
 bool OAIDService::SetAncoSwitchStatus(int32_t userId, const std::string& bundleName,
     const std::string& uid, int32_t status)
 {
-    OAID_HILOGI(OAID_MODULE_SERVICE,
-     "Service SetAncoSwitchStatus called userId%{public}d， bundleName%{public}s， uid  %{public}s，status = %{public}d"
-    , userId, bundleName.c_str(), uid.c_str(),status);
+    OAID_HILOGI(OAID_MODULE_SERVICE, "Service SetAncoSwitchStatus called userId%{public}d， bundleName%{public}s，"
+        " uid  %{public}s，status = %{public}d", userId, bundleName.c_str(), uid.c_str(), status);
 
     int32_t ret = OaidRdbManager::GetInstance().Init();
     if (ret != ERR_OK) {

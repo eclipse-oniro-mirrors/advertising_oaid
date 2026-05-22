@@ -464,16 +464,12 @@ int32_t OAIDServiceStub::OnGetAncoAccessRecords(MessageParcel &data, MessageParc
     int32_t userId = data.ReadInt32();
     std::string bundleName = data.ReadString();
     std::string uid = data.ReadString();
-
     OAID_HILOGI(OAID_MODULE_SERVICE, "OnGetAncoAccessRecords called");
-
     auto result = GetAncoAccessRecords(userId, bundleName, uid);
-
     if (!reply.WriteInt32(static_cast<int32_t>(result.size()))) {
         OAID_HILOGE(OAID_MODULE_SERVICE, "Failed to write vector size to reply");
         return ERR_WRITE_PARCEL_FAILED;
     }
-
     for (const auto& info : result) {
         if (!reply.WriteInt32(info.userId)) {
             OAID_HILOGE(OAID_MODULE_SERVICE, "Failed to write userId to reply");
@@ -506,11 +502,8 @@ int32_t OAIDServiceStub::OnInsertAccessRecord(MessageParcel &data, MessageParcel
     int32_t userId = data.ReadInt32();
     std::string bundleName = data.ReadString();
     std::string uid = data.ReadString();
-
     OAID_HILOGI(OAID_MODULE_SERVICE, "OnSetAncoSwitchStatus called");
-
     int32_t result = InsertAccessRecord(userId, bundleName, uid);
-
     if (!reply.WriteBool(result)) {
         OAID_HILOGE(OAID_MODULE_SERVICE, "Failed to write result to reply");
         return ERR_WRITE_PARCEL_FAILED;

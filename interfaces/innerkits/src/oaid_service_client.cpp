@@ -245,7 +245,7 @@ std::vector<AncoSwitchStatusInfo> OAIDServiceClient::GetAncoSwitchStatus(int32_t
     const std::string& bundleName, const std::string& uid)
 {
     OAID_HILOGI(OAID_MODULE_SERVICE, "OAIDServiceClient QuerySwitchStatus userId =%{public}d packageName"
-    "= %{public}s uid = %{public}s", userId,bundleName.c_str(), uid.c_str());
+        "= %{public}s uid = %{public}s", userId,bundleName.c_str(), uid.c_str());
     if (!LoadService())
     {
         OAID_HILOGW(OAID_MODULE_CLIENT, "Redo load oaid service.");
@@ -253,8 +253,7 @@ std::vector<AncoSwitchStatusInfo> OAIDServiceClient::GetAncoSwitchStatus(int32_t
     }
 
     std::lock_guard<std::mutex> lock(getOaidProxyMutex_);
-    if (oaidServiceProxy_ == nullptr)
-    {
+    if (oaidServiceProxy_ == nullptr) {
         OAID_HILOGE(OAID_MODULE_CLIENT, "Quit because redoing load oaid service failed.");
         return {};
     }
