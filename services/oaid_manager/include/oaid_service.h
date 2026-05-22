@@ -18,6 +18,7 @@
 
 #include <mutex>
 #include <string>
+#include <vector>
 
 #include "iremote_proxy.h"
 #include "distributed_kv_data_manager.h"
@@ -51,6 +52,43 @@ public:
      * Reset open advertising id.
      */
     int32_t ResetOAID() override;
+
+        /**
+     * Set anco switch status for lake app.
+     *
+     * @param userId User space ID.
+     * @param bundleName App bundle name.
+     * @param uid App uid.
+     * @param status Switch status: 0 allow, 1 deny.
+     * @return bool, true for success, false for failure.
+     */
+    bool SetAncoSwitchStatus(int32_t userId, const std::string& bundleName,
+        const std::string& uid, int32_t status) override;
+
+    /**
+     * Get anco switch status for lake app.
+     *
+     * @param userId User space ID.
+     * @param bundleName App bundle name (optional, must be paired with uid).
+     * @param uid App uid (optional, must be paired with bundleName).
+     * @return Vector of AncoSwitchStatusInfo.
+     */
+    std::vector<AncoSwitchStatusInfo> GetAncoSwitchStatus(int32_t userId,
+        const std::string& bundleName, const std::string& uid) override;
+
+    /**
+     * Get anco access records.
+     *
+     * @param userId User space ID.
+     * @param bundleName App bundle name (optional, must be paired with uid).
+     * @param uid App uid (optional, must be paired with bundleName).
+     * @return Vector of AncoAccessRecordInfo.
+     */
+    std::vector<AncoAccessRecordInfo> GetAncoAccessRecords(int32_t userId,
+        const std::string& bundleName, const std::string& uid) override;
+    std::string GetAncoOAID() override;
+    int32_t InsertAccessRecord(const int32_t userId, const std::string bundleName, const std::string uid) override;
+
     bool ReadValueFromUnderAgeKvStore(const std::string &kvStoreKey, DistributedKv::Value &kvStoreValue);
     bool WriteValueToUnderAgeKvStore(const std::string &kvStoreKey, const DistributedKv::Value &kvStoreValue);
 protected:

@@ -39,6 +39,7 @@ ohos_shared_library("oaid_service") {
 
   sources = [
     "oaid_manager/src/bundle_mgr_helper.cpp",
+    "oaid_manager/src/oaid_rdb_manager.cpp",
     "oaid_manager/src/oaid_death_recipient.cpp",
     "oaid_manager/src/oaid_observer_manager.cpp",
     "oaid_manager/src/oaid_remote_config_observer_proxy.cpp",
@@ -66,6 +67,8 @@ ohos_shared_library("oaid_service") {
     "openssl:libcrypto_shared",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
+    "relational_store:native_appdatafwk",
+    "relational_store:native_rdb",
   ]
   part_name = "oaid"
   subsystem_name = "advertising"

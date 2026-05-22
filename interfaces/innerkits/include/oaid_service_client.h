@@ -18,6 +18,7 @@
 
 #include <mutex>
 #include <string>
+#include <vector>
 
 #include "oaid_service_interface.h"
 #include "iremote_object.h"
@@ -27,6 +28,7 @@
 #include "accesstoken_kit.h"
 #include "config_policy_utils.h"
 #include "tokenid_kit.h"
+#include "oaid_anco_service.h"
 
 namespace OHOS {
 namespace Cloud {
@@ -62,12 +64,49 @@ public:
      */
     int32_t RegisterObserver(const sptr<IRemoteConfigObserver>& observer);
 
+    /**
+     * Set anco switch status.
+     *
+     * @param userId User space ID.
+     * @param bundleName App bundle name.
+     * @param uid App uid.
+     * @param status Switch status: 0 allow, 1 deny.
+     * @return bool, true for success, false for failure.
+     */
+    bool SetAncoSwitchStatus(int32_t userId, const std::string& bundleName,
+        const std::string& uid, int32_t status);
+
+    /**
+     * Get anco switch status.
+     *
+     * @param userId User space ID.
+     * @param bundleName App bundle name (optional).
+     * @param uid App uid (optional).
+     * @return Vector of AncoSwitchStatusInfo.
+     */
+    std::vector<AncoSwitchStatusInfo> GetAncoSwitchStatus(int32_t userId,
+        const std::string& bundleName, const std::string& uid);
+
+    /**
+     * Get anco access records.
+     *
+     * @param userId User space ID.
+     * @param bundleName App bundle name (optional).
+     * @param uid App uid (optional).
+     * @return Vector of AncoAccessRecordInfo.
+     */
+    std::vector<AncoAccessRecordInfo> GetAncoAccessRecords(int32_t userId,
+        const std::string& bundleName, const std::string& uid);
+
     void OnRemoteSaDied(const wptr<IRemoteObject>& object);
 
     void LoadServerFail();
 
     void LoadServerSuccess(const sptr<IRemoteObject>& remoteObject);
 
+    std::string GetAncoOAID();
+
+    int32_t InsertAccessRecord(const int32_t userId, const std::string bundleName, const std::string uid);
 private:
     OAIDServiceClient();
     virtual ~OAIDServiceClient() override;

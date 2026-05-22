@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,22 +13,26 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_CLOUD_OAID_SERVICES_IPC_CODE_H
-#define OHOS_CLOUD_OAID_SERVICES_IPC_CODE_H
 
-/* SAID:6101 */
+#ifndef OHOS_CLOUD_ATM_UTILS_H
+#define OHOS_CLOUD_ATM_UTILS_H
+
+#include <optional>
+#include <cstdint>
+
+#include "accesstoken_kit.h"
+
 namespace OHOS {
 namespace Cloud {
-    enum class OAIDInterfaceCode {
-    GET_OAID = 0,
-    RESET_OAID = 1,
-    REGISTER_CONTROL_CONFIG_OBSERVER = 2,
-    SET_ANCO_SWITCH_STATUS = 3,
-    GET_ANCO_SWITCH_STATUS = 4,
-    GET_ANCO_ACCESS_RECORDS = 5,
-    GET_ANCO_OAID = 6,
-    SET_ANCO_ACCESS_RECORDS = 7,
+class AtmUtils {
+public:
+    AtmUtils() = delete;
+
+    static bool IsCallerSystemHap();
+
+    static std::optional<Security::AccessToken::HapTokenInfo> GetHapTokenInfo(
+        Security::AccessToken::AccessTokenID tokenID);
 };
-} // namespace Cloud
-} // namespace OHOS
-#endif // OHOS_CLOUD_OAID_SERVICES_IPC_CODE_H
+}  // namespace Cloud
+}  // namespace OHOS
+#endif  // OHOS_CLOUD_OAID_COMMON_H

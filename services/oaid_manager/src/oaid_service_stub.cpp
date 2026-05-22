@@ -30,12 +30,16 @@
 #include "oaid_remote_config_observer_proxy.h"
 #include "oaid_observer_manager.h"
 #include "connect_ads_stub.h"
+#include "atm_utils.h"
 
 using namespace OHOS::Security::AccessToken;
 
 namespace OHOS {
 namespace Cloud {
 using namespace OHOS::HiviewDFX;
+namespace {
+const std::string SECURITY_PRIVACY_CENTER_BUNDLENAME = "com.huawei.hmos.security.privacycenter";
+}
 OAIDServiceStub::OAIDServiceStub()
 {}
 
@@ -88,6 +92,25 @@ bool OAIDServiceStub::CheckSystemApp()
     }
     OAID_HILOGW(OAID_MODULE_SERVICE, "the caller App is not system app");
     return false;
+}
+
+bool OAIDServiceStub::CheckSecurityPrivacyHap()
+{
+    if (!AtmUtils::IsCallerSystemHap()) {
+        OAID_HILOGE(OAID_MODULE_SERVICE, "u are not system app");
+        return false;
+    }
+    auto tokenId = IPCSkeleton::GetCallingTokenID();
+    auto hapTokenInfoOpt = AtmUtils::GetHapTokenInfo(tokenId);
+    if (!hapTokenInfoOpt.has_value()) {
+        OAID_HILOGE(OAID_MODULE_SERVICE, "verity security privacy center hap error: cannot get hap token info");
+        return false;
+    }
+    if (hapTokenInfoOpt.value().bundleName != SECURITY_PRIVACY_CENTER_BUNDLENAME) {
+        OAID_HILOGE(OAID_MODULE_SERVICE, "disallow the hap who is not security privacy center hap");
+        return false;
+    }
+    return true;
 }
 
 bool LoadAndCheckOaidTrustList(const std::string &bundleName)
@@ -153,6 +176,26 @@ int32_t OAIDServiceStub::SendCode(uint32_t code, MessageParcel &data, MessagePar
         }
         case static_cast<uint32_t>(OAIDInterfaceCode::REGISTER_CONTROL_CONFIG_OBSERVER): {
             return OAIDServiceStub::HandleRegisterControlConfigObserver(data, reply);
+            break;
+        }
+        case static_cast<uint32_t>(OAIDInterfaceCode::SET_ANCO_SWITCH_STATUS): {
+            return OAIDServiceStub::OnSetAncoSwitchStatus(data, reply);
+            break;
+        }
+        case static_cast<uint32_t>(OAIDInterfaceCode::GET_ANCO_SWITCH_STATUS): {
+            return OAIDServiceStub::OnGetAncoSwitchStatus(data, reply);
+            break;
+        }
+        case static_cast<uint32_t>(OAIDInterfaceCode::GET_ANCO_ACCESS_RECORDS): {
+            return OAIDServiceStub::OnGetAncoAccessRecords(data, reply);
+            break;
+        }
+        case static_cast<uint32_t>(OAIDInterfaceCode::GET_ANCO_OAID): {
+            return OAIDServiceStub::OnGetOAID(data, reply);
+            break;
+        }
+        case static_cast<uint32_t>(OAIDInterfaceCode::SET_ANCO_ACCESS_RECORDS): {
+            return OAIDServiceStub::OnInsertAccessRecord(data, reply);
             break;
         }
     }
@@ -351,6 +394,133 @@ int32_t OAIDServiceStub::RegisterObserver(const sptr<IRemoteConfigObserver> &obs
 {
     OAID_HILOGD(OAID_MODULE_SERVICE, "registerObserver success.");
     return DelayedSingleton<OaidObserverManager>::GetInstance()->RegisterObserver(observer);
+}
+
+int32_t OAIDServiceStub::OnSetAncoSwitchStatus(MessageParcel &data, MessageParcel &reply)
+{
+    if (!CheckSecurityPrivacyHap()) {
+        OAID_HILOGE(OAID_MODULE_SERVICE, "check security privacy center hap failed");
+        return ERR_PERMISSION_ERROR;
+    }
+    int32_t userId = data.ReadInt32();
+    std::string bundleName = data.ReadString();
+    std::string uid = data.ReadString();
+    int32_t status = data.ReadInt32();
+
+    OAID_HILOGI(OAID_MODULE_SERVICE, "OnSetAncoSwitchStatus called");
+
+    bool result = SetAncoSwitchStatus(userId, bundleName, uid, status);
+
+    if (!reply.WriteBool(result)) {
+        OAID_HILOGE(OAID_MODULE_SERVICE, "Failed to write result to reply");
+        return ERR_WRITE_PARCEL_FAILED;
+    }
+    return ERR_OK;
+}
+
+int32_t OAIDServiceStub::OnGetAncoSwitchStatus(MessageParcel &data, MessageParcel &reply)
+{
+    if (!CheckSecurityPrivacyHap()) {
+        OAID_HILOGE(OAID_MODULE_SERVICE, "check security privacy center hap failed");
+        return ERR_PERMISSION_ERROR;
+    }
+    int32_t userId = data.ReadInt32();
+    std::string bundleName = data.ReadString();
+    std::string uid = data.ReadString();
+
+    OAID_HILOGI(OAID_MODULE_SERVICE, "OnGetAncoSwitchStatus called");
+
+    auto result = GetAncoSwitchStatus(userId, bundleName, uid);
+
+    if (!reply.WriteInt32(static_cast<int32_t>(result.size()))) {
+        OAID_HILOGE(OAID_MODULE_SERVICE, "Failed to write vector size to reply");
+        return ERR_WRITE_PARCEL_FAILED;
+    }
+
+    for (const auto& info : result) {
+        if (!reply.WriteInt32(info.userId)) {
+            OAID_HILOGE(OAID_MODULE_SERVICE, "Failed to write userId to reply");
+            return ERR_WRITE_PARCEL_FAILED;
+        }
+        if (!reply.WriteString(info.bundleName)) {
+            OAID_HILOGE(OAID_MODULE_SERVICE, "Failed to write bundleName to reply");
+            return ERR_WRITE_PARCEL_FAILED;
+        }
+        if (!reply.WriteString(info.uid)) {
+            OAID_HILOGE(OAID_MODULE_SERVICE, "Failed to write uid to reply");
+            return ERR_WRITE_PARCEL_FAILED;
+        }
+        if (!reply.WriteInt32(info.status)) {
+            OAID_HILOGE(OAID_MODULE_SERVICE, "Failed to write status to reply");
+            return ERR_WRITE_PARCEL_FAILED;
+        }
+    }
+
+    OAID_HILOGI(OAID_MODULE_SERVICE, "OnGetAncoSwitchStatus End, size=%{public}zu", result.size());
+    return ERR_OK;
+}
+
+int32_t OAIDServiceStub::OnGetAncoAccessRecords(MessageParcel &data, MessageParcel &reply)
+{
+    if (!CheckSecurityPrivacyHap()) {
+        OAID_HILOGE(OAID_MODULE_SERVICE, "check security privacy center hap failed");
+        return ERR_PERMISSION_ERROR;
+    }
+    int32_t userId = data.ReadInt32();
+    std::string bundleName = data.ReadString();
+    std::string uid = data.ReadString();
+
+    OAID_HILOGI(OAID_MODULE_SERVICE, "OnGetAncoAccessRecords called");
+
+    auto result = GetAncoAccessRecords(userId, bundleName, uid);
+
+    if (!reply.WriteInt32(static_cast<int32_t>(result.size()))) {
+        OAID_HILOGE(OAID_MODULE_SERVICE, "Failed to write vector size to reply");
+        return ERR_WRITE_PARCEL_FAILED;
+    }
+
+    for (const auto& info : result) {
+        if (!reply.WriteInt32(info.userId)) {
+            OAID_HILOGE(OAID_MODULE_SERVICE, "Failed to write userId to reply");
+            return ERR_WRITE_PARCEL_FAILED;
+        }
+        if (!reply.WriteString(info.bundleName)) {
+            OAID_HILOGE(OAID_MODULE_SERVICE, "Failed to write bundleName to reply");
+            return ERR_WRITE_PARCEL_FAILED;
+        }
+        if (!reply.WriteString(info.uid)) {
+            OAID_HILOGE(OAID_MODULE_SERVICE, "Failed to write uid to reply");
+            return ERR_WRITE_PARCEL_FAILED;
+        }
+        if (!reply.WriteString(info.time)) {
+            OAID_HILOGE(OAID_MODULE_SERVICE, "Failed to write time to reply");
+            return ERR_WRITE_PARCEL_FAILED;
+        }
+        if (!reply.WriteInt32(info.count)) {
+            OAID_HILOGE(OAID_MODULE_SERVICE, "Failed to write count to reply");
+            return ERR_WRITE_PARCEL_FAILED;
+        }
+    }
+
+    OAID_HILOGI(OAID_MODULE_SERVICE, "OnGetAncoAccessRecords End, size=%{public}zu", result.size());
+    return ERR_OK;
+}
+
+int32_t OAIDServiceStub::OnInsertAccessRecord(MessageParcel &data, MessageParcel &reply)
+{
+    int32_t userId = data.ReadInt32();
+    std::string bundleName = data.ReadString();
+    std::string uid = data.ReadString();
+
+    OAID_HILOGI(OAID_MODULE_SERVICE, "OnSetAncoSwitchStatus called");
+
+    int32_t result = InsertAccessRecord(userId, bundleName, uid);
+
+    if (!reply.WriteBool(result)) {
+        OAID_HILOGE(OAID_MODULE_SERVICE, "Failed to write result to reply");
+        return ERR_WRITE_PARCEL_FAILED;
+    }
+    return ERR_OK;
 }
 }  // namespace Cloud
 }  // namespace OHOS

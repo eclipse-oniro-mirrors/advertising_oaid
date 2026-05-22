@@ -22,7 +22,7 @@ ohos_source_set("oaid_utils") {
 
   configs = [ ":utils_config" ]
 
-  sources = [ "native/src/oaid_file_operator.cpp" ]
+  sources = [ "native/src/oaid_file_operator.cpp","native/src/atm_utils.cpp" ]
 
   deps = []
 
@@ -35,6 +35,8 @@ ohos_source_set("oaid_utils") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "access_token:libaccesstoken_sdk",
+    "access_token:libtokenid_sdk",
   ]
 
   part_name = "oaid"

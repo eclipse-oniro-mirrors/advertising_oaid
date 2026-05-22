@@ -128,6 +128,28 @@ void BundleMgrHelper::GetBundleNameByUid(const int uid, std::string &name)
     return;
 }
 
+bool BundleMgrHelper::GetBundleInfo(const std::string &bundleName, AppExecFwk::BundleInfo &bundleInfo,
+    int32_t userId)
+{
+    OAID_HILOGI(OAID_MODULE_SERVICE, "GetBundleInfo");
+    std::lock_guard<std::mutex> lock(mutex_);
+
+    if (!GetBundleMgrProxy()) {
+        OAID_HILOGE(OAID_MODULE_SERVICE, "get BundleMgr Proxy fail");
+        return false;
+    }
+
+    int32_t bundleFlag =
+        static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_DEFAULT);
+    ErrCode ret = bundleMgrProxy_->GetBundleInfoV9(bundleName, bundleFlag, bundleInfo, userId);
+    if (ret != ERR_OK) {
+        OAID_HILOGE(OAID_MODULE_SERVICE, "Failed to GetBundleInfo");
+        return false;
+    }
+
+    return true;
+}
+
 void BundleMgrHelper::ClearBundleMgrHelper()
 {
     OAID_HILOGI(OAID_MODULE_SERVICE, "ClearBundleMgrHelper");

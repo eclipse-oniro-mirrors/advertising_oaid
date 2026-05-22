@@ -37,6 +37,12 @@ enum OAIDError : int32_t {
     ERR_SYSYTEM_ERROR = 17300001,
     ERR_NULL_POINTER = 17300002,
     ERR_WRITE_PARCEL_FAILED = 17300003,
+    ERR_DB_CONNECT_FAILED = 17300004,
+};
+
+enum AncoSwitchStatus: int32_t {
+  SWITCH_ON = 0,
+  SWITCH_OFF = 1,
 };
 
 static std::map<int32_t, std::string> oaidErrCodeMsgMap = {
