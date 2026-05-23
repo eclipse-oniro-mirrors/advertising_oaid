@@ -114,7 +114,8 @@ std::optional<T> IpcSerializationTransporter::Reader::ReadArithmetic()
     cursor_ += LEN_SIZE;
     if (len != sizeof(T)) {
         isBad_ = true;
-        OAID_HILOGE(OAID_MODULE_COMMON, "ipc_serialize: len(%{public}u) is not equal to sizeof T(%{public}lu)", len, sizeof(T));
+        OAID_HILOGE(OAID_MODULE_COMMON, "ipc_serialize: len(%{public}u) is not equal to sizeof T(%{public}lu)",
+            len, sizeof(T));
         return std::nullopt;
     }
     T result;
@@ -173,7 +174,7 @@ bool IpcSerializationTransporter::Flat(const T& rawData)
             return false;
         }
     } else if constexpr (std::is_enum_v<T>) {
-        if(!Flat(static_cast<int32_t>(rawData))) {
+        if (!Flat(static_cast<int32_t>(rawData))) {
             OAID_HILOGE(OAID_MODULE_COMMON, "ipc_serialize: flat rawData failed");
             return false;
         }
