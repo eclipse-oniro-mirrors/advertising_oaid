@@ -22,8 +22,8 @@ std::string IpcSerializationTransporter::GetflatData() const
 {
     return ss_.str();
 }
-IpcSerializationTransporter::Reader::Reader(const uint8_t* data, uint32_t size):
-    data_(data), size_(size), cursor_(const_cast<uint8_t*>(data))
+IpcSerializationTransporter::Reader::Reader(const uint8_t* data, uint32_t size)
+    : data_(data), size_(size), cursor_(const_cast<uint8_t*>(data))
 {}
 std::optional<std::string> IpcSerializationTransporter::Reader::ReadString()
 {
@@ -48,7 +48,7 @@ std::unique_ptr<IpcSerializationTransporter::Reader> IpcSerializationTransporter
     if (!data || size == 0) {
         return nullptr;
     }
-    return std::unique_ptr<Reader>(new Reader(data, size));
+    return std::make_unique<Reader>(data, size);
 }
 }  // namespace Cloud
 }  // namespace OHOS
