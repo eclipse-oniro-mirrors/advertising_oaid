@@ -114,8 +114,7 @@ std::optional<T> IpcSerializationTransporter::Reader::ReadArithmetic()
     cursor_ += LEN_SIZE;
     if (len != sizeof(T)) {
         isBad_ = true;
-        OAID_HILOGE(OAID_MODULE_COMMON, "ipc_serialize: len(%{public}u) is not equal to sizeof T(%{public}lu)",
-            len, sizeof(T));
+        OAID_HILOGE(OAID_MODULE_COMMON, "ipc_serialize: len is not equal to sizeof T");
         return std::nullopt;
     }
     T result;
