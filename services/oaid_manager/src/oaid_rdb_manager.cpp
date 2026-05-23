@@ -311,25 +311,25 @@ std::vector<AncoAccessRecordInfo> OaidRdbManager::ProcessAccessRecords(
 {
     std::vector<AncoAccessRecordInfo> result;
     std::map<MinuteGroupKey, std::vector<std::pair<int64_t, int32_t>>> minuteGroups;
-      for (const auto& record : records) {
-          MinuteGroupKey key = {
-              .userId = record.userId,
-              .bundleName = record.bundleName,
-              .uid = record.uid,
-              .minuteGroup = std::stoll(record.time) / ONE_MINUTE_MS
-          };
-          minuteGroups[key].push_back({std::stoll(record.time), 1});
-      }
-      for (auto& pair : minuteGroups) {
-          auto& timeList = pair.second;
-          std::sort(timeList.begin(), timeList.end(),
-                    [](const auto& a, const auto& b) { return a.first < b.first; });
-          std::vector<std::pair<int64_t, int32_t>> mergedList;
-          if (MergeTimeList(timeList, mergedList)) {
-              BuildAccessRecordInfo(pair.first, mergedList, result);
-          }
-      }
-      return result;
+    for (const auto& record : records) {
+        MinuteGroupKey key = {
+            .userId = record.userId,
+            .bundleName = record.bundleName,
+            .uid = record.uid,
+            .minuteGroup = std::stoll(record.time) / ONE_MINUTE_MS
+        };
+        minuteGroups[key].push_back({std::stoll(record.time), 1});
+    }
+    for (auto& pair : minuteGroups) {
+        auto& timeList = pair.second;
+        std::sort(timeList.begin(), timeList.end(),
+                [](const auto& a, const auto& b) { return a.first < b.first; });
+        std::vector<std::pair<int64_t, int32_t>> mergedList;
+        if (MergeTimeList(timeList, mergedList)) {
+            BuildAccessRecordInfo(pair.first, mergedList, result);
+        }
+    }
+    return result;
 }
 
 std::vector<AncoAccessRecordInfo> OaidRdbManager::QueryAccessRecords(int32_t userId,
