@@ -27,7 +27,7 @@ namespace {
 std::vector<bool> OAIDBrokerClient::RequestAuthorization(const std::string packageName, const std::string uid)
 {
     pid_t GetCallingUid = IPCSkeleton::GetCallingUid();
-    OAID_HILOGI(OAID_MODULE_SERVICE, "RequestAuthorization GetCallingUid = %{public}d", GetCallingUid);    
+    OAID_HILOGI(OAID_MODULE_SERVICE, "RequestAuthorization GetCallingUid = %{public}d", GetCallingUid);
     if (VALID_UID != GetCallingUid) {
         OAID_HILOGE(OAID_MODULE_SERVICE, "invalid callingUid %{public}d", GetCallingUid);
         return {};
@@ -72,7 +72,7 @@ std::string OAIDBrokerClient::GetAncoOaid(const std::string packageName, const s
     if (VALID_UID != GetCallingUid) {
         OAID_HILOGE(OAID_MODULE_SERVICE, "invalid callingUid %{public}d", GetCallingUid);
         return "";
-    }        
+    }
     OAID_HILOGI(OAID_MODULE_SERVICE, "GetAncoOaid packageName = %{public}s uid = %{public}s flag = %{public}d",
         packageName.c_str(), uid.c_str(), flag);
     int32_t userId = GetUserId();
