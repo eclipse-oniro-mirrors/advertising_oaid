@@ -33,11 +33,13 @@
         "kv_store",
         "ipc",
         "napi",
+        "os_account",
         "safwk",
         "samgr",
         "eventhandler",
         "libuv",
-        "openssl"
+        "openssl",
+        "relational_store"
       ],
       "third_party": [
 
@@ -53,6 +55,24 @@
             "header_base": "//domains/advertising/oaid/interfaces/innerkits/include/",
             "header_files": [
               "oaid_remote_config_observer_stub.h"
+            ]
+          },
+          "name": "//domains/advertising/oaid/interfaces/innerkits:oaid_client"
+        },
+        {
+          "header": {
+            "header_base": "//domains/advertising/oaid/interfaces/innerkits/include/",
+            "header_files": [
+              "oaid_anco_service.h"
+            ]
+          },
+          "name": "//domains/advertising/oaid/interfaces/innerkits:oaid_client"
+        },
+        {
+          "header": {
+            "header_base": "//domains/advertising/oaid/interfaces/innerkits/include/",
+            "header_files": [
+              "oaid_broker_client.h"
             ]
           },
           "name": "//domains/advertising/oaid/interfaces/innerkits:oaid_client"

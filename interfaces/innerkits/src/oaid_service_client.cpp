@@ -221,6 +221,68 @@ int32_t OAIDServiceClient::RegisterObserver(const sptr<IRemoteConfigObserver>& o
     return resetResult;
 }
 
+bool OAIDServiceClient::SetAncoSwitchStatus(int32_t userId, const std::string& bundleName,
+    const std::string& uid, int32_t status)
+{
+    if (!LoadService()) {
+        OAID_HILOGW(OAID_MODULE_CLIENT, "Redo load oaid service.");
+        LoadService();
+    }
+
+    std::lock_guard<std::mutex> lock(getOaidProxyMutex_);
+    if (oaidServiceProxy_ == nullptr) {
+        OAID_HILOGE(OAID_MODULE_CLIENT, "Quit because redoing load oaid service failed.");
+        return false;
+    }
+
+    bool result = oaidServiceProxy_->SetAncoSwitchStatus(userId, bundleName, uid, status);
+    OAID_HILOGI(OAID_MODULE_CLIENT, "SetAncoSwitchStatus End, result = %{public}d", result);
+
+    return result;
+}
+
+std::vector<AncoSwitchStatusInfo> OAIDServiceClient::GetAncoSwitchStatus(int32_t userId,
+    const std::string& bundleName, const std::string& uid)
+{
+    OAID_HILOGI(OAID_MODULE_SERVICE, "QuerySwitchStatus userId =%{public}d packageName= %{public}s uid = %{public}s",
+        userId, bundleName.c_str(), uid.c_str());
+    if (!LoadService()) {
+        OAID_HILOGW(OAID_MODULE_CLIENT, "Redo load oaid service.");
+        LoadService();
+    }
+
+    std::lock_guard<std::mutex> lock(getOaidProxyMutex_);
+    if (oaidServiceProxy_ == nullptr) {
+        OAID_HILOGE(OAID_MODULE_CLIENT, "Quit because redoing load oaid service failed.");
+        return {};
+    }
+
+    auto result = oaidServiceProxy_->GetAncoSwitchStatus(userId, bundleName, uid);
+    OAID_HILOGI(OAID_MODULE_CLIENT, "GetAncoSwitchStatus End, size = %{public}zu", result.size());
+
+    return result;
+}
+
+std::vector<AncoAccessRecordInfo> OAIDServiceClient::GetAncoAccessRecords(int32_t userId,
+    const std::string& bundleName, const std::string& uid)
+{
+    if (!LoadService()) {
+        OAID_HILOGW(OAID_MODULE_CLIENT, "Redo load oaid service.");
+        LoadService();
+    }
+
+    std::lock_guard<std::mutex> lock(getOaidProxyMutex_);
+    if (oaidServiceProxy_ == nullptr) {
+        OAID_HILOGE(OAID_MODULE_CLIENT, "Quit because redoing load oaid service failed.");
+        return {};
+    }
+
+    auto result = oaidServiceProxy_->GetAncoAccessRecords(userId, bundleName, uid);
+    OAID_HILOGI(OAID_MODULE_CLIENT, "GetAncoAccessRecords End, size = %{public}zu", result.size());
+
+    return result;
+}
+
 void OAIDServiceClient::OnRemoteSaDied(const wptr<IRemoteObject>& remote)
 {
     OAID_HILOGE(OAID_MODULE_CLIENT, "OnRemoteSaDied");
@@ -269,5 +331,31 @@ void OAIDSaDeathRecipient::OnRemoteDied(const wptr<IRemoteObject>& object)
     OAID_HILOGW(OAID_MODULE_CLIENT, "Remote systemAbility died.");
     OAIDServiceClient::GetInstance()->OnRemoteSaDied(object);
 }
+
+std::string OAIDServiceClient::GetAncoOAID()
+{
+    if (!LoadService()) {
+        OAID_HILOGW(OAID_MODULE_CLIENT, "Redo load oaid service.");
+        LoadService();
+    }
+    std::lock_guard<std::mutex> lock(getOaidProxyMutex_);
+    if (oaidServiceProxy_ == nullptr) {
+        OAID_HILOGE(OAID_MODULE_CLIENT, "Quit because redoing load oaid service failed.");
+        return OAID_ALLZERO_STR;
+    }
+
+    auto oaid = oaidServiceProxy_->GetAncoOAID();
+    if (oaid == "") {
+        OAID_HILOGE(OAID_MODULE_CLIENT, "Get OAID failed.");
+        return OAID_ALLZERO_STR;
+    }
+    return oaid;
+}
+int32_t OAIDServiceClient::InsertAccessRecord(const int32_t userId, const std::string bundleName,
+    const std::string uid)
+{
+    return oaidServiceProxy_->InsertAccessRecord(userId, bundleName, uid);
+}
+
 } // namespace Cloud
 } // namespace OHOS

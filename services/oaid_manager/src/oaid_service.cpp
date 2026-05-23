@@ -29,6 +29,8 @@
 #include "oaid_observer_manager.h"
 #include "config_policy_utils.h"
 #include "connect_ads_stub.h"
+#include "oaid_anco_service.h"
+#include "oaid_rdb_manager.h"
 
 using namespace std::chrono;
 
@@ -312,6 +314,74 @@ int32_t OAIDService::ResetOAID()
     // 调用单例对象的oberser->OnUpdateOaid
     DelayedSingleton<OaidObserverManager>::GetInstance()->OnUpdateOaid(resetOaid);
     return ERR_OK;
+}
+
+bool OAIDService::SetAncoSwitchStatus(int32_t userId, const std::string& bundleName,
+    const std::string& uid, int32_t status)
+{
+    OAID_HILOGI(OAID_MODULE_SERVICE, "Service SetAncoSwitchStatus called userId%{public}d， bundleName%{public}s，"
+        " uid  %{public}s，status = %{public}d", userId, bundleName.c_str(), uid.c_str(), status);
+
+    int32_t ret = OaidRdbManager::GetInstance().Init();
+    if (ret != ERR_OK) {
+        OAID_HILOGE(OAID_MODULE_SERVICE, "Failed to init RDB, ret=%{public}d", ret);
+        return false;
+    }
+
+    ret = OaidRdbManager::GetInstance().InsertOrReplaceSwitchStatus(userId, bundleName, uid, status);
+    return (ret == ERR_OK);
+}
+
+std::vector<AncoSwitchStatusInfo> OAIDService::GetAncoSwitchStatus(int32_t userId,
+    const std::string& bundleName, const std::string& uid)
+{
+    OAID_HILOGI(OAID_MODULE_SERVICE, "GetAncoSwitchStatus called");
+
+    int32_t ret = OaidRdbManager::GetInstance().Init();
+    if (ret != ERR_OK) {
+        OAID_HILOGE(OAID_MODULE_SERVICE, "Failed to init RDB, ret=%{public}d", ret);
+        return {};
+    }
+
+    OaidRdbManager::GetInstance().CleanUninstalledAppRecords(userId);
+
+    return OaidRdbManager::GetInstance().QuerySwitchStatus(userId, bundleName, uid);
+}
+
+std::vector<AncoAccessRecordInfo> OAIDService::GetAncoAccessRecords(int32_t userId,
+    const std::string& bundleName, const std::string& uid)
+{
+    OAID_HILOGI(OAID_MODULE_SERVICE, "GetAncoAccessRecords called");
+
+    int32_t ret = OaidRdbManager::GetInstance().Init();
+    if (ret != ERR_OK) {
+        OAID_HILOGE(OAID_MODULE_SERVICE, "Failed to init RDB, ret=%{public}d", ret);
+        return {};
+    }
+
+    OaidRdbManager::GetInstance().CleanUninstalledAppRecords(userId);
+
+    std::async(std::launch::async, [userId]() {
+        OaidRdbManager::GetInstance().CleanExpiredAccessRecords(userId);
+    });
+
+    return OaidRdbManager::GetInstance().QueryAccessRecords(userId, bundleName, uid);
+}
+
+std::string OAIDService::GetAncoOAID()
+{
+    return "";
+}
+
+int32_t OAIDService::InsertAccessRecord(const int32_t userId, const std::string bundleName, const std::string uid)
+{
+    OAID_HILOGI(OAID_MODULE_SERVICE, "InsertAccessRecord called");
+    int32_t ret = OaidRdbManager::GetInstance().Init();
+    if (ret != ERR_OK) {
+        OAID_HILOGE(OAID_MODULE_SERVICE, "Failed to init RDB, ret=%{public}d", ret);
+        return {};
+    }
+    return OaidRdbManager::GetInstance().InsertAccessRecord(userId, bundleName, uid);
 }
 
 DistributedKv::Options getOptions()

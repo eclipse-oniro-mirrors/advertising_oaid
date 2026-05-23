@@ -19,6 +19,7 @@
 #include "oaid_service_interface.h"
 #include "oaid_service_ipc_interface_code.h"
 #include "oaid_iremote_config_observer.h"
+#include "oaid_anco_service.h"
 
 namespace OHOS {
 namespace Cloud {
@@ -117,5 +118,226 @@ int32_t OAIDServiceProxy::RegisterObserver(const sptr<IRemoteConfigObserver> &ob
     return remote->SendRequest(
         static_cast<uint32_t>(OAIDInterfaceCode::REGISTER_CONTROL_CONFIG_OBSERVER), data, reply, option);
 }
+
+bool OAIDServiceProxy::SetAncoSwitchStatus(int32_t userId, const std::string& bundleName,
+    const std::string& uid, int32_t status)
+{
+    OAID_HILOGD(OAID_MODULE_CLIENT, "SetAncoSwitchStatus Begin.");
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        OAID_HILOGE(OAID_MODULE_CLIENT, "Failed to write parcelable");
+        return false;
+    }
+
+    if (!data.WriteInt32(userId)) {
+        OAID_HILOGE(OAID_MODULE_CLIENT, "Failed to write userId");
+        return false;
+    }
+    if (!data.WriteString(bundleName)) {
+        OAID_HILOGE(OAID_MODULE_CLIENT, "Failed to write bundleName");
+        return false;
+    }
+    if (!data.WriteString(uid)) {
+        OAID_HILOGE(OAID_MODULE_CLIENT, "Failed to write uid");
+        return false;
+    }
+    if (!data.WriteInt32(status)) {
+        OAID_HILOGE(OAID_MODULE_CLIENT, "Failed to write status");
+        return false;
+    }
+
+    sptr<IRemoteObject> remote = Remote();
+    if (remote == nullptr) {
+        OAID_HILOGE(OAID_MODULE_CLIENT, "get remote failed");
+        return false;
+    }
+
+    int32_t result = remote->SendRequest(
+        static_cast<uint32_t>(OAIDInterfaceCode::SET_ANCO_SWITCH_STATUS), data, reply, option);
+    if (result != ERR_NONE) {
+        OAID_HILOGE(OAID_MODULE_CLIENT, "SetAncoSwitchStatus failed, error code is: %{public}d", result);
+        return false;
+    }
+
+    bool ret = reply.ReadBool();
+    OAID_HILOGI(OAID_MODULE_CLIENT, "SetAncoSwitchStatus End, ret = %{public}d", ret);
+    return ret;
+}
+
+std::vector<AncoSwitchStatusInfo> OAIDServiceProxy::GetAncoSwitchStatus(int32_t userId,
+    const std::string& bundleName, const std::string& uid)
+{
+    OAID_HILOGD(OAID_MODULE_CLIENT, "GetAncoSwitchStatus Begin.");
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        OAID_HILOGE(OAID_MODULE_CLIENT, "Failed to write parcelable");
+        return {};
+    }
+
+    if (!data.WriteInt32(userId)) {
+        OAID_HILOGE(OAID_MODULE_CLIENT, "Failed to write userId");
+        return {};
+    }
+    if (!bundleName.empty() && !data.WriteString(bundleName)) {
+        OAID_HILOGE(OAID_MODULE_CLIENT, "Failed to write bundleName");
+        return {};
+    }
+    if (!uid.empty() && !data.WriteString(uid)) {
+        OAID_HILOGE(OAID_MODULE_CLIENT, "Failed to write uid");
+        return {};
+    }
+
+    sptr<IRemoteObject> remote = Remote();
+    if (remote == nullptr) {
+        OAID_HILOGE(OAID_MODULE_CLIENT, "get remote failed");
+        return {};
+    }
+
+    int32_t result = remote->SendRequest(
+        static_cast<uint32_t>(OAIDInterfaceCode::GET_ANCO_SWITCH_STATUS), data, reply, option);
+    if (result != ERR_NONE) {
+        OAID_HILOGE(OAID_MODULE_CLIENT, "GetAncoSwitchStatus failed, error code is: %{public}d", result);
+        return {};
+    }
+
+    int32_t size = reply.ReadInt32();
+    std::vector<AncoSwitchStatusInfo> resultVec;
+    for (int32_t i = 0; i < size; i++) {
+        AncoSwitchStatusInfo info;
+        info.userId = reply.ReadInt32();
+        info.bundleName = reply.ReadString();
+        info.uid = reply.ReadString();
+        info.status = reply.ReadInt32();
+        resultVec.push_back(info);
+    }
+
+    OAID_HILOGI(OAID_MODULE_CLIENT, "GetAncoSwitchStatus End, size = %{public}zu", resultVec.size());
+    return resultVec;
+}
+
+std::vector<AncoAccessRecordInfo> OAIDServiceProxy::GetAncoAccessRecords(int32_t userId,
+    const std::string& bundleName, const std::string& uid)
+{
+    OAID_HILOGD(OAID_MODULE_CLIENT, "GetAncoAccessRecords Begin.");
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        OAID_HILOGE(OAID_MODULE_CLIENT, "Failed to write parcelable");
+        return {};
+    }
+
+    if (!data.WriteInt32(userId)) {
+        OAID_HILOGE(OAID_MODULE_CLIENT, "Failed to write userId");
+        return {};
+    }
+    if (!bundleName.empty() && !data.WriteString(bundleName)) {
+        OAID_HILOGE(OAID_MODULE_CLIENT, "Failed to write bundleName");
+        return {};
+    }
+    if (!uid.empty() && !data.WriteString(uid)) {
+        OAID_HILOGE(OAID_MODULE_CLIENT, "Failed to write uid");
+        return {};
+    }
+
+    sptr<IRemoteObject> remote = Remote();
+    if (remote == nullptr) {
+        OAID_HILOGE(OAID_MODULE_CLIENT, "get remote failed");
+        return {};
+    }
+
+    int32_t result = remote->SendRequest(
+        static_cast<uint32_t>(OAIDInterfaceCode::GET_ANCO_ACCESS_RECORDS), data, reply, option);
+    if (result != ERR_NONE) {
+        OAID_HILOGE(OAID_MODULE_CLIENT, "GetAncoAccessRecords failed, error code is: %{public}d", result);
+        return {};
+    }
+
+    int32_t size = reply.ReadInt32();
+    std::vector<AncoAccessRecordInfo> resultVec;
+    for (int32_t i = 0; i < size; i++) {
+        AncoAccessRecordInfo info;
+        info.userId = reply.ReadInt32();
+        info.bundleName = reply.ReadString();
+        info.uid = reply.ReadString();
+        info.time = reply.ReadString();
+        info.count = reply.ReadInt32();
+        resultVec.push_back(info);
+    }
+
+    OAID_HILOGI(OAID_MODULE_CLIENT, "GetAncoAccessRecords End, size = %{public}zu", resultVec.size());
+    return resultVec;
+}
+std::string OAIDServiceProxy::GetAncoOAID()
+{
+    OAID_HILOGD(OAID_MODULE_CLIENT, "GetAncoOAID Begin.");
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        OAID_HILOGE(OAID_MODULE_CLIENT, "Failed to write parcelable");
+        return "";
+    }
+    sptr<IRemoteObject> remote = Remote();
+    if (remote == nullptr) {
+        OAID_HILOGE(OAID_MODULE_CLIENT, "getAncoOaid get remote failed");
+        return "";
+    }
+    int32_t result = remote->SendRequest(static_cast<uint32_t>(OAIDInterfaceCode::GET_ANCO_OAID), data, reply, option);
+    if (result != ERR_NONE) {
+        return "";
+    }
+    auto oaid = reply.ReadString();
+    return oaid;
+}
+
+int32_t OAIDServiceProxy::InsertAccessRecord(const int32_t userId, const std::string bundleName, const std::string uid)
+{
+    OAID_HILOGD(OAID_MODULE_CLIENT, "InsertAccessRecord Begin.");
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        OAID_HILOGE(OAID_MODULE_CLIENT, "Failed to write parcelable");
+        return ERR_WRITE_PARCEL_FAILED;
+    }
+
+    if (!data.WriteInt32(userId)) {
+        OAID_HILOGE(OAID_MODULE_CLIENT, "Failed to write userId");
+        return ERR_WRITE_PARCEL_FAILED;
+    }
+    if (!data.WriteString(bundleName)) {
+        OAID_HILOGE(OAID_MODULE_CLIENT, "Failed to write bundleName");
+        return ERR_WRITE_PARCEL_FAILED;
+    }
+    if (!data.WriteString(uid)) {
+        OAID_HILOGE(OAID_MODULE_CLIENT, "Failed to write uid");
+        return ERR_WRITE_PARCEL_FAILED;
+    }
+    sptr<IRemoteObject> remote = Remote();
+    if (remote == nullptr) {
+        OAID_HILOGE(OAID_MODULE_CLIENT, "get remote failed");
+        return ERR_NULL_POINTER;
+    }
+    int32_t result = remote->SendRequest(
+        static_cast<uint32_t>(OAIDInterfaceCode::SET_ANCO_ACCESS_RECORDS), data, reply, option);
+    if (result != ERR_NONE) {
+        OAID_HILOGE(OAID_MODULE_CLIENT, "InsertAccessRecord failed, error code is: %{public}d", result);
+        return ERR_SYSYTEM_ERROR;
+    }
+
+    int32_t errorCode = reply.ReadInt32();
+    OAID_HILOGI(OAID_MODULE_CLIENT, "InsertAccessRecord End, errorCode = %{public}d", errorCode);
+    return errorCode;
+}
+
 }  // namespace Cloud
 }  // namespace OHOS

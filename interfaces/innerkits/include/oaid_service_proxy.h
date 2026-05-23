@@ -47,6 +47,43 @@ public:
      */
     int32_t RegisterObserver(const sptr<IRemoteConfigObserver>& observer) override;
 
+    /**
+     * Set anco switch status.
+     *
+     * @param userId User space ID.
+     * @param bundleName App bundle name.
+     * @param uid App uid.
+     * @param status Switch status: 0 allow, 1 deny.
+     * @return bool, true for success, false for failure.
+     */
+    bool SetAncoSwitchStatus(int32_t userId, const std::string& bundleName,
+        const std::string& uid, int32_t status) override;
+
+    /**
+     * Get anco switch status.
+     *
+     * @param userId User space ID.
+     * @param bundleName App bundle name (optional).
+     * @param uid App uid (optional).
+     * @return Vector of AncoSwitchStatusInfo.
+     */
+    std::vector<AncoSwitchStatusInfo> GetAncoSwitchStatus(int32_t userId,
+        const std::string& bundleName, const std::string& uid) override;
+
+    /**
+     * Get anco access records.
+     *
+     * @param userId User space ID.
+     * @param bundleName App bundle name (optional).
+     * @param uid App uid (optional).
+     * @return Vector of AncoAccessRecordInfo.
+     */
+    std::vector<AncoAccessRecordInfo> GetAncoAccessRecords(int32_t userId,
+        const std::string& bundleName, const std::string& uid) override;
+
+    std::string GetAncoOAID() override;
+
+    int32_t InsertAccessRecord(const int32_t userId, const std::string bundleName, const std::string uid) override;
 private:
     static inline BrokerDelegator<OAIDServiceProxy> delegator_;
     std::mutex registerObserverMutex_;

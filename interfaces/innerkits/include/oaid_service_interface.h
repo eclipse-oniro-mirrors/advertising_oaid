@@ -17,9 +17,11 @@
 #define OHOS_CLOUD_OAID_SERVICES_INTERFACE_H
 
 #include <string>
+#include <vector>
 
 #include "iremote_broker.h"
 #include "oaid_iremote_config_observer.h"
+#include "oaid_anco_service.h"
 
 namespace OHOS {
 namespace Cloud {
@@ -41,6 +43,44 @@ public:
      * RegisterObserver
      */
     virtual int32_t RegisterObserver(const sptr<IRemoteConfigObserver>& observer) = 0;
+
+    /**
+     * Set anco switch status.
+     *
+     * @param userId User space ID.
+     * @param bundleName App bundle name.
+     * @param uid App uid.
+     * @param status Switch status: 0 allow, 1 deny.
+     * @return bool, true for success, false for failure.
+     */
+    virtual bool SetAncoSwitchStatus(int32_t userId, const std::string& bundleName,
+        const std::string& uid, int32_t status) = 0;
+
+    /**
+     * Get anco switch status.
+     *
+     * @param userId User space ID.
+     * @param bundleName App bundle name (optional).
+     * @param uid App uid (optional).
+     * @return Vector of AncoSwitchStatusInfo.
+     */
+    virtual std::vector<AncoSwitchStatusInfo> GetAncoSwitchStatus(int32_t userId,
+        const std::string& bundleName, const std::string& uid) = 0;
+
+    /**
+     * Get anco access records.
+     *
+     * @param userId User space ID.
+     * @param bundleName App bundle name (optional).
+     * @param uid App uid (optional).
+     * @return Vector of AncoAccessRecordInfo.
+     */
+    virtual std::vector<AncoAccessRecordInfo> GetAncoAccessRecords(int32_t userId,
+        const std::string& bundleName, const std::string& uid) = 0;
+
+    virtual std::string GetAncoOAID() = 0;
+
+    virtual int32_t InsertAccessRecord(const int32_t userId, const std::string bundleName, const std::string uid) = 0;
 
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.cloud.oaid.IOAIDService");
 };

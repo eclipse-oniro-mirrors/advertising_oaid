@@ -27,6 +27,8 @@
 #include "iremote_stub.h"
 #include "event_handler.h"
 #include "event_runner.h"
+#include "ipc_skeleton.h"
+#include "atm_utils.h"
 
 namespace OHOS {
 namespace Cloud {
@@ -52,14 +54,18 @@ private:
     int32_t OnResetOAID(MessageParcel& data, MessageParcel& reply);
     int32_t SendCode(uint32_t code, MessageParcel &data, MessageParcel &reply);
     int32_t HandleRegisterControlConfigObserver(MessageParcel& data, MessageParcel& reply);
-
+    int32_t OnSetAncoSwitchStatus(MessageParcel& data, MessageParcel& reply);
+    int32_t OnGetAncoSwitchStatus(MessageParcel& data, MessageParcel& reply);
+    int32_t OnGetAncoAccessRecords(MessageParcel& data, MessageParcel& reply);
+    int32_t OnInsertAccessRecord(MessageParcel& data, MessageParcel& reply);
     bool CheckPermission(const std::string &permissionName);
     bool CheckSystemApp();
+    bool CheckSecurityPrivacyHap();
     void ExitIdleState();
     void checkProviderBundleName();
     void PostDelayUnloadTask();
     int32_t ValidateResetOAIDPermission(std::string bundleName, MessageParcel &reply);
-
+    bool CheckBrokerSA();
     std::shared_ptr<AppExecFwk::EventHandler> unloadHandler_;
     std::mutex init_eventHandler_Mutex_;
 };

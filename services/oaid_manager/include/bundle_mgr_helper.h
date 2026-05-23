@@ -50,6 +50,9 @@ public:
 
     void GetBundleNameByUid(const int uid, std::string &name);
 
+    bool GetBundleInfo(const std::string &bundleName, AppExecFwk::BundleInfo &bundleInfo,
+        int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID);
+
 private:
     bool GetBundleMgrProxy();
 

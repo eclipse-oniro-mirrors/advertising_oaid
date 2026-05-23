@@ -19,6 +19,12 @@
       *ResetOAID*;
       *RegisterObserver*;
       *RemoteConfigObserverStub*;
+      *SetAncoSwitchStatus*;
+      *GetAncoSwitchStatus*;
+      *GetAncoAccessRecords*;
+      *RequestAuthorization*;
+      *WriteAuthorization*;
+      *GetAncoOaid*;
     };
   local:
     *;
