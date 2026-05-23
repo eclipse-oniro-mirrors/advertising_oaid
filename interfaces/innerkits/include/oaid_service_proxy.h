@@ -87,6 +87,8 @@ public:
 private:
     static inline BrokerDelegator<OAIDServiceProxy> delegator_;
     std::mutex registerObserverMutex_;
+    bool WriteQueryParams(MessageParcel& data, int32_t userId,
+        const std::string& bundleName, const std::string& uid);
 };
 } // namespace Cloud
 } // namespace OHOS

@@ -20,6 +20,7 @@
 #include "oaid_service_ipc_interface_code.h"
 #include "oaid_iremote_config_observer.h"
 #include "oaid_anco_service.h"
+#include "ipc_serialization_transporter.h"
 
 namespace OHOS {
 namespace Cloud {
@@ -167,6 +168,92 @@ bool OAIDServiceProxy::SetAncoSwitchStatus(int32_t userId, const std::string& bu
     return ret;
 }
 
+template <>
+std::optional<AncoSwitchStatusInfo> IpcSerializationTransporter::Reader::Read()
+{
+    AncoSwitchStatusInfo info;
+    auto int32Opt = Read<int32_t>();
+    if (!int32Opt.has_value()) {
+        OAID_HILOGE(OAID_MODULE_CLIENT, "read userId failed");
+        return std::nullopt;
+    }
+    info.userId = int32Opt.value();
+    auto strOpt = Read<std::string>();
+    if (!strOpt.has_value()) {
+        OAID_HILOGE(OAID_MODULE_CLIENT, "read bundleName failed");
+        return std::nullopt;
+    }
+    info.bundleName = std::move(strOpt.value());
+    strOpt = Read<std::string>();
+    if (!strOpt.has_value()) {
+        OAID_HILOGE(OAID_MODULE_CLIENT, "read uid failed");
+        return std::nullopt;
+    }
+    info.uid = strOpt.value();
+    int32Opt = Read<int32_t>();
+    if (!int32Opt.has_value()) {
+        OAID_HILOGE(OAID_MODULE_CLIENT, "read status failed");
+        return std::nullopt;
+    }
+    info.status = int32Opt.value();
+    return {std::move(info)};
+}
+
+template <>
+std::optional<AncoAccessRecordInfo> IpcSerializationTransporter::Reader::Read()
+{
+    AncoAccessRecordInfo info;
+    auto int32Opt = Read<int32_t>();
+    if (!int32Opt.has_value()) {
+        OAID_HILOGE(OAID_MODULE_CLIENT, "read userId failed");
+        return std::nullopt;
+    }
+    info.userId = int32Opt.value();
+    auto strOpt = Read<std::string>();
+    if (!strOpt.has_value()) {
+        OAID_HILOGE(OAID_MODULE_CLIENT, "read bundleName failed");
+        return std::nullopt;
+    }
+    info.bundleName = std::move(strOpt.value());
+    strOpt = Read<std::string>();
+    if (!strOpt.has_value()) {
+        OAID_HILOGE(OAID_MODULE_CLIENT, "read uid failed");
+        return std::nullopt;
+    }
+    info.uid = strOpt.value();
+    strOpt = Read<std::string>();
+    if (!strOpt.has_value()) {
+        OAID_HILOGE(OAID_MODULE_CLIENT, "read time failed");
+        return std::nullopt;
+    }
+    info.time = strOpt.value();
+    int32Opt = Read<int32_t>();
+    if (!int32Opt.has_value()) {
+        OAID_HILOGE(OAID_MODULE_CLIENT, "read count failed");
+        return std::nullopt;
+    }
+    info.count = int32Opt.value();
+    return {std::move(info)};
+}
+
+bool OAIDServiceProxy::WriteQueryParams(MessageParcel& data, int32_t userId,
+    const std::string& bundleName, const std::string& uid)
+{
+    if (!data.WriteInt32(userId)) {
+        OAID_HILOGE(OAID_MODULE_CLIENT, "Failed to write userId");
+        return false;
+    }
+    if (!bundleName.empty() && !data.WriteString(bundleName)) {
+        OAID_HILOGE(OAID_MODULE_CLIENT, "Failed to write bundleName");
+        return false;
+    }
+    if (!uid.empty() && !data.WriteString(uid)) {
+        OAID_HILOGE(OAID_MODULE_CLIENT, "Failed to write uid");
+        return false;
+    }
+    return true;
+}
+
 std::vector<AncoSwitchStatusInfo> OAIDServiceProxy::GetAncoSwitchStatus(int32_t userId,
     const std::string& bundleName, const std::string& uid)
 {
@@ -174,49 +261,46 @@ std::vector<AncoSwitchStatusInfo> OAIDServiceProxy::GetAncoSwitchStatus(int32_t 
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
-
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         OAID_HILOGE(OAID_MODULE_CLIENT, "Failed to write parcelable");
         return {};
     }
-
-    if (!data.WriteInt32(userId)) {
-        OAID_HILOGE(OAID_MODULE_CLIENT, "Failed to write userId");
+    if (!WriteQueryParams(data, userId, bundleName, uid)) {
         return {};
     }
-    if (!bundleName.empty() && !data.WriteString(bundleName)) {
-        OAID_HILOGE(OAID_MODULE_CLIENT, "Failed to write bundleName");
-        return {};
-    }
-    if (!uid.empty() && !data.WriteString(uid)) {
-        OAID_HILOGE(OAID_MODULE_CLIENT, "Failed to write uid");
-        return {};
-    }
-
     sptr<IRemoteObject> remote = Remote();
     if (remote == nullptr) {
         OAID_HILOGE(OAID_MODULE_CLIENT, "get remote failed");
         return {};
     }
-
     int32_t result = remote->SendRequest(
         static_cast<uint32_t>(OAIDInterfaceCode::GET_ANCO_SWITCH_STATUS), data, reply, option);
     if (result != ERR_NONE) {
         OAID_HILOGE(OAID_MODULE_CLIENT, "GetAncoSwitchStatus failed, error code is: %{public}d", result);
         return {};
     }
-
-    int32_t size = reply.ReadInt32();
-    std::vector<AncoSwitchStatusInfo> resultVec;
-    for (int32_t i = 0; i < size; i++) {
-        AncoSwitchStatusInfo info;
-        info.userId = reply.ReadInt32();
-        info.bundleName = reply.ReadString();
-        info.uid = reply.ReadString();
-        info.status = reply.ReadInt32();
-        resultVec.push_back(info);
+    size_t rawDataSize = reply.ReadUint64();
+    OAID_HILOGI(OAID_MODULE_CLIENT, "raw data size: %{public}zu", rawDataSize);
+    const void* rawData = reply.ReadRawData(rawDataSize);
+    if (!rawData) {
+        OAID_HILOGE(OAID_MODULE_CLIENT, "rawData is nullptr");
+        return {};
     }
-
+    auto readerUp = IpcSerializationTransporter::Reader::Build(static_cast<const uint8_t*>(rawData),
+        static_cast<uint32_t>(rawDataSize));
+    if (!readerUp) {
+        OAID_HILOGE(OAID_MODULE_CLIENT, "readerOpt is nullptr");
+        return {};
+    }
+    IpcSerializationTransporter::Reader& reader = *readerUp.get();
+    auto infosOpt = reader.Read<std::vector<AncoSwitchStatusInfo>>();
+    if (!infosOpt.has_value()) {
+        OAID_HILOGE(OAID_MODULE_CLIENT, "read ancoSwitchStatusInfo failed");
+        return {};
+    }
+    std::vector<AncoSwitchStatusInfo> resultVec;
+    resultVec.insert(resultVec.end(), std::make_move_iterator(infosOpt.value().begin()),
+        std::make_move_iterator(infosOpt.value().end()));
     OAID_HILOGI(OAID_MODULE_CLIENT, "GetAncoSwitchStatus End, size = %{public}zu", resultVec.size());
     return resultVec;
 }
@@ -228,50 +312,46 @@ std::vector<AncoAccessRecordInfo> OAIDServiceProxy::GetAncoAccessRecords(int32_t
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
-
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         OAID_HILOGE(OAID_MODULE_CLIENT, "Failed to write parcelable");
         return {};
     }
-
-    if (!data.WriteInt32(userId)) {
-        OAID_HILOGE(OAID_MODULE_CLIENT, "Failed to write userId");
+    if (!WriteQueryParams(data, userId, bundleName, uid)) {
         return {};
     }
-    if (!bundleName.empty() && !data.WriteString(bundleName)) {
-        OAID_HILOGE(OAID_MODULE_CLIENT, "Failed to write bundleName");
-        return {};
-    }
-    if (!uid.empty() && !data.WriteString(uid)) {
-        OAID_HILOGE(OAID_MODULE_CLIENT, "Failed to write uid");
-        return {};
-    }
-
     sptr<IRemoteObject> remote = Remote();
     if (remote == nullptr) {
         OAID_HILOGE(OAID_MODULE_CLIENT, "get remote failed");
         return {};
     }
-
     int32_t result = remote->SendRequest(
         static_cast<uint32_t>(OAIDInterfaceCode::GET_ANCO_ACCESS_RECORDS), data, reply, option);
     if (result != ERR_NONE) {
         OAID_HILOGE(OAID_MODULE_CLIENT, "GetAncoAccessRecords failed, error code is: %{public}d", result);
         return {};
     }
-
-    int32_t size = reply.ReadInt32();
-    std::vector<AncoAccessRecordInfo> resultVec;
-    for (int32_t i = 0; i < size; i++) {
-        AncoAccessRecordInfo info;
-        info.userId = reply.ReadInt32();
-        info.bundleName = reply.ReadString();
-        info.uid = reply.ReadString();
-        info.time = reply.ReadString();
-        info.count = reply.ReadInt32();
-        resultVec.push_back(info);
+    size_t rawDataSize = reply.ReadUint64();
+    OAID_HILOGI(OAID_MODULE_CLIENT, "raw data size: %{public}zu", rawDataSize);
+    const void* rawData = reply.ReadRawData(rawDataSize);
+    if (!rawData) {
+        OAID_HILOGE(OAID_MODULE_CLIENT, "rawData is nullptr");
+        return {};
     }
-
+    auto readerUp = IpcSerializationTransporter::Reader::Build(static_cast<const uint8_t*>(rawData),
+        static_cast<uint32_t>(rawDataSize));
+    if (!readerUp) {
+        OAID_HILOGE(OAID_MODULE_CLIENT, "readerOpt is nullptr");
+        return {};
+    }
+    IpcSerializationTransporter::Reader& reader = *readerUp.get();
+    auto infosOpt = reader.Read<std::vector<AncoAccessRecordInfo>>();
+    if (!infosOpt.has_value()) {
+        OAID_HILOGE(OAID_MODULE_CLIENT, "read ancoAccessRecordInfo failed");
+        return {};
+    }
+    std::vector<AncoAccessRecordInfo> resultVec;
+    resultVec.insert(resultVec.end(), std::make_move_iterator(infosOpt.value().begin()),
+        std::make_move_iterator(infosOpt.value().end()));
     OAID_HILOGI(OAID_MODULE_CLIENT, "GetAncoAccessRecords End, size = %{public}zu", resultVec.size());
     return resultVec;
 }

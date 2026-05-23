@@ -43,6 +43,7 @@ public:
         [[nodiscard]] std::optional<T> Read();
         template <typename T, bool IS_ORDERED>
         [[nodiscard]] std::optional<T> ReadCommonContainer();
+        Reader(const uint8_t* data, uint32_t size);
     private:
         template <typename T>
         [[nodiscard]] std::optional<T> ReadArithmetic();
@@ -51,7 +52,6 @@ public:
         {
             return size_ - (cursor_ - data_) >= expected;
         }
-        Reader(const uint8_t* data, uint32_t size);
         const uint8_t* const data_;
         const uint32_t size_;
         const uint8_t* cursor_;
