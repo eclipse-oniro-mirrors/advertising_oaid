@@ -245,7 +245,7 @@ std::vector<AncoSwitchStatusInfo> OAIDServiceClient::GetAncoSwitchStatus(int32_t
     const std::string& bundleName, const std::string& uid)
 {
     OAID_HILOGI(OAID_MODULE_SERVICE, "QuerySwitchStatus userId =%{public}d packageName= %{public}s uid = %{public}s",
-        userId,bundleName.c_str(), uid.c_str());
+        userId, bundleName.c_str(), uid.c_str());
     if (!LoadService()) {
         OAID_HILOGW(OAID_MODULE_CLIENT, "Redo load oaid service.");
         LoadService();
