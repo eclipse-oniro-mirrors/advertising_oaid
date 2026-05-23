@@ -322,8 +322,7 @@ std::vector<AncoAccessRecordInfo> OaidRdbManager::ProcessAccessRecords(
     }
     for (auto& pair : minuteGroups) {
         auto& timeList = pair.second;
-        std::sort(timeList.begin(), timeList.end(),
-                [](const auto& a, const auto& b) { return a.first < b.first; });
+        std::sort(timeList.begin(), timeList.end(), [](const auto& a, const auto& b) { return a.first < b.first; });
         std::vector<std::pair<int64_t, int32_t>> mergedList;
         if (MergeTimeList(timeList, mergedList)) {
             BuildAccessRecordInfo(pair.first, mergedList, result);
