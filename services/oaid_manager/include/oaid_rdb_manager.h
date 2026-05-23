@@ -47,8 +47,13 @@ public:
     std::vector<AncoSwitchStatusInfo> QuerySwitchStatus(int32_t userId,
         const std::string& bundleName, const std::string& uid);
 
-    std::vector<AncoAccessRecordInfo> QueryAccessRecords(int32_t userId,
-        const std::string& bundleName, const std::string& uid);
+    std::vector<AncoAccessRecordInfo> QueryAccessRecordsFromDatabase(int32_t userId, const std::string& bundleName,
+        const std::string& uid, int64_t sevenDaysAgo);
+
+    std::vector<AncoAccessRecordInfo> ProcessAccessRecords(const std::vector<AncoAccessRecordInfo>& records);
+
+    std::vector<AncoAccessRecordInfo> QueryAccessRecords(int32_t userId, const std::string& bundleName,
+        const std::string& uid);
 
     int32_t InsertAccessRecord(const int32_t userId, const std::string bundleName, const std::string uid);
 

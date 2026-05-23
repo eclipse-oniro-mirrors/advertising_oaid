@@ -217,20 +217,14 @@ std::vector<AncoSwitchStatusInfo> OaidRdbManager::QuerySwitchStatus(int32_t user
     return result;
 }
 
-std::vector<AncoAccessRecordInfo> OaidRdbManager::QueryAccessRecords(int32_t userId,
-    const std::string& bundleName, const std::string& uid)
+std::vector<AncoAccessRecordInfo> OaidRdbManager::QueryAccessRecordsFromDatabase(
+        int32_t userId, const std::string& bundleName, const std::string& uid, int64_t sevenDaysAgo)
 {
-    std::shared_lock<std::shared_mutex> lock(mutex_);
     std::vector<AncoAccessRecordInfo> result;
-    if (rdbStore_ == nullptr) {
-        OAID_HILOGE(OAID_MODULE_SERVICE, "RDB not initialized");
-        return result;
-    }
-    int64_t currentTime = std::chrono::duration_cast<std::chrono::milliseconds>(
-        std::chrono::system_clock::now().time_since_epoch()).count();
-    int64_t sevenDaysAgo = currentTime - SEVEN_DAYS_MS;
+
     std::string sql;
     std::vector<NativeRdb::ValueObject> args;
+
     if (!bundleName.empty() && !uid.empty()) {
         sql = "SELECT user_id, bn, uid, time FROM " + ACCESS_RECORD_TABLE +
               " WHERE user_id = ? AND bn = ? AND uid = ? AND time >= ?";
@@ -244,16 +238,50 @@ std::vector<AncoAccessRecordInfo> OaidRdbManager::QueryAccessRecords(int32_t use
         args.push_back(NativeRdb::ValueObject(userId));
         args.push_back(NativeRdb::ValueObject(sevenDaysAgo));
     }
+
     auto resultSet = rdbStore_->QuerySql(sql, args);
     if (resultSet == nullptr) {
         OAID_HILOGE(OAID_MODULE_SERVICE, "Query result set is null");
         return result;
     }
+
+    while (resultSet->GoToNextRow() == NativeRdb::E_OK) {
+        int columnIndex = 0;
+        int32_t recordUserId;
+        std::string recordBundleName;
+        std::string recordUid;
+        int64_t timeValue = 0;
+
+        resultSet->GetInt(columnIndex++, recordUserId);
+        resultSet->GetString(columnIndex++, recordBundleName);
+        resultSet->GetString(columnIndex++, recordUid);
+        resultSet->GetLong(columnIndex++, timeValue);
+
+        AncoAccessRecordInfo info;
+        info.userId = recordUserId;
+        info.bundleName = recordBundleName;
+        info.uid = recordUid;
+        info.time = std::to_string(timeValue);
+        info.count = 1; // Initialize count to 1
+
+        result.push_back(info);
+    }
+
+    resultSet->Close();
+    return result;
+}
+
+std::vector<AncoAccessRecordInfo> OaidRdbManager::ProcessAccessRecords(
+        const std::vector<AncoAccessRecordInfo>& records)
+{
+    std::vector<AncoAccessRecordInfo> result;
+
     struct MinuteGroupKey {
         int32_t userId;
         std::string bundleName;
         std::string uid;
         int64_t minuteGroup;
+
         bool operator<(const MinuteGroupKey& other) const
         {
             if (userId != other.userId) return userId < other.userId;
@@ -262,31 +290,27 @@ std::vector<AncoAccessRecordInfo> OaidRdbManager::QueryAccessRecords(int32_t use
             return minuteGroup < other.minuteGroup;
         }
     };
+
     std::map<MinuteGroupKey, std::vector<std::pair<int64_t, int32_t>>> minuteGroups;
-    while (resultSet->GoToNextRow() == NativeRdb::E_OK) {
-        int columnIndex = 0;
-        int32_t recordUserId;
-        std::string recordBundleName;
-        std::string recordUid;
-        int64_t timeValue = 0;
-        resultSet->GetInt(columnIndex++, recordUserId);
-        resultSet->GetString(columnIndex++, recordBundleName);
-        resultSet->GetString(columnIndex++, recordUid);
-        resultSet->GetLong(columnIndex++, timeValue);
+
+    for (const auto& record : records) {
         MinuteGroupKey key;
-        key.userId = recordUserId;
-        key.bundleName = recordBundleName;
-        key.uid = recordUid;
-        key.minuteGroup = timeValue / ONE_MINUTE_MS;
-        minuteGroups[key].push_back({timeValue, 1});
+        key.userId = record.userId;
+        key.bundleName = record.bundleName;
+        key.uid = record.uid;
+        key.minuteGroup = std::stoll(record.time) / ONE_MINUTE_MS;
+
+        minuteGroups[key].push_back({std::stoll(record.time), 1});
     }
-    resultSet->Close();
+
     for (auto& pair : minuteGroups) {
         auto& timeList = pair.second;
+
         std::sort(timeList.begin(), timeList.end(),
-            [](const std::pair<int64_t, int32_t>& a, const std::pair<int64_t, int32_t>& b) {
-                return a.first < b.first;
-            });
+                  [](const std::pair<int64_t, int32_t>& a, const std::pair<int64_t, int32_t>& b) {
+                      return a.first < b.first;
+                  });
+
         std::vector<std::pair<int64_t, int32_t>> mergedList;
         for (const auto& item : timeList) {
             if (mergedList.empty()) {
@@ -300,6 +324,7 @@ std::vector<AncoAccessRecordInfo> OaidRdbManager::QueryAccessRecords(int32_t use
                 }
             }
         }
+
         AncoAccessRecordInfo info;
         info.userId = pair.first.userId;
         info.bundleName = pair.first.bundleName;
@@ -308,6 +333,32 @@ std::vector<AncoAccessRecordInfo> OaidRdbManager::QueryAccessRecords(int32_t use
         info.count = static_cast<int32_t>(mergedList.size());
         result.push_back(info);
     }
+
+    return result;
+}
+
+std::vector<AncoAccessRecordInfo> OaidRdbManager::QueryAccessRecords(int32_t userId,
+                                                                     const std::string& bundleName, const std::string& uid)
+{
+    std::shared_lock<std::shared_mutex> lock(mutex_);
+
+    std::vector<AncoAccessRecordInfo> result;
+
+    if (rdbStore_ == nullptr) {
+        OAID_HILOGE(OAID_MODULE_SERVICE, "RDB not initialized");
+        return result;
+    }
+
+    int64_t currentTime = std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::system_clock::now().time_since_epoch()).count();
+    int64_t sevenDaysAgo = currentTime - SEVEN_DAYS_MS;
+
+    // Query records from the database
+    std::vector<AncoAccessRecordInfo> records = QueryAccessRecordsFromDatabase(userId, bundleName, uid, sevenDaysAgo);
+
+    // Process the records
+    result = ProcessAccessRecords(records);
+
     OAID_HILOGI(OAID_MODULE_SERVICE, "QueryAccessRecords success, count=%{public}zu", result.size());
     return result;
 }

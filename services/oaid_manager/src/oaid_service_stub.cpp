@@ -38,7 +38,8 @@ namespace OHOS {
 namespace Cloud {
 using namespace OHOS::HiviewDFX;
 namespace {
-const std::string SECURITY_PRIVACY_CENTER_BUNDLENAME = "com.huawei.hmos.security.privacycenter";
+    const std::string SECURITY_PRIVACY_CENTER_BUNDLENAME = "com.huawei.hmos.security.privacycenter";
+    static const std::string VALID_UID_SUFFIX = "5557";
 }
 OAIDServiceStub::OAIDServiceStub()
 {}
@@ -108,6 +109,19 @@ bool OAIDServiceStub::CheckSecurityPrivacyHap()
     }
     if (hapTokenInfoOpt.value().bundleName != SECURITY_PRIVACY_CENTER_BUNDLENAME) {
         OAID_HILOGE(OAID_MODULE_SERVICE, "disallow the hap who is not security privacy center hap");
+        return false;
+    }
+    return true;
+}
+
+bool OAIDServiceStub::CheckBrokerSA()
+{
+    pid_t callingUid = IPCSkeleton::GetCallingUid();
+    std::string callingUidStr = std::to_string(callingUid);
+    OAID_HILOGI(OAID_MODULE_SERVICE, "RequestAuthorization callingUid = %{public}d", callingUid);
+    if (callingUidStr.size() < VALID_UID_SUFFIX.size() ||
+        callingUidStr.substr(callingUidStr.size() - VALID_UID_SUFFIX.size()) != VALID_UID_SUFFIX) {
+        OAID_HILOGE(OAID_MODULE_SERVICE, "Invalid callingUid %{public}d", callingUid);
         return false;
     }
     return true;
@@ -398,8 +412,8 @@ int32_t OAIDServiceStub::RegisterObserver(const sptr<IRemoteConfigObserver> &obs
 
 int32_t OAIDServiceStub::OnSetAncoSwitchStatus(MessageParcel &data, MessageParcel &reply)
 {
-    if (!CheckSecurityPrivacyHap()) {
-        OAID_HILOGE(OAID_MODULE_SERVICE, "check security privacy center hap failed");
+    if (!CheckSecurityPrivacyHap() && !CheckBrokerSA()) {
+        OAID_HILOGE(OAID_MODULE_SERVICE, "check security privacy center hap or Check broker sa failed");
         return ERR_PERMISSION_ERROR;
     }
     int32_t userId = data.ReadInt32();
@@ -417,8 +431,8 @@ int32_t OAIDServiceStub::OnSetAncoSwitchStatus(MessageParcel &data, MessageParce
 
 int32_t OAIDServiceStub::OnGetAncoSwitchStatus(MessageParcel &data, MessageParcel &reply)
 {
-    if (!CheckSecurityPrivacyHap()) {
-        OAID_HILOGE(OAID_MODULE_SERVICE, "check security privacy center hap failed");
+    if (!CheckSecurityPrivacyHap() && !CheckBrokerSA()) {
+        OAID_HILOGE(OAID_MODULE_SERVICE, "check security privacy center hap or Check broker sa failed");
         return ERR_PERMISSION_ERROR;
     }
     int32_t userId = data.ReadInt32();

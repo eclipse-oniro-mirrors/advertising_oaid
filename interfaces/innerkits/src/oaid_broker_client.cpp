@@ -21,15 +21,12 @@ namespace OHOS {
 namespace Cloud {
 namespace {
     static const std::string OAID_ALLZERO_STR = "00000000-0000-0000-0000-000000000000";
-    static const pid_t VALID_UID = 10078;
+    static const std::string VALID_UID_SUFFIX = "10078";
 }
 
 std::vector<bool> OAIDBrokerClient::RequestAuthorization(const std::string packageName, const std::string uid)
 {
-    pid_t GetCallingUid = IPCSkeleton::GetCallingUid();
-    OAID_HILOGI(OAID_MODULE_SERVICE, "RequestAuthorization GetCallingUid = %{public}d", GetCallingUid);
-    if (VALID_UID != GetCallingUid) {
-        OAID_HILOGE(OAID_MODULE_SERVICE, "invalid callingUid %{public}d", GetCallingUid);
+    if (!IsValidUid()) {
         return {};
     }
     OAID_HILOGI(OAID_MODULE_SERVICE, "RequestAuthorization packageName = %{public}s uid = %{public}s",
@@ -51,12 +48,9 @@ std::vector<bool> OAIDBrokerClient::RequestAuthorization(const std::string packa
 
 bool OAIDBrokerClient::WriteAuthorization(const std::string packageName, const std::string uid, bool status)
 {
-    pid_t GetCallingUid = IPCSkeleton::GetCallingUid();
-    OAID_HILOGI(OAID_MODULE_SERVICE, "WriteAuthorization GetCallingUid = %{public}d", GetCallingUid);
-    if (VALID_UID != GetCallingUid) {
-        OAID_HILOGE(OAID_MODULE_SERVICE, "invalid callingUid %{public}d", GetCallingUid);
-        return false;
-    }
+    if (!IsValidUid()) {
+		return false;
+	}
     OAID_HILOGI(OAID_MODULE_SERVICE, "WriteAuthorization packageName = %{public}s uid = %{public}s status = %{public}d",
         packageName.c_str(), uid.c_str(), status);
     // 调用接口写入授权结果
@@ -66,11 +60,8 @@ bool OAIDBrokerClient::WriteAuthorization(const std::string packageName, const s
 }
 
 std::string OAIDBrokerClient::GetAncoOaid(const std::string packageName, const std::string uid, bool flag)
-{
-    pid_t GetCallingUid = IPCSkeleton::GetCallingUid();
-    OAID_HILOGI(OAID_MODULE_SERVICE, "GetAncoOaid GetCallingUid = %{public}d", GetCallingUid);
-    if (VALID_UID != GetCallingUid) {
-        OAID_HILOGE(OAID_MODULE_SERVICE, "invalid callingUid %{public}d", GetCallingUid);
+{ 
+	if (!IsValidUid()) {
         return "";
     }
     OAID_HILOGI(OAID_MODULE_SERVICE, "GetAncoOaid packageName = %{public}s uid = %{public}s flag = %{public}d",
@@ -129,5 +120,18 @@ int32_t OAIDBrokerClient::GetUserId()
     return userId;
 }
 
+bool OAIDBrokerClient::IsValidUid()
+{
+    pid_t callingUid = IPCSkeleton::GetCallingUid();
+    std::string callingUidStr = std::to_string(callingUid);
+    OAID_HILOGI(OAID_MODULE_SERVICE, "RequestAuthorization callingUid = %{public}d", callingUid);
+    // 检查 callingUidStr 是否以 VALID_UID_SUFFIX 结尾
+    if (callingUidStr.size() < VALID_UID_SUFFIX.size() ||
+        callingUidStr.substr(callingUidStr.size() - VALID_UID_SUFFIX.size()) != VALID_UID_SUFFIX) {
+        OAID_HILOGE(OAID_MODULE_SERVICE, "Invalid callingUid %{public}d", callingUid);
+        return false;
+    }
+    return true;
+}
 } // namespace Cloud
 } // namespace OHOS

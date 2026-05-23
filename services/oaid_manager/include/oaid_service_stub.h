@@ -65,7 +65,7 @@ private:
     void checkProviderBundleName();
     void PostDelayUnloadTask();
     int32_t ValidateResetOAIDPermission(std::string bundleName, MessageParcel &reply);
-
+    bool CheckBrokerSA();
     std::shared_ptr<AppExecFwk::EventHandler> unloadHandler_;
     std::mutex init_eventHandler_Mutex_;
 };
