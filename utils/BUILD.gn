@@ -22,7 +22,7 @@ ohos_source_set("oaid_utils") {
 
   configs = [ ":utils_config" ]
 
-  sources = [ "native/src/oaid_file_operator.cpp","native/src/atm_utils.cpp" ]
+  sources = [ "native/src/oaid_file_operator.cpp" ]
 
   deps = []
 

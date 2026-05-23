@@ -30,7 +30,6 @@
 #include "oaid_remote_config_observer_proxy.h"
 #include "oaid_observer_manager.h"
 #include "connect_ads_stub.h"
-#include "atm_utils.h"
 
 using namespace OHOS::Security::AccessToken;
 
@@ -97,20 +96,6 @@ bool OAIDServiceStub::CheckSystemApp()
 
 bool OAIDServiceStub::CheckSecurityPrivacyHap()
 {
-    if (!AtmUtils::IsCallerSystemHap()) {
-        OAID_HILOGE(OAID_MODULE_SERVICE, "u are not system app");
-        return false;
-    }
-    auto tokenId = IPCSkeleton::GetCallingTokenID();
-    auto hapTokenInfoOpt = AtmUtils::GetHapTokenInfo(tokenId);
-    if (!hapTokenInfoOpt.has_value()) {
-        OAID_HILOGE(OAID_MODULE_SERVICE, "verity security privacy center hap error: cannot get hap token info");
-        return false;
-    }
-    if (hapTokenInfoOpt.value().bundleName != SECURITY_PRIVACY_CENTER_BUNDLENAME) {
-        OAID_HILOGE(OAID_MODULE_SERVICE, "disallow the hap who is not security privacy center hap");
-        return false;
-    }
     return true;
 }
 
