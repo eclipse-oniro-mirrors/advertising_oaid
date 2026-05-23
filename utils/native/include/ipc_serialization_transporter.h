@@ -107,7 +107,7 @@ std::optional<T> IpcSerializationTransporter::Reader::ReadArithmetic()
         return std::nullopt;
     }
     LenSizeT len;
-    if (memcpy_s(&len, LEN_SIZE, cursor_, LEN_SIZE) != EOK) {
+    if (memcpy_s(&len, sizeof(len), cursor_, LEN_SIZE) != EOK) {
         OAID_HILOGE(OAID_MODULE_COMMON, "ipc_serialize: memcpy failed");
         return std::nullopt;
     }
