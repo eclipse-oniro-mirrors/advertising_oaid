@@ -282,7 +282,6 @@ std::vector<AncoAccessRecordInfo> OaidRdbManager::ProcessAccessRecords(
         key.bundleName = record.bundleName;
         key.uid = record.uid;
         key.minuteGroup = std::stoll(record.time) / ONE_MINUTE_MS;
-
         minuteGroups[key].push_back({std::stoll(record.time), 1});
     }
     for (auto& pair : minuteGroups) {
@@ -312,7 +311,6 @@ std::vector<AncoAccessRecordInfo> OaidRdbManager::ProcessAccessRecords(
         info.count = static_cast<int32_t>(mergedList.size());
         result.push_back(info);
     }
-
     return result;
 }
 
