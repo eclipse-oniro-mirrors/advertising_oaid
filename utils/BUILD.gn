@@ -37,7 +37,6 @@ ohos_source_set("oaid_utils") {
     "hilog:libhilog",
     "access_token:libaccesstoken_sdk",
     "access_token:libtokenid_sdk",
-    "ipc:ipc_single",
   ]
 
   part_name = "oaid"
