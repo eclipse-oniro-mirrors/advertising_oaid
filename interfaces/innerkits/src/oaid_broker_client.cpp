@@ -49,8 +49,8 @@ std::vector<bool> OAIDBrokerClient::RequestAuthorization(const std::string packa
 bool OAIDBrokerClient::WriteAuthorization(const std::string packageName, const std::string uid, bool status)
 {
     if (!IsValidUid()) {
-		return false;
-	}
+        return false;
+    }
     OAID_HILOGI(OAID_MODULE_SERVICE, "WriteAuthorization packageName = %{public}s uid = %{public}s status = %{public}d",
         packageName.c_str(), uid.c_str(), status);
     // 调用接口写入授权结果
@@ -60,8 +60,8 @@ bool OAIDBrokerClient::WriteAuthorization(const std::string packageName, const s
 }
 
 std::string OAIDBrokerClient::GetAncoOaid(const std::string packageName, const std::string uid, bool flag)
-{ 
-	if (!IsValidUid()) {
+{
+    if (!IsValidUid()) {
         return "";
     }
     OAID_HILOGI(OAID_MODULE_SERVICE, "GetAncoOaid packageName = %{public}s uid = %{public}s flag = %{public}d",

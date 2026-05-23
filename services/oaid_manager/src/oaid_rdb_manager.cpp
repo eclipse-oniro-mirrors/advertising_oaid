@@ -128,9 +128,6 @@ int32_t OaidRdbManager::InsertOrReplaceSwitchStatus(int32_t userId,
     const std::string& bundleName, const std::string& uid, int32_t status)
 {
     std::unique_lock<std::shared_mutex> lock(mutex_);
-    OAID_HILOGI(OAID_MODULE_SERVICE,
-        "OaidRdbManager InsertOrReplaceSwitchStatus called userId%{public}d， bundleName%{public}s，"
-        " uid  %{public}s，status = %{public}d", userId, bundleName.c_str(), uid.c_str(), status);
     if (rdbStore_ == nullptr) {
         OAID_HILOGE(OAID_MODULE_SERVICE, "RDB not initialized");
         return ERR_DB_CONNECT_FAILED;
@@ -159,7 +156,6 @@ int32_t OaidRdbManager::InsertOrReplaceSwitchStatus(int32_t userId,
             OAID_HILOGE(OAID_MODULE_SERVICE, "Failed to update switch status, err=%{public}d", err);
             return ERR_DB_CONNECT_FAILED;
         }
-        OAID_HILOGI(OAID_MODULE_SERVICE, "UpdateSwitchStatus success");
     } else {
         NativeRdb::ValuesBucket row;
         row.PutInt("user_id", userId);
@@ -174,7 +170,6 @@ int32_t OaidRdbManager::InsertOrReplaceSwitchStatus(int32_t userId,
             OAID_HILOGE(OAID_MODULE_SERVICE, "Failed to insert switch status, err=%{public}d", err);
             return ERR_DB_CONNECT_FAILED;
         }
-        OAID_HILOGI(OAID_MODULE_SERVICE, "InsertSwitchStatus success");
     }
     return ERR_OK;
 }
@@ -218,13 +213,11 @@ std::vector<AncoSwitchStatusInfo> OaidRdbManager::QuerySwitchStatus(int32_t user
 }
 
 std::vector<AncoAccessRecordInfo> OaidRdbManager::QueryAccessRecordsFromDatabase(
-        int32_t userId, const std::string& bundleName, const std::string& uid, int64_t sevenDaysAgo)
+    int32_t userId, const std::string& bundleName, const std::string& uid, int64_t sevenDaysAgo)
 {
     std::vector<AncoAccessRecordInfo> result;
-
     std::string sql;
     std::vector<NativeRdb::ValueObject> args;
-
     if (!bundleName.empty() && !uid.empty()) {
         sql = "SELECT user_id, bn, uid, time FROM " + ACCESS_RECORD_TABLE +
               " WHERE user_id = ? AND bn = ? AND uid = ? AND time >= ?";
@@ -238,50 +231,42 @@ std::vector<AncoAccessRecordInfo> OaidRdbManager::QueryAccessRecordsFromDatabase
         args.push_back(NativeRdb::ValueObject(userId));
         args.push_back(NativeRdb::ValueObject(sevenDaysAgo));
     }
-
     auto resultSet = rdbStore_->QuerySql(sql, args);
     if (resultSet == nullptr) {
         OAID_HILOGE(OAID_MODULE_SERVICE, "Query result set is null");
         return result;
     }
-
     while (resultSet->GoToNextRow() == NativeRdb::E_OK) {
         int columnIndex = 0;
         int32_t recordUserId;
         std::string recordBundleName;
         std::string recordUid;
         int64_t timeValue = 0;
-
         resultSet->GetInt(columnIndex++, recordUserId);
         resultSet->GetString(columnIndex++, recordBundleName);
         resultSet->GetString(columnIndex++, recordUid);
         resultSet->GetLong(columnIndex++, timeValue);
-
         AncoAccessRecordInfo info;
         info.userId = recordUserId;
         info.bundleName = recordBundleName;
         info.uid = recordUid;
         info.time = std::to_string(timeValue);
         info.count = 1; // Initialize count to 1
-
         result.push_back(info);
     }
-
     resultSet->Close();
     return result;
 }
 
 std::vector<AncoAccessRecordInfo> OaidRdbManager::ProcessAccessRecords(
-        const std::vector<AncoAccessRecordInfo>& records)
+    const std::vector<AncoAccessRecordInfo>& records)
 {
     std::vector<AncoAccessRecordInfo> result;
-
     struct MinuteGroupKey {
         int32_t userId;
         std::string bundleName;
         std::string uid;
         int64_t minuteGroup;
-
         bool operator<(const MinuteGroupKey& other) const
         {
             if (userId != other.userId) return userId < other.userId;
@@ -290,9 +275,7 @@ std::vector<AncoAccessRecordInfo> OaidRdbManager::ProcessAccessRecords(
             return minuteGroup < other.minuteGroup;
         }
     };
-
     std::map<MinuteGroupKey, std::vector<std::pair<int64_t, int32_t>>> minuteGroups;
-
     for (const auto& record : records) {
         MinuteGroupKey key;
         key.userId = record.userId;
@@ -302,15 +285,12 @@ std::vector<AncoAccessRecordInfo> OaidRdbManager::ProcessAccessRecords(
 
         minuteGroups[key].push_back({std::stoll(record.time), 1});
     }
-
     for (auto& pair : minuteGroups) {
         auto& timeList = pair.second;
-
         std::sort(timeList.begin(), timeList.end(),
                   [](const std::pair<int64_t, int32_t>& a, const std::pair<int64_t, int32_t>& b) {
                       return a.first < b.first;
                   });
-
         std::vector<std::pair<int64_t, int32_t>> mergedList;
         for (const auto& item : timeList) {
             if (mergedList.empty()) {
@@ -324,7 +304,6 @@ std::vector<AncoAccessRecordInfo> OaidRdbManager::ProcessAccessRecords(
                 }
             }
         }
-
         AncoAccessRecordInfo info;
         info.userId = pair.first.userId;
         info.bundleName = pair.first.bundleName;
@@ -338,27 +317,21 @@ std::vector<AncoAccessRecordInfo> OaidRdbManager::ProcessAccessRecords(
 }
 
 std::vector<AncoAccessRecordInfo> OaidRdbManager::QueryAccessRecords(int32_t userId,
-                                                                     const std::string& bundleName, const std::string& uid)
+    const std::string& bundleName, const std::string& uid)
 {
     std::shared_lock<std::shared_mutex> lock(mutex_);
-
     std::vector<AncoAccessRecordInfo> result;
-
     if (rdbStore_ == nullptr) {
         OAID_HILOGE(OAID_MODULE_SERVICE, "RDB not initialized");
         return result;
     }
-
     int64_t currentTime = std::chrono::duration_cast<std::chrono::milliseconds>(
             std::chrono::system_clock::now().time_since_epoch()).count();
     int64_t sevenDaysAgo = currentTime - SEVEN_DAYS_MS;
-
     // Query records from the database
     std::vector<AncoAccessRecordInfo> records = QueryAccessRecordsFromDatabase(userId, bundleName, uid, sevenDaysAgo);
-
     // Process the records
     result = ProcessAccessRecords(records);
-
     OAID_HILOGI(OAID_MODULE_SERVICE, "QueryAccessRecords success, count=%{public}zu", result.size());
     return result;
 }
@@ -429,13 +402,10 @@ int32_t OaidRdbManager::CleanUninstalledAppRecords(int32_t userId)
                 uninstalledBundles.push_back(bundleName);
             }
     }
-
     if (uninstalledBundles.empty()) {
         return ERR_OK;
     }
-
     std::unique_lock<std::shared_mutex> lock(mutex_);
-
     // 批量删除开关状态表记录
     auto [switchDeleteSql, switchArgs] = BuildBatchDeleteSql(SWITCH_STATUS_TABLE, uninstalledBundles);
     int32_t ret = rdbStore_->ExecuteSql(switchDeleteSql, switchArgs);
@@ -443,7 +413,6 @@ int32_t OaidRdbManager::CleanUninstalledAppRecords(int32_t userId)
         OAID_HILOGE(OAID_MODULE_SERVICE, "Failed to batch delete switch status, ret=%{public}d", ret);
         return ERR_DB_CONNECT_FAILED;
     }
-
     // 批量删除访问记录表记录
     auto [recordDeleteSql, recordArgs] = BuildBatchDeleteSql(ACCESS_RECORD_TABLE, uninstalledBundles);
     ret = rdbStore_->ExecuteSql(recordDeleteSql, recordArgs);
@@ -451,7 +420,6 @@ int32_t OaidRdbManager::CleanUninstalledAppRecords(int32_t userId)
         OAID_HILOGE(OAID_MODULE_SERVICE, "Failed to batch delete access records, ret=%{public}d", ret);
         return ERR_DB_CONNECT_FAILED;
     }
-
     OAID_HILOGI(OAID_MODULE_SERVICE, "CleanUninstalledAppRecords success, cleaned=%{public}zu",
         uninstalledBundles.size());
     return ERR_OK;
@@ -462,7 +430,6 @@ std::pair<std::string, std::vector<NativeRdb::ValueObject>> OaidRdbManager::Buil
 {
     std::string sql = "DELETE FROM " + tableName + " WHERE bn IN (";
     std::vector<NativeRdb::ValueObject> args;
-
     for (size_t i = 0; i < bundleNames.size(); ++i) {
         if (i > 0) {
             sql += ", ";
