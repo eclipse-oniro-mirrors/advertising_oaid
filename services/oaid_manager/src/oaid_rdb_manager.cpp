@@ -49,6 +49,54 @@ const std::vector<std::tuple<std::string, std::string, std::string>>& GetTableDe
 }
 }
 
+struct MinuteGroupKey {
+    int32_t userId;
+    std::string bundleName;
+    std::string uid;
+    int64_t minuteGroup;
+    bool operator<(const MinuteGroupKey& other) const
+    {
+        if (userId != other.userId) return userId < other.userId;
+        if (bundleName != other.bundleName) return bundleName < other.bundleName;
+        if (uid != other.uid) return uid < other.uid;
+        return minuteGroup < other.minuteGroup;
+    }
+};
+
+bool MergeTimeList(const std::vector<std::pair<int64_t, int32_t>>& timeList,
+    std::vector<std::pair<int64_t, int32_t>>& mergedList)
+{
+    if (timeList.empty()) {
+        return false;
+    }
+    mergedList.push_back(timeList[0]);
+    for (size_t i = 1; i < timeList.size(); ++i) {
+        int64_t timeDiff = timeList[i].first - mergedList.back().first;
+        if (timeDiff <= TIME_DIFF_THRESHOLD_MS) {
+            mergedList.back().second += timeList[i].second;
+        } else {
+            mergedList.push_back(timeList[i]);
+        }
+    }
+    return !mergedList.empty();
+}
+
+void BuildAccessRecordInfo(const MinuteGroupKey& key,
+    const std::vector<std::pair<int64_t, int32_t>>& mergedList,
+    std::vector<AncoAccessRecordInfo>& result)
+{
+    if (mergedList.empty()) {
+        return;
+    }
+    AncoAccessRecordInfo info;
+    info.userId = key.userId;
+    info.bundleName = key.bundleName;
+    info.uid = key.uid;
+    info.time = std::to_string(mergedList.front().first);
+    info.count = static_cast<int32_t>(mergedList.size());
+    result.push_back(std::move(info));
+}
+
 int32_t OaidRdbManager::CreateTable(NativeRdb::RdbStore& store, const std::string& tableName,
     const std::string& tableColumns, const std::string& primaryKey)
 {
@@ -262,54 +310,23 @@ std::vector<AncoAccessRecordInfo> OaidRdbManager::ProcessAccessRecords(
     const std::vector<AncoAccessRecordInfo>& records)
 {
     std::vector<AncoAccessRecordInfo> result;
-    struct MinuteGroupKey {
-        int32_t userId;
-        std::string bundleName;
-        std::string uid;
-        int64_t minuteGroup;
-        bool operator<(const MinuteGroupKey& other) const
-        {
-            if (userId != other.userId) return userId < other.userId;
-            if (bundleName != other.bundleName) return bundleName < other.bundleName;
-            if (uid != other.uid) return uid < other.uid;
-            return minuteGroup < other.minuteGroup;
-        }
-    };
     std::map<MinuteGroupKey, std::vector<std::pair<int64_t, int32_t>>> minuteGroups;
     for (const auto& record : records) {
-        MinuteGroupKey key;
-        key.userId = record.userId;
-        key.bundleName = record.bundleName;
-        key.uid = record.uid;
-        key.minuteGroup = std::stoll(record.time) / ONE_MINUTE_MS;
+        MinuteGroupKey key = {
+            .userId = record.userId,
+            .bundleName = record.bundleName,
+            .uid = record.uid,
+            .minuteGroup = std::stoll(record.time) / ONE_MINUTE_MS
+        };
         minuteGroups[key].push_back({std::stoll(record.time), 1});
     }
     for (auto& pair : minuteGroups) {
         auto& timeList = pair.second;
-        std::sort(timeList.begin(), timeList.end(),
-                  [](const std::pair<int64_t, int32_t>& a, const std::pair<int64_t, int32_t>& b) {
-                      return a.first < b.first;
-                  });
+        std::sort(timeList.begin(), timeList.end(), [](const auto& a, const auto& b) { return a.first < b.first; });
         std::vector<std::pair<int64_t, int32_t>> mergedList;
-        for (const auto& item : timeList) {
-            if (mergedList.empty()) {
-                mergedList.push_back(item);
-            } else {
-                int64_t timeDiff = item.first - mergedList.back().first;
-                if (timeDiff <= TIME_DIFF_THRESHOLD_MS) {
-                    mergedList.back().second += item.second;
-                } else {
-                    mergedList.push_back(item);
-                }
-            }
+        if (MergeTimeList(timeList, mergedList)) {
+            BuildAccessRecordInfo(pair.first, mergedList, result);
         }
-        AncoAccessRecordInfo info;
-        info.userId = pair.first.userId;
-        info.bundleName = pair.first.bundleName;
-        info.uid = pair.first.uid;
-        info.time = std::to_string(mergedList.front().first);
-        info.count = static_cast<int32_t>(mergedList.size());
-        result.push_back(info);
     }
     return result;
 }

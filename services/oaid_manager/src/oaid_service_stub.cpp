@@ -31,6 +31,7 @@
 #include "oaid_observer_manager.h"
 #include "connect_ads_stub.h"
 #include "atm_utils.h"
+#include "ipc_serialization_transporter.h"
 
 using namespace OHOS::Security::AccessToken;
 
@@ -429,6 +430,55 @@ int32_t OAIDServiceStub::OnSetAncoSwitchStatus(MessageParcel &data, MessageParce
     return ERR_OK;
 }
 
+template <>
+bool IpcSerializationTransporter::Flat(const AncoSwitchStatusInfo& rawData)
+{
+    if (!Flat(rawData.userId)) {
+        OAID_HILOGE(OAID_MODULE_SERVICE, "flat userId failed");
+        return false;
+    }
+    if (!Flat(rawData.bundleName)) {
+        OAID_HILOGE(OAID_MODULE_SERVICE, "flat bundleName failed");
+        return false;
+    }
+    if (!Flat(rawData.uid)) {
+        OAID_HILOGE(OAID_MODULE_SERVICE, "flat uid failed");
+        return false;
+    }
+    if (!Flat(rawData.status)) {
+        OAID_HILOGE(OAID_MODULE_SERVICE, "flat status failed");
+        return false;
+    }
+    return true;
+}
+
+
+template <>
+bool IpcSerializationTransporter::Flat(const AncoAccessRecordInfo& rawData)
+{
+    if (!Flat(rawData.userId)) {
+        OAID_HILOGE(OAID_MODULE_SERVICE, "flat userId failed");
+        return false;
+    }
+    if (!Flat(rawData.bundleName)) {
+        OAID_HILOGE(OAID_MODULE_SERVICE, "flat bundleName failed");
+        return false;
+    }
+    if (!Flat(rawData.uid)) {
+        OAID_HILOGE(OAID_MODULE_SERVICE, "flat uid failed");
+        return false;
+    }
+    if (!Flat(rawData.time)) {
+        OAID_HILOGE(OAID_MODULE_SERVICE, "flat time failed");
+        return false;
+    }
+    if (!Flat(rawData.count)) {
+        OAID_HILOGE(OAID_MODULE_SERVICE, "flat count failed");
+        return false;
+    }
+    return true;
+}
+
 int32_t OAIDServiceStub::OnGetAncoSwitchStatus(MessageParcel &data, MessageParcel &reply)
 {
     if (!CheckSecurityPrivacyHap() && !CheckBrokerSA()) {
@@ -439,28 +489,21 @@ int32_t OAIDServiceStub::OnGetAncoSwitchStatus(MessageParcel &data, MessageParce
     std::string bundleName = data.ReadString();
     std::string uid = data.ReadString();
     OAID_HILOGI(OAID_MODULE_SERVICE, "OnGetAncoSwitchStatus called");
-    auto result = GetAncoSwitchStatus(userId, bundleName, uid);
-    if (!reply.WriteInt32(static_cast<int32_t>(result.size()))) {
-        OAID_HILOGE(OAID_MODULE_SERVICE, "Failed to write vector size to reply");
+    const std::vector<AncoSwitchStatusInfo> result = GetAncoSwitchStatus(userId, bundleName, uid);
+    IpcSerializationTransporter transporter;
+    auto resultOpt = transporter.Serialize(result);
+    if (!resultOpt.has_value()) {
+        OAID_HILOGE(OAID_MODULE_SERVICE, "serialize ancoSwitchStatusInfo failed. resultOpt is nullopt");
         return ERR_WRITE_PARCEL_FAILED;
     }
-    for (const auto& info : result) {
-        if (!reply.WriteInt32(info.userId)) {
-            OAID_HILOGE(OAID_MODULE_SERVICE, "Failed to write userId to reply");
-            return ERR_WRITE_PARCEL_FAILED;
-        }
-        if (!reply.WriteString(info.bundleName)) {
-            OAID_HILOGE(OAID_MODULE_SERVICE, "Failed to write bundleName to reply");
-            return ERR_WRITE_PARCEL_FAILED;
-        }
-        if (!reply.WriteString(info.uid)) {
-            OAID_HILOGE(OAID_MODULE_SERVICE, "Failed to write uid to reply");
-            return ERR_WRITE_PARCEL_FAILED;
-        }
-        if (!reply.WriteInt32(info.status)) {
-            OAID_HILOGE(OAID_MODULE_SERVICE, "Failed to write status to reply");
-            return ERR_WRITE_PARCEL_FAILED;
-        }
+    OAID_HILOGI(OAID_MODULE_SERVICE, "write raw data. size: %{public}zu", resultOpt.value().size());
+    if (!reply.WriteUint64(resultOpt.value().size())) {
+        OAID_HILOGE(OAID_MODULE_SERVICE, "write raw data size failed. size: %{public}zu", resultOpt.value().size());
+        return ERR_WRITE_PARCEL_FAILED;
+    }
+    if (!reply.WriteRawData(resultOpt.value().c_str(), resultOpt.value().size())) {
+        OAID_HILOGE(OAID_MODULE_SERVICE, "write raw data for ancoSwitchStatusInfo failed");
+        return ERR_WRITE_PARCEL_FAILED;
     }
     OAID_HILOGI(OAID_MODULE_SERVICE, "OnGetAncoSwitchStatus End, size=%{public}zu", result.size());
     return ERR_OK;
@@ -476,34 +519,22 @@ int32_t OAIDServiceStub::OnGetAncoAccessRecords(MessageParcel &data, MessageParc
     std::string bundleName = data.ReadString();
     std::string uid = data.ReadString();
     OAID_HILOGI(OAID_MODULE_SERVICE, "OnGetAncoAccessRecords called");
-    auto result = GetAncoAccessRecords(userId, bundleName, uid);
-    if (!reply.WriteInt32(static_cast<int32_t>(result.size()))) {
-        OAID_HILOGE(OAID_MODULE_SERVICE, "Failed to write vector size to reply");
+    const std::vector<AncoAccessRecordInfo> result = GetAncoAccessRecords(userId, bundleName, uid);
+    IpcSerializationTransporter transporter;
+    auto resultOpt = transporter.Serialize(result);
+    if (!resultOpt.has_value()) {
+        OAID_HILOGE(OAID_MODULE_SERVICE, "serialize ancoAccessRecordInfo failed. resultOpt is nullopt");
         return ERR_WRITE_PARCEL_FAILED;
     }
-    for (const auto& info : result) {
-        if (!reply.WriteInt32(info.userId)) {
-            OAID_HILOGE(OAID_MODULE_SERVICE, "Failed to write userId to reply");
-            return ERR_WRITE_PARCEL_FAILED;
-        }
-        if (!reply.WriteString(info.bundleName)) {
-            OAID_HILOGE(OAID_MODULE_SERVICE, "Failed to write bundleName to reply");
-            return ERR_WRITE_PARCEL_FAILED;
-        }
-        if (!reply.WriteString(info.uid)) {
-            OAID_HILOGE(OAID_MODULE_SERVICE, "Failed to write uid to reply");
-            return ERR_WRITE_PARCEL_FAILED;
-        }
-        if (!reply.WriteString(info.time)) {
-            OAID_HILOGE(OAID_MODULE_SERVICE, "Failed to write time to reply");
-            return ERR_WRITE_PARCEL_FAILED;
-        }
-        if (!reply.WriteInt32(info.count)) {
-            OAID_HILOGE(OAID_MODULE_SERVICE, "Failed to write count to reply");
-            return ERR_WRITE_PARCEL_FAILED;
-        }
+    OAID_HILOGI(OAID_MODULE_SERVICE, "write raw data. size: %{public}zu", resultOpt.value().size());
+    if (!reply.WriteUint64(resultOpt.value().size())) {
+        OAID_HILOGE(OAID_MODULE_SERVICE, "write raw data size failed. size: %{public}zu", resultOpt.value().size());
+        return ERR_WRITE_PARCEL_FAILED;
     }
-
+    if (!reply.WriteRawData(resultOpt.value().c_str(), resultOpt.value().size())) {
+        OAID_HILOGE(OAID_MODULE_SERVICE, "write raw data for ancoAccessRecordInfo failed");
+        return ERR_WRITE_PARCEL_FAILED;
+    }
     OAID_HILOGI(OAID_MODULE_SERVICE, "OnGetAncoAccessRecords End, size=%{public}zu", result.size());
     return ERR_OK;
 }
