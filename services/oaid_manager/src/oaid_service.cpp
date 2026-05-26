@@ -70,7 +70,10 @@ std::string GetUUID()
     int minN = 0x8;
     int maxN = 0xb;
     unsigned char randNumber[1] = {minN};
-    RAND_bytes(randNumber, sizeof(randNumber));
+    if (RAND_bytes(randNumber, sizeof(randNumber)) != 1) {
+        OAID_HILOGE(OAID_MODULE_SERVICE, "RAND_bytes for variant failed, using fallback");
+        return "";
+    }
     unsigned char num = static_cast<unsigned char>(randNumber[0] % (maxN - minN + 1) + minN);
     uuid[N_INDEX] = (uuid[N_INDEX] & 0x0F) | (num << CHAR_LOW_WIDTH);
 
