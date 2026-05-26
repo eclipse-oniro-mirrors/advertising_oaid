@@ -31,7 +31,6 @@ public:
     static bool WriteAuthorization(const std::string packageName, const std::string uid, bool status);
     static std::string GetAncoOaid(const std::string packageName, const std::string uid, bool flag);
 private:
-    static bool IsValidUid();
     static bool GetGlobalSwitch(const int32_t userId);
     static int32_t GetUserId();
 };
