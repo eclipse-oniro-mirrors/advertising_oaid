@@ -73,8 +73,8 @@ private:
     mutable std::shared_mutex mutex_;
     std::shared_ptr<NativeRdb::RdbStore> rdbStore_;
 
-    std::pair<std::string, std::vector<NativeRdb::ValueObject>> BuildBatchDeleteSql(const std::string& tableName,
-        const std::vector<std::string>& bundleNames);
+    std::pair<std::string, std::vector<NativeRdb::ValueObject>> BuildBatchDeleteSql(int32_t userId,
+        const std::string& tableName, const std::vector<std::string>& bundleNames);
 };
 
 } // namespace Cloud

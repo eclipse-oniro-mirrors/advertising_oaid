@@ -422,14 +422,14 @@ int32_t OaidRdbManager::CleanUninstalledAppRecords(int32_t userId)
     }
     std::unique_lock<std::shared_mutex> lock(mutex_);
     // 批量删除开关状态表记录
-    auto [switchDeleteSql, switchArgs] = BuildBatchDeleteSql(SWITCH_STATUS_TABLE, uninstalledBundles);
+    auto [switchDeleteSql, switchArgs] = BuildBatchDeleteSql(userId, SWITCH_STATUS_TABLE, uninstalledBundles);
     int32_t ret = rdbStore_->ExecuteSql(switchDeleteSql, switchArgs);
     if (ret != NativeRdb::E_OK) {
         OAID_HILOGE(OAID_MODULE_SERVICE, "Failed to batch delete switch status, ret=%{public}d", ret);
         return ERR_DB_CONNECT_FAILED;
     }
     // 批量删除访问记录表记录
-    auto [recordDeleteSql, recordArgs] = BuildBatchDeleteSql(ACCESS_RECORD_TABLE, uninstalledBundles);
+    auto [recordDeleteSql, recordArgs] = BuildBatchDeleteSql(userId, ACCESS_RECORD_TABLE, uninstalledBundles);
     ret = rdbStore_->ExecuteSql(recordDeleteSql, recordArgs);
     if (ret != NativeRdb::E_OK) {
         OAID_HILOGE(OAID_MODULE_SERVICE, "Failed to batch delete access records, ret=%{public}d", ret);
@@ -440,11 +440,12 @@ int32_t OaidRdbManager::CleanUninstalledAppRecords(int32_t userId)
     return ERR_OK;
 }
 
-std::pair<std::string, std::vector<NativeRdb::ValueObject>> OaidRdbManager::BuildBatchDeleteSql(
+std::pair<std::string, std::vector<NativeRdb::ValueObject>> OaidRdbManager::BuildBatchDeleteSql(int32_t userId,
     const std::string& tableName, const std::vector<std::string>& bundleNames)
 {
-    std::string sql = "DELETE FROM " + tableName + " WHERE bn IN (";
+    std::string sql = "DELETE FROM " + tableName + " WHERE user_id = ? AND bn IN (";
     std::vector<NativeRdb::ValueObject> args;
+    args.push_back(NativeRdb::ValueObject(userId));
     for (size_t i = 0; i < bundleNames.size(); ++i) {
         if (i > 0) {
             sql += ", ";
