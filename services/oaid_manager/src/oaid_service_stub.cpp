@@ -541,6 +541,10 @@ int32_t OAIDServiceStub::OnGetAncoAccessRecords(MessageParcel &data, MessageParc
 
 int32_t OAIDServiceStub::OnInsertAccessRecord(MessageParcel &data, MessageParcel &reply)
 {
+    if (!CheckBrokerSA()) {
+        OAID_HILOGE(OAID_MODULE_SERVICE, "Check broker sa failed");
+        return ERR_PERMISSION_ERROR;
+    }
     int32_t userId = data.ReadInt32();
     std::string bundleName = data.ReadString();
     std::string uid = data.ReadString();
