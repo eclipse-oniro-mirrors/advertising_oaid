@@ -243,7 +243,7 @@ bool OAIDService::WriteValueToKvStore(const std::string &kvStoreKey, const std::
 std::string OAIDService::GainOAID()
 {
     std::string oaidKvStoreStr = OAID_ALLZERO_STR;
-    updateMutex_.lock();
+    std::lock_guard<std::mutex> autoLock(updateMutex_);
     if (OAIDFileOperator::IsFileExsit(OAID_UPDATE)) {
         OAIDFileOperator::OpenAndReadFile(OAID_UPDATE, oaidKvStoreStr);
         OAIDFileOperator::ClearFile(OAID_UPDATE);
@@ -259,10 +259,8 @@ std::string OAIDService::GainOAID()
         oaid_ = oaid;
         bool update = WriteValueToKvStore(OAID_KVSTORE_KEY, oaid_);
         OAID_HILOGI(OAID_MODULE_SERVICE, "update oaid %{public}s", update ? "success" : "failed");
-        updateMutex_.unlock();
         return oaid_;
     }
-    updateMutex_.unlock();
     if (!ConnectAdsManager::GetInstance()->checkAllowGetOaid()) {
         OAID_HILOGI(OAID_MODULE_SERVICE, "under age, not allow get oaid");
         return OAID_ALLZERO_STR;
