@@ -242,48 +242,19 @@ bool OAIDService::WriteValueToKvStore(const std::string &kvStoreKey, const std::
 
 std::string OAIDService::GainOAID()
 {
-    std::string oaidKvStoreStr = OAID_ALLZERO_STR;
-    std::lock_guard<std::mutex> autoLock(updateMutex_);
-    if (OAIDFileOperator::IsFileExsit(OAID_UPDATE)) {
-        OAIDFileOperator::OpenAndReadFile(OAID_UPDATE, oaidKvStoreStr);
-        OAIDFileOperator::ClearFile(OAID_UPDATE);
-        std::string oaid;
-        cJSON *root = cJSON_Parse(oaidKvStoreStr.c_str());
-        if (root != nullptr && !cJSON_IsInvalid(root)) {
-            cJSON *oaidObj = cJSON_GetObjectItem(root, "oaid");
-            if (cJSON_IsString(oaidObj)) {
-                oaid = oaidObj->valuestring;
-            }
-        }
-        cJSON_Delete(root);
-        oaid_ = oaid;
-        bool update = WriteValueToKvStore(OAID_KVSTORE_KEY, oaid_);
-        OAID_HILOGI(OAID_MODULE_SERVICE, "update oaid %{public}s", update ? "success" : "failed");
-        return oaid_;
-    }
     if (!ConnectAdsManager::GetInstance()->checkAllowGetOaid()) {
         OAID_HILOGI(OAID_MODULE_SERVICE, "under age, not allow get oaid");
         return OAID_ALLZERO_STR;
     }
-    bool result = ReadValueFromKvStore(OAID_KVSTORE_KEY, oaidKvStoreStr);
-
-    if (oaidKvStoreStr != OAID_ALLZERO_STR && !oaidKvStoreStr.empty()) {
+    if (oaid_.empty()) {
+        oaid_ = GetUUID();
         if (oaid_.empty()) {
-            oaid_ = oaidKvStoreStr;
-            OAID_HILOGI(OAID_MODULE_SERVICE, "Oaid in the memory is empty");
+            return OAID_ALLZERO_STR;
         }
-        return oaid_;
-    } else {
-        if (oaid_.empty()) {
-            oaid_ = GetUUID();
-            if (oaid_.empty()) {
-                return OAID_ALLZERO_STR;
-            }
-            OAID_HILOGI(OAID_MODULE_SERVICE, "The oaid has been regenerated.");
-        }
+        OAID_HILOGI(OAID_MODULE_SERVICE, "The oaid has been generated.");
+        bool result = WriteValueToKvStore(OAID_KVSTORE_KEY, oaid_);
+        OAID_HILOGI(OAID_MODULE_SERVICE, "WriteValueToKvStore %{public}s", result == true ? "success" : "failed");
     }
-    result = WriteValueToKvStore(OAID_KVSTORE_KEY, oaid_);
-    OAID_HILOGI(OAID_MODULE_SERVICE, "WriteValueToKvStore %{public}s", result == true ? "success" : "failed");
     return oaid_;
 }
 
