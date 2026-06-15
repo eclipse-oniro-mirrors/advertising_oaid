@@ -39,7 +39,7 @@ std::optional<std::string> IpcSerializationTransporter::Reader::ReadString()
     }
     std::string result(reinterpret_cast<const char*>(cursor_), lenOpt.value());
     cursor_ += lenOpt.value();
-    return std::move(result);
+    return result;
 }
 
 std::unique_ptr<IpcSerializationTransporter::Reader> IpcSerializationTransporter::Reader::Build(const uint8_t* data,

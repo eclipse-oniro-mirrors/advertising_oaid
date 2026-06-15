@@ -408,7 +408,6 @@ int32_t OaidRdbManager::CleanUninstalledAppRecords(int32_t userId)
     if (allBundleNames.empty()) {
         return ERR_OK;
     }
-    // 过滤出已卸载应用的 bundleName
     std::vector<std::string> uninstalledBundles;
     for (const auto& bundleName : allBundleNames) {
         AppExecFwk::BundleInfo bundleInfo;
@@ -421,14 +420,12 @@ int32_t OaidRdbManager::CleanUninstalledAppRecords(int32_t userId)
         return ERR_OK;
     }
     std::unique_lock<std::shared_mutex> lock(mutex_);
-    // 批量删除开关状态表记录
     auto [switchDeleteSql, switchArgs] = BuildBatchDeleteSql(userId, SWITCH_STATUS_TABLE, uninstalledBundles);
     int32_t ret = rdbStore_->ExecuteSql(switchDeleteSql, switchArgs);
     if (ret != NativeRdb::E_OK) {
         OAID_HILOGE(OAID_MODULE_SERVICE, "Failed to batch delete switch status, ret=%{public}d", ret);
         return ERR_DB_CONNECT_FAILED;
     }
-    // 批量删除访问记录表记录
     auto [recordDeleteSql, recordArgs] = BuildBatchDeleteSql(userId, ACCESS_RECORD_TABLE, uninstalledBundles);
     ret = rdbStore_->ExecuteSql(recordDeleteSql, recordArgs);
     if (ret != NativeRdb::E_OK) {
