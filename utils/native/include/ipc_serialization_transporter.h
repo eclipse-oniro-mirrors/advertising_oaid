@@ -50,7 +50,7 @@ public:
         [[nodiscard]] std::optional<std::string> ReadString();
         [[nodiscard]] bool CheckRemainingSize(uint32_t expected) const
         {
-            return size_ - (cursor_ - data_) >= expected;
+            return cursor_ >= data_ && static_cast<uint32_t>(cursor_ - data_) + expected <= size_;
         }
         const uint8_t* const data_;
         const uint32_t size_;
