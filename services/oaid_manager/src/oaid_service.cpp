@@ -246,6 +246,7 @@ std::string OAIDService::GainOAID()
         OAID_HILOGI(OAID_MODULE_SERVICE, "under age, not allow get oaid");
         return OAID_ALLZERO_STR;
     }
+    std::lock_guard<std::mutex> lock(updateMutex_);
     if (oaid_.empty()) {
         oaid_ = GetUUID();
         if (oaid_.empty()) {
