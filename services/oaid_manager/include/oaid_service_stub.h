@@ -58,6 +58,7 @@ private:
     int32_t OnGetAncoSwitchStatus(MessageParcel& data, MessageParcel& reply);
     int32_t OnGetAncoAccessRecords(MessageParcel& data, MessageParcel& reply);
     int32_t OnInsertAccessRecord(MessageParcel& data, MessageParcel& reply);
+    int32_t OnGetAncoOAID(MessageParcel& data, MessageParcel& reply);
     bool CheckPermission(const std::string &permissionName);
     bool CheckSystemApp();
     bool CheckSecurityPrivacyHap();

@@ -206,7 +206,7 @@ int32_t OAIDServiceStub::SendCode(uint32_t code, MessageParcel &data, MessagePar
             break;
         }
         case static_cast<uint32_t>(OAIDInterfaceCode::GET_ANCO_OAID): {
-            return OAIDServiceStub::OnGetOAID(data, reply);
+            return OAIDServiceStub::OnGetAncoOAID(data, reply);
             break;
         }
         case static_cast<uint32_t>(OAIDInterfaceCode::SET_ANCO_ACCESS_RECORDS): {
@@ -537,6 +537,15 @@ int32_t OAIDServiceStub::OnGetAncoAccessRecords(MessageParcel &data, MessageParc
     }
     OAID_HILOGI(OAID_MODULE_SERVICE, "OnGetAncoAccessRecords End, size=%{public}zu", result.size());
     return ERR_OK;
+}
+
+int32_t OAIDServiceStub::OnGetAncoOAID(MessageParcel &data, MessageParcel &reply)
+{
+    if (!CheckBrokerSA()) {
+        OAID_HILOGE(OAID_MODULE_SERVICE, "Check broker sa failed");
+        return ERR_PERMISSION_ERROR;
+    }
+    return OnGetOAID(data, reply);
 }
 
 int32_t OAIDServiceStub::OnInsertAccessRecord(MessageParcel &data, MessageParcel &reply)
