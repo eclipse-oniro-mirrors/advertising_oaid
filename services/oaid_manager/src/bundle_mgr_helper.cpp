@@ -32,7 +32,7 @@ BundleMgrHelper::~BundleMgrHelper()
 
 bool BundleMgrHelper::GetBundleMgrProxy()
 {
-    OAID_HILOGD(OAID_MODULE_SERVICE, "GetBundleMgrProxy");
+    OAID_HILOGI(OAID_MODULE_SERVICE, "GetBundleMgrProxy");
 
     if (!bundleMgrProxy_) {
         sptr<ISystemAbilityManager> systemAbilityManager =
@@ -124,7 +124,7 @@ void BundleMgrHelper::GetBundleNameByUid(const int uid, std::string &name)
         OAID_HILOGE(OAID_MODULE_SERVICE, "Failed to GetNameForUid");
         return;
     }
-    OAID_HILOGD(OAID_MODULE_SERVICE, "GetBundleNameByUid success");
+    OAID_HILOGI(OAID_MODULE_SERVICE, "GetBundleNameByUid success");
     return;
 }
 

@@ -327,7 +327,7 @@ void OAIDServiceStub::checkProviderBundleName()
         ConnectAdsManager::GetInstance()->notifyKit(NOTIFY_GET_OAID_CODE);
     }
     cJSON_Delete(root);
-    OAID_HILOGD(OAID_MODULE_SERVICE, "end checkProviderBundleName ");
+    OAID_HILOGI(OAID_MODULE_SERVICE, "end checkProviderBundleName ");
 }
 
 int32_t OAIDServiceStub::OnResetOAID(MessageParcel &data, MessageParcel &reply)
@@ -407,7 +407,7 @@ int32_t OAIDServiceStub::HandleRegisterControlConfigObserver(MessageParcel &data
 
 int32_t OAIDServiceStub::RegisterObserver(const sptr<IRemoteConfigObserver> &observer)
 {
-    OAID_HILOGD(OAID_MODULE_SERVICE, "registerObserver success.");
+    OAID_HILOGI(OAID_MODULE_SERVICE, "registerObserver success.");
     return DelayedSingleton<OaidObserverManager>::GetInstance()->RegisterObserver(observer);
 }
 
