@@ -92,7 +92,7 @@ void ConnectAdsStub::AddMessageToQueue(int32_t code)
     if (messageSet_.find(code) == messageSet_.end()) {
         messageQueue_.push(code);
         messageSet_.insert(code);
-        OAID_HILOGD(OAID_MODULE_SERVICE, "Add message %{public}d to queue", code);
+        OAID_HILOGI(OAID_MODULE_SERVICE, "Add message %{public}d to queue", code);
     }
 }
 
@@ -101,7 +101,7 @@ void ConnectAdsStub::ProcessMessageQueue()
     std::queue<int32_t> tempQueue;
     {
         std::lock_guard<std::mutex> lock(queueMutex_);
-        OAID_HILOGD(OAID_MODULE_SERVICE, "Processing message queue");
+        OAID_HILOGI(OAID_MODULE_SERVICE, "Processing message queue");
         if (messageQueue_.empty()) {
             OAID_HILOGI(OAID_MODULE_SERVICE, "Message queue is empty");
             return;
@@ -129,7 +129,7 @@ void ConnectAdsStub::ProcessMessageQueue()
     while (!tempQueue.empty()) {
         int32_t code = tempQueue.front();
         tempQueue.pop();
-        OAID_HILOGD(OAID_MODULE_SERVICE, "Processing message code=%{public}d", code);
+        OAID_HILOGI(OAID_MODULE_SERVICE, "Processing message code=%{public}d", code);
         SendMessage(code);
     }
 }
@@ -294,7 +294,7 @@ bool ConnectAdsManager::checkAllowGetOaid()
         OAID_HILOGW(OAID_MODULE_SERVICE, "user time illegal");
     } else {
         long long interval = nowTimestamp - updateTimestamp;
-        OAID_HILOGD(OAID_MODULE_SERVICE,
+        OAID_HILOGI(OAID_MODULE_SERVICE,
             "checkAllowGetOaid now = %{public}lld  updateTime = %{public}s  interval = %{public}lld, ",
             nowTimestamp,
             updateTimeStr.c_str(),
@@ -338,12 +338,12 @@ int ADSCallbackStub::OnRemoteRequest(uint32_t code, MessageParcel& data, Message
 
 void ConnectAdsManager::notifyKit(int32_t code)
 {
-    OAID_HILOGD(OAID_MODULE_SERVICE, "enter notifyKit = %{public}d", code);
+    OAID_HILOGI(OAID_MODULE_SERVICE, "enter notifyKit = %{public}d", code);
     ConnectionState currentState = connectObject_->GetConnectionState();
     // 待发送的消息放到队列中，连接成功后处理队列消息
     connectObject_->AddMessageToQueue(code);
     if (currentState == ConnectionState::CONNECTED) {
-        OAID_HILOGD(OAID_MODULE_SERVICE, "already connected, process message queue");
+        OAID_HILOGI(OAID_MODULE_SERVICE, "already connected, process message queue");
         connectObject_->ProcessMessageQueue();
         return;
     }
@@ -352,7 +352,7 @@ void ConnectAdsManager::notifyKit(int32_t code)
         std::lock_guard<std::mutex> lock(connectMutex_);
         // 再次检查状态，防止竞态条件
         if (connectObject_->GetConnectionState() == ConnectionState::DISCONNECTED) {
-            OAID_HILOGD(OAID_MODULE_SERVICE, "not connected");
+            OAID_HILOGI(OAID_MODULE_SERVICE, "not connected");
             connectObject_->SetConnectionState(ConnectionState::CONNECTING);
             Want want = getWantInfo();
             if (code == NOTIFY_RESET_OAID_CODE) {
@@ -367,7 +367,7 @@ void ConnectAdsManager::notifyKit(int32_t code)
             }
         }
     } else {
-        OAID_HILOGD(OAID_MODULE_SERVICE, "connection in progress, message added to queue");
+        OAID_HILOGI(OAID_MODULE_SERVICE, "connection in progress, message added to queue");
     }
 }
 
