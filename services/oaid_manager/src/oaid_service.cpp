@@ -242,20 +242,32 @@ bool OAIDService::WriteValueToKvStore(const std::string &kvStoreKey, const std::
 
 std::string OAIDService::GainOAID()
 {
+    std::string oaidKvStoreStr = OAID_ALLZERO_STR;
     if (!ConnectAdsManager::GetInstance()->checkAllowGetOaid()) {
         OAID_HILOGI(OAID_MODULE_SERVICE, "under age, not allow get oaid");
         return OAID_ALLZERO_STR;
     }
     std::lock_guard<std::mutex> lock(updateMutex_);
-    if (oaid_.empty()) {
-        oaid_ = GetUUID();
+    bool result = ReadValueFromKvStore(OAID_KVSTORE_KEY, oaidKvStoreStr);
+
+    if (oaidKvStoreStr != OAID_ALLZERO_STR && !oaidKvStoreStr.empty()) {
         if (oaid_.empty()) {
-            return OAID_ALLZERO_STR;
+            oaid_ = oaidKvStoreStr;
+            OAID_HILOGI(OAID_MODULE_SERVICE, "Oaid in the memory is empty");
         }
-        OAID_HILOGI(OAID_MODULE_SERVICE, "The oaid has been generated.");
-        bool result = WriteValueToKvStore(OAID_KVSTORE_KEY, oaid_);
-        OAID_HILOGI(OAID_MODULE_SERVICE, "WriteValueToKvStore %{public}s", result == true ? "success" : "failed");
+        return oaid_;
+    } else {
+        if (oaid_.empty()) {
+            oaid_ = GetUUID();
+            if (oaid_.empty()) {
+                OAID_HILOGI(OAID_MODULE_SERVICE, "Oaid get uuid is empty");
+                return OAID_ALLZERO_STR;
+            }
+            OAID_HILOGI(OAID_MODULE_SERVICE, "The oaid has been regenerated.");
+        }
     }
+    result = WriteValueToKvStore(OAID_KVSTORE_KEY, oaid_);
+    OAID_HILOGI(OAID_MODULE_SERVICE, "WriteValueToKvStore %{public}s", result == true ? "success" : "failed");
     return oaid_;
 }
 
