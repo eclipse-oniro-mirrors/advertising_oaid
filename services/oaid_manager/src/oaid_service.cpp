@@ -384,6 +384,14 @@ DistributedKv::Options getOptions()
 
 bool OAIDService::InitKvStore(std::string storeIdStr)
 {
+    static std::mutex initMutex;
+    std::lock_guard<std::mutex> lock(initMutex);
+    if (storeIdStr == OAID_DATA_BASE_STORE_ID && oaidKvStore_ != nullptr) {
+        return true;
+    }
+    if (storeIdStr == OAID_UNDER_AGE_STORE_ID  && oaidUnderAgeKvStore_ != nullptr) {
+        return true;
+    }
     DistributedKv::DistributedKvDataManager manager;
     DistributedKv::Options options = getOptions();
     DistributedKv::AppId appId;

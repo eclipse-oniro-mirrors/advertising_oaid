@@ -40,7 +40,7 @@ namespace Cloud {
 using namespace OHOS::HiviewDFX;
 namespace {
     const std::string SECURITY_PRIVACY_CENTER_BUNDLENAME = "com.huawei.hmos.security.privacycenter";
-    static const std::string VALID_UID_SUFFIX = "5557";
+    static const pid_t VALID_UID = 5557;
 }
 OAIDServiceStub::OAIDServiceStub()
 {}
@@ -118,14 +118,8 @@ bool OAIDServiceStub::CheckSecurityPrivacyHap()
 bool OAIDServiceStub::CheckBrokerSA()
 {
     pid_t callingUid = IPCSkeleton::GetCallingUid();
-    std::string callingUidStr = std::to_string(callingUid);
     OAID_HILOGI(OAID_MODULE_SERVICE, "RequestAuthorization callingUid = %{public}d", callingUid);
-    if (callingUidStr.size() < VALID_UID_SUFFIX.size() ||
-        callingUidStr.substr(callingUidStr.size() - VALID_UID_SUFFIX.size()) != VALID_UID_SUFFIX) {
-        OAID_HILOGE(OAID_MODULE_SERVICE, "Invalid callingUid %{public}d", callingUid);
-        return false;
-    }
-    return true;
+    return VALID_UID == callingUid;
 }
 
 bool LoadAndCheckOaidTrustList(const std::string &bundleName)
