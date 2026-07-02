@@ -419,7 +419,7 @@ bool OAIDService::InitKvStore(std::string storeIdStr)
             OAID_HILOGI(OAID_MODULE_SERVICE, "First Boot: Create OaidKvStore");
             options.createIfMissing = true;
             status = manager.GetSingleKvStore(options, appId, storeId, kvStore_);
-             OAID_HILOGE(OAID_MODULE_SERVICE, "Create OaidKvStore res = %{public}d", status);
+            OAID_HILOGE(OAID_MODULE_SERVICE, "Create OaidKvStore res = %{public}d", status);
         }
     }
     if (kvStore_ == nullptr) {
