@@ -386,10 +386,8 @@ bool OAIDService::InitKvStore(std::string storeIdStr)
 {
     static std::mutex initMutex;
     std::lock_guard<std::mutex> lock(initMutex);
-    if (storeIdStr == OAID_DATA_BASE_STORE_ID && oaidKvStore_ != nullptr) {
-        return true;
-    }
-    if (storeIdStr == OAID_UNDER_AGE_STORE_ID  && oaidUnderAgeKvStore_ != nullptr) {
+    if ((storeIdStr == OAID_DATA_BASE_STORE_ID && oaidKvStore_ != nullptr) ||
+        (storeIdStr == OAID_UNDER_AGE_STORE_ID && oaidUnderAgeKvStore_ != nullptr)) {
         return true;
     }
     DistributedKv::DistributedKvDataManager manager;
@@ -421,11 +419,7 @@ bool OAIDService::InitKvStore(std::string storeIdStr)
             OAID_HILOGI(OAID_MODULE_SERVICE, "First Boot: Create OaidKvStore");
             options.createIfMissing = true;
             status = manager.GetSingleKvStore(options, appId, storeId, kvStore_);
-            if (status == DistributedKv::Status::SUCCESS) {
-                OAID_HILOGE(OAID_MODULE_SERVICE, "Create OaidKvStore success!");
-            } else {
-                OAID_HILOGE(OAID_MODULE_SERVICE, "Create OaidKvStore Failed!");
-            }
+             OAID_HILOGE(OAID_MODULE_SERVICE, "Create OaidKvStore res = %{public}d", status);
         }
     }
     if (kvStore_ == nullptr) {
