@@ -101,10 +101,8 @@ std::string GetUUID()
 }  // namespace
 
 REGISTER_SYSTEM_ABILITY_BY_ID(OAIDService, OAID_SYSTME_ID, true);
-std::mutex OAIDService::instance_mutex_;
+std::mutex OAIDService::mutex_;
 sptr<OAIDService> OAIDService::instance_;
-std::mutex OAIDService::rw_oaid_mutex_;
-std::mutex OAIDService::rw_under_age_mutex_;
 
 OAIDService::OAIDService(int32_t systemAbilityId, bool runOnCreate)
     : SystemAbility(systemAbilityId, runOnCreate), state_(ServiceRunningState::STATE_NOT_START)
@@ -120,7 +118,7 @@ OAIDService::~OAIDService(){};
 sptr<OAIDService> OAIDService::GetInstance()
 {
     if (instance_ == nullptr) {
-        std::lock_guard<std::mutex> autoLock(instance_mutex_);
+        std::lock_guard<std::mutex> autoLock(mutex_);
         if (instance_ == nullptr) {
             OAID_HILOGI(OAID_MODULE_SERVICE, "Instance success.");
             instance_ = new OAIDService;
@@ -193,7 +191,7 @@ bool OAIDService::CheckKvStore()
 
 bool OAIDService::ReadValueFromKvStore(const std::string &kvStoreKey, std::string &kvStoreValue)
 {
-    std::lock_guard<std::mutex> lock(rw_oaid_mutex_);
+    std::lock_guard<std::mutex> lock(mutex_);
 
     if (!CheckKvStore()) {
         OAID_HILOGE(OAID_MODULE_SERVICE, "ReadValueFromKvStore:oaidKvStore_ is nullptr");
@@ -216,7 +214,7 @@ bool OAIDService::ReadValueFromKvStore(const std::string &kvStoreKey, std::strin
 
 bool OAIDService::WriteValueToKvStore(const std::string &kvStoreKey, const std::string &kvStoreValue)
 {
-    std::lock_guard<std::mutex> lock(rw_oaid_mutex_);
+    std::lock_guard<std::mutex> lock(mutex_);
 
     if (!CheckKvStore()) {
         OAID_HILOGE(OAID_MODULE_SERVICE, "WriteValueToKvStore:oaidKvStore_ is nullptr");
@@ -459,7 +457,7 @@ bool OAIDService::CheckUnderAgeKvStore()
 
 bool OAIDService::ReadValueFromUnderAgeKvStore(const std::string &kvStoreKey, DistributedKv::Value &kvStoreValue)
 {
-    std::lock_guard<std::mutex> lock(rw_under_age_mutex_);
+    std::lock_guard<std::mutex> lock(mutex_);
     if (!CheckUnderAgeKvStore()) {
         OAID_HILOGE(OAID_MODULE_SERVICE, "ReadValueFromUnderAgeKvStore:oaidUnderAgeKvStore_ is nullptr");
         return false;
@@ -477,7 +475,7 @@ bool OAIDService::ReadValueFromUnderAgeKvStore(const std::string &kvStoreKey, Di
 
 bool OAIDService::WriteValueToUnderAgeKvStore(const std::string &kvStoreKey, const DistributedKv::Value &kvStoreValue)
 {
-    std::lock_guard<std::mutex> lock(rw_under_age_mutex_);
+    std::lock_guard<std::mutex> lock(mutex_);
     if (!CheckUnderAgeKvStore()) {
         OAID_HILOGE(OAID_MODULE_SERVICE, "WriteValueToUnderAgeKvStore:oaidKvStore_ is nullptr");
         return false;
