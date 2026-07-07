@@ -539,8 +539,8 @@ int32_t OAIDServiceStub::OnGetAncoOAID(MessageParcel &data, MessageParcel &reply
         OAID_HILOGE(OAID_MODULE_SERVICE, "Check broker sa failed");
         return ERR_PERMISSION_ERROR;
     }
-	std::string oaid = GetAncoOAID();
-	if (oaid == "") {
+    std::string oaid = GetAncoOAID();
+    if (oaid == "") {
         OAID_HILOGE(OAID_MODULE_SERVICE, "Get AncoOAID failed.");
         return ERR_SYSYTEM_ERROR;
     }

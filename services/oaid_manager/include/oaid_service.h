@@ -112,8 +112,8 @@ private:
     std::mutex updateMutex_;
     std::string oaid_;
 
-	static std::mutex rw_oaid_mutex_;
-	static std::mutex rw_under_age_mutex_;
+    static std::mutex rw_oaid_mutex_;
+    static std::mutex rw_under_age_mutex_;
 };
 } // namespace Cloud
 } // namespace OHOS

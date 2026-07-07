@@ -173,7 +173,7 @@ void OAIDService::OnAddSystemAbility(int32_t systemAbilityId, const std::string 
 {
     switch (systemAbilityId) {
         case OAID_SYSTME_ID:
-			OAID_HILOGI(OAID_MODULE_SERVICE, "OnAddSystemAbility enter");
+		    OAID_HILOGI(OAID_MODULE_SERVICE, "OnAddSystemAbility enter");
             break;
         default:
             OAID_HILOGI(OAID_MODULE_SERVICE, "sa unhandled sysabilityId: %{public}d", systemAbilityId);
@@ -351,24 +351,24 @@ std::vector<AncoAccessRecordInfo> OAIDService::GetAncoAccessRecords(int32_t user
 
 std::string OAIDService::GetAncoOAID()
 {
-	bool storeReady = false;
-	int retriesLimit = 3;
-	int waitSecond = 3;
-	for (int i = 0; i < retriesLimit; i++) {
-		OAID_HILOGI(OAID_MODULE_SERVICE, "oaidKvStore_ status =  %{public}d", oaidKvStore_ != nullptr);
-		if (oaidKvStore_ != nullptr) {
-			storeReady = true;
-			break;
+    bool storeReady = false;
+    int retriesLimit = 3;
+    int waitSecond = 3;
+    for (int i = 0; i < retriesLimit; i++) {
+	    OAID_HILOGI(OAID_MODULE_SERVICE, "oaidKvStore_ status =  %{public}d", oaidKvStore_ != nullptr);
+	    if (oaidKvStore_ != nullptr) {
+		    storeReady = true;
+		    break;
     	}
-		OAID_HILOGI(OAID_MODULE_SERVICE, "retry time");
-		std::this_thread::sleep_for(std::chrono::seconds(waitSecond));
-	}
-	OAID_HILOGI(OAID_MODULE_SERVICE, "flag = %{public}d", storeReady);
+	    OAID_HILOGI(OAID_MODULE_SERVICE, "retry time");
+	    std::this_thread::sleep_for(std::chrono::seconds(waitSecond));
+    }
+    OAID_HILOGI(OAID_MODULE_SERVICE, "flag = %{public}d", storeReady);
     if (!storeReady) {
         OAID_HILOGW(OAID_MODULE_SERVICE, "kv no ready");
         return "";
     }
-	return GetOAID();
+    return GetOAID();
 }
 
 int32_t OAIDService::InsertAccessRecord(const int32_t userId, const std::string bundleName, const std::string uid)
@@ -432,7 +432,7 @@ bool OAIDService::InitKvStore(std::string storeIdStr)
             OAID_HILOGI(OAID_MODULE_SERVICE, "First Boot: Create OaidKvStore");
             options.createIfMissing = true;
             status = manager.GetSingleKvStore(options, appId, storeId, kvStore_);
-			OAID_HILOGI(OAID_MODULE_SERVICE, "Create OaidKvStore res = %{public}d", status);
+		    OAID_HILOGI(OAID_MODULE_SERVICE, "Create OaidKvStore res = %{public}d", status);
         }
     }
     if (kvStore_ == nullptr) {
