@@ -353,6 +353,7 @@ std::string OAIDService::GetAncoOAID()
 {
 	bool storeReady = false;
 	int retriesLimit = 3;
+	int waitSecond = 3;
 	for (int i = 0; i < retriesLimit; i++) {
 		OAID_HILOGI(OAID_MODULE_SERVICE, "oaidKvStore_ status =  %{public}d", oaidKvStore_ != nullptr);
 		if (oaidKvStore_ != nullptr) {
@@ -360,7 +361,7 @@ std::string OAIDService::GetAncoOAID()
 			break;
     	}
 		OAID_HILOGI(OAID_MODULE_SERVICE, "retry time");
-		std::this_thread::sleep_for(std::chrono::seconds(3));
+		std::this_thread::sleep_for(std::chrono::seconds(waitSecond));
 	}
 	OAID_HILOGI(OAID_MODULE_SERVICE, "flag = %{public}d", storeReady);
     if (!storeReady) {
