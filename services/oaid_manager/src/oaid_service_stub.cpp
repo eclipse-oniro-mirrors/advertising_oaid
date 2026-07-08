@@ -539,16 +539,7 @@ int32_t OAIDServiceStub::OnGetAncoOAID(MessageParcel &data, MessageParcel &reply
         OAID_HILOGE(OAID_MODULE_SERVICE, "Check broker sa failed");
         return ERR_PERMISSION_ERROR;
     }
-    std::string oaid = GetAncoOAID();
-    if (oaid == "") {
-        OAID_HILOGE(OAID_MODULE_SERVICE, "Get AncoOAID failed.");
-        return ERR_SYSYTEM_ERROR;
-    }
-    if (!reply.WriteString(oaid)) {
-        OAID_HILOGE(OAID_MODULE_SERVICE, "Failed to write parcelable.");
-        return ERR_SYSYTEM_ERROR;
-    }
-    return ERR_OK;
+    return OnGetOAID(data, reply);
 }
 
 int32_t OAIDServiceStub::OnInsertAccessRecord(MessageParcel &data, MessageParcel &reply)
