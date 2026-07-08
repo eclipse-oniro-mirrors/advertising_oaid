@@ -20,6 +20,8 @@
 #include <unistd.h>
 #include <ctime>
 #include <future>
+#include <thread>
+#include <chrono>
 #include "oaid_common.h"
 #include "oaid_file_operator.h"
 #include "system_ability.h"
@@ -167,17 +169,9 @@ void OAIDService::OnStop()
 
 void OAIDService::OnAddSystemAbility(int32_t systemAbilityId, const std::string &deviceId)
 {
-    bool initBaseKvResult = false;
-    bool initUnderAgeKvResult = false;
     switch (systemAbilityId) {
         case OAID_SYSTME_ID:
-            OAID_HILOGI(OAID_MODULE_SERVICE, "sa kv data service start");
-            initBaseKvResult = InitKvStore(OAID_DATA_BASE_STORE_ID);
-            initUnderAgeKvResult = InitKvStore(OAID_UNDER_AGE_STORE_ID);
-                OAID_HILOGI(OAID_MODULE_SERVICE,
-                    "sa InitOaidKv is %{public}d, InitUnderAgeKv is %{public}d",
-                    initBaseKvResult,
-                    initUnderAgeKvResult);
+            OAID_HILOGI(OAID_MODULE_SERVICE, "OnAddSystemAbility enter");
             break;
         default:
             OAID_HILOGI(OAID_MODULE_SERVICE, "sa unhandled sysabilityId: %{public}d", systemAbilityId);
@@ -355,7 +349,24 @@ std::vector<AncoAccessRecordInfo> OAIDService::GetAncoAccessRecords(int32_t user
 
 std::string OAIDService::GetAncoOAID()
 {
-    return "";
+    bool storeReady = false;
+    int retriesLimit = 3;
+    int waitSecond = 3;
+    for (int i = 0; i < retriesLimit; i++) {
+        OAID_HILOGI(OAID_MODULE_SERVICE, "oaidKvStore_ status =  %{public}d", oaidKvStore_ != nullptr);
+        if (oaidKvStore_ != nullptr) {
+            storeReady = true;
+            break;
+        }
+        OAID_HILOGI(OAID_MODULE_SERVICE, "retry time");
+        std::this_thread::sleep_for(std::chrono::seconds(waitSecond));
+    }
+    OAID_HILOGI(OAID_MODULE_SERVICE, "flag = %{public}d", storeReady);
+    if (!storeReady) {
+        OAID_HILOGW(OAID_MODULE_SERVICE, "kv no ready");
+        return "";
+    }
+    return GetOAID();
 }
 
 int32_t OAIDService::InsertAccessRecord(const int32_t userId, const std::string bundleName, const std::string uid)
@@ -419,7 +430,7 @@ bool OAIDService::InitKvStore(std::string storeIdStr)
             OAID_HILOGI(OAID_MODULE_SERVICE, "First Boot: Create OaidKvStore");
             options.createIfMissing = true;
             status = manager.GetSingleKvStore(options, appId, storeId, kvStore_);
-            OAID_HILOGE(OAID_MODULE_SERVICE, "Create OaidKvStore res = %{public}d", status);
+            OAID_HILOGI(OAID_MODULE_SERVICE, "Create OaidKvStore res = %{public}d", status);
         }
     }
     if (kvStore_ == nullptr) {
@@ -454,9 +465,9 @@ bool OAIDService::ReadValueFromUnderAgeKvStore(const std::string &kvStoreKey, Di
     DistributedKv::Key key(kvStoreKey);
     DistributedKv::Status status = oaidUnderAgeKvStore_->Get(key, kvStoreValue);
     if (status == DistributedKv::Status::SUCCESS) {
-        OAID_HILOGI(OAID_MODULE_SERVICE, "%{public}d get value from kvStore", status);
+        OAID_HILOGI(OAID_MODULE_SERVICE, "%{public}d UnderAge get value from kvStore", status);
     } else {
-        OAID_HILOGI(OAID_MODULE_SERVICE, "%{public}d get value from kvStore failed", status);
+        OAID_HILOGI(OAID_MODULE_SERVICE, "%{public}d UnderAge get value from kvStore failed", status);
         return false;
     }
     return true;
@@ -473,9 +484,9 @@ bool OAIDService::WriteValueToUnderAgeKvStore(const std::string &kvStoreKey, con
     DistributedKv::Key key(kvStoreKey);
     DistributedKv::Status status = oaidUnderAgeKvStore_->Put(key, kvStoreValue);
     if (status == DistributedKv::Status::SUCCESS) {
-        OAID_HILOGI(OAID_MODULE_SERVICE, "%{public}d updated to kvStore", status);
+        OAID_HILOGI(OAID_MODULE_SERVICE, "%{public}d UnderAge updated to kvStore", status);
     } else {
-        OAID_HILOGE(OAID_MODULE_SERVICE, "%{public}d update to kvStore failed", status);
+        OAID_HILOGE(OAID_MODULE_SERVICE, "%{public}d UnderAge update to kvStore failed", status);
         return false;
     }
     return true;
