@@ -101,6 +101,7 @@ std::string GetUUID()
 REGISTER_SYSTEM_ABILITY_BY_ID(OAIDService, OAID_SYSTME_ID, true);
 std::mutex OAIDService::mutex_;
 sptr<OAIDService> OAIDService::instance_;
+std::atomic<bool> OAIDService::oaidKvStoreExist;
 
 OAIDService::OAIDService(int32_t systemAbilityId, bool runOnCreate)
     : SystemAbility(systemAbilityId, runOnCreate), state_(ServiceRunningState::STATE_NOT_START)
@@ -167,17 +168,9 @@ void OAIDService::OnStop()
 
 void OAIDService::OnAddSystemAbility(int32_t systemAbilityId, const std::string &deviceId)
 {
-    bool initBaseKvResult = false;
-    bool initUnderAgeKvResult = false;
     switch (systemAbilityId) {
         case OAID_SYSTME_ID:
-            OAID_HILOGI(OAID_MODULE_SERVICE, "sa kv data service start");
-            initBaseKvResult = InitKvStore(OAID_DATA_BASE_STORE_ID);
-            initUnderAgeKvResult = InitKvStore(OAID_UNDER_AGE_STORE_ID);
-                OAID_HILOGI(OAID_MODULE_SERVICE,
-                    "sa InitOaidKv is %{public}d, InitUnderAgeKv is %{public}d",
-                    initBaseKvResult,
-                    initUnderAgeKvResult);
+			OAID_HILOGI(OAID_MODULE_SERVICE, "OnAddSystemAbility enter");
             break;
         default:
             OAID_HILOGI(OAID_MODULE_SERVICE, "sa unhandled sysabilityId: %{public}d", systemAbilityId);
@@ -191,6 +184,7 @@ bool OAIDService::CheckKvStore()
         return true;
     }
     bool result = InitKvStore(OAID_DATA_BASE_STORE_ID);
+    oaidKvStoreExist = result;
     OAID_HILOGI(OAID_MODULE_SERVICE, "InitOaidKvStore: %{public}s", result == true ? "success" : "failed");
     return result;
 }
@@ -355,7 +349,13 @@ std::vector<AncoAccessRecordInfo> OAIDService::GetAncoAccessRecords(int32_t user
 
 std::string OAIDService::GetAncoOAID()
 {
-    return "";
+    OAID_HILOGI(OAID_MODULE_SERVICE, "oaidKvStore_ status = %{public}d, oaidKvStoreExist = %{public}d",
+        oaidKvStore_ != nullptr, oaidKvStoreExist.load());
+    if (!oaidKvStoreExist) {
+        OAID_HILOGW(OAID_MODULE_SERVICE, "kv no ready");
+        return "";
+    }
+    return GetOAID();
 }
 
 int32_t OAIDService::InsertAccessRecord(const int32_t userId, const std::string bundleName, const std::string uid)
