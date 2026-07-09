@@ -170,7 +170,7 @@ void OAIDService::OnAddSystemAbility(int32_t systemAbilityId, const std::string 
 {
     switch (systemAbilityId) {
         case OAID_SYSTME_ID:
-			OAID_HILOGI(OAID_MODULE_SERVICE, "OnAddSystemAbility enter");
+            OAID_HILOGI(OAID_MODULE_SERVICE, "OnAddSystemAbility enter");
             break;
         default:
             OAID_HILOGI(OAID_MODULE_SERVICE, "sa unhandled sysabilityId: %{public}d", systemAbilityId);
