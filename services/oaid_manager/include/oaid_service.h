@@ -106,6 +106,7 @@ private:
     ServiceRunningState state_;
     static std::mutex mutex_;
     static sptr<OAIDService> instance_;
+    static std::atomic<bool> oaidKvStoreExist;
 
     std::shared_ptr<DistributedKv::SingleKvStore> oaidKvStore_;
     std::shared_ptr<DistributedKv::SingleKvStore> oaidUnderAgeKvStore_;
