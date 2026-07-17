@@ -112,7 +112,7 @@ void ConnectAdsStub::ProcessMessageQueue()
 
     // 检查连接状态
     if (GetConnectionState() != ConnectionState::CONNECTED || GetProxy() == nullptr) {
-        OAID_HILOGW(OAID_MODULE_SERVICE, "Cannot process queue - not connected");
+        OAID_HILOGI(OAID_MODULE_SERVICE, "Cannot process queue - not connected");
         // 将未处理的消息重新放回队列
         std::lock_guard<std::mutex> lock(queueMutex_);
         while (!tempQueue.empty()) {
@@ -269,10 +269,15 @@ bool ConnectAdsManager::checkAllowGetOaid()
 {
     DistributedKv::Value allowGetOaid;
     DistributedKv::Value updateTime;
-    OAIDService::GetInstance()->ReadValueFromUnderAgeKvStore(ALLOW_GET_OAID_KEY, allowGetOaid);
-    OAIDService::GetInstance()->ReadValueFromUnderAgeKvStore(LAST_UPDATE_TIME_KEY, updateTime);
-    if (allowGetOaid == nullptr || updateTime == nullptr) {
+    bool readAllowResult = OAIDService::GetInstance()->ReadValueFromUnderAgeKvStore(ALLOW_GET_OAID_KEY, allowGetOaid);
+    bool readTimeResult = OAIDService::GetInstance()->ReadValueFromUnderAgeKvStore(LAST_UPDATE_TIME_KEY, updateTime);
+    if (!readAllowResult || !readTimeResult) {
         OAID_HILOGI(OAID_MODULE_SERVICE, "checkAllowGetOaid get kvData failed");
+        ConnectAdsManager::GetInstance()->notifyKit(GET_ALLOW_OAID_CODE);
+        return true;
+    }
+    if (allowGetOaid.Empty() || updateTime.Empty()) {
+        OAID_HILOGI(OAID_MODULE_SERVICE, "checkAllowGetOaid kvData is empty");
         ConnectAdsManager::GetInstance()->notifyKit(GET_ALLOW_OAID_CODE);
         return true;
     }
