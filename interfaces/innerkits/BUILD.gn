@@ -54,6 +54,7 @@ ohos_shared_library("oaid_client") {
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
     "relational_store:native_rdb",
+    "node:node_header_notice"
   ]
   version_script = "liboaidclient.versionscript"
   subsystem_name = "advertising"

@@ -69,6 +69,7 @@ ohos_shared_library("oaid_service") {
     "samgr:samgr_proxy",
     "relational_store:native_appdatafwk",
     "relational_store:native_rdb",
+    "node:node_header_notice"
   ]
   part_name = "oaid"
   subsystem_name = "advertising"
