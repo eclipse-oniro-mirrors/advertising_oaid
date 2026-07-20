@@ -39,7 +39,8 @@
         "eventhandler",
         "libuv",
         "openssl",
-        "relational_store"
+        "relational_store",
+        "node"
       ],
       "third_party": [
 

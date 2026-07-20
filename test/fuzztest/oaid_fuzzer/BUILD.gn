@@ -50,6 +50,7 @@ ohos_fuzztest("OAIDFuzzTest") {
     "ipc:ipc_single",
     "kv_store:distributeddata_inner",
     "safwk:system_ability_fwk",
+    "node:node_header_notice"
   ]
 
   defines = [
