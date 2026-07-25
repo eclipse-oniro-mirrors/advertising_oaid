@@ -30,6 +30,11 @@
 #include "tokenid_kit.h"
 #include "oaid_anco_service.h"
 
+/**
+ * load time out: 10s
+ */
+static const int8_t LOAD_TIME_OUT = 10;
+
 namespace OHOS {
 namespace Cloud {
 class OAIDSaDeathRecipient : public IRemoteObject::DeathRecipient {
@@ -113,7 +118,7 @@ private:
     static std::mutex instanceLock_;
     static sptr<OAIDServiceClient> instance_;
 
-    bool LoadService();
+    bool LoadService(int8_t waitTime = LOAD_TIME_OUT);
     bool loadServiceReady_ = false;
     std::mutex loadServiceLock_;
     std::condition_variable loadServiceCondition_;
