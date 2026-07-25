@@ -34,10 +34,7 @@ static const std::string OAID_ALLZERO_STR = "00000000-0000-0000-0000-00000000000
 
 static const std::string OAID_TRACKING_CONSENT_PERMISSION = "ohos.permission.APP_TRACKING_CONSENT";
 
-/**
- * load time out: 10s
- */
-static const int8_t LOAD_TIME_OUT = 10;
+static const int8_t BROKER_LOAD_TIME_OUT = 4;
 
 static const int8_t RESET_OAID_DEFAULT_CODE = 0;
 } // namespace
@@ -95,7 +92,7 @@ sptr<OAIDServiceClient> OAIDServiceClient::GetInstance()
     return instance_;
 }
 
-bool OAIDServiceClient::LoadService()
+bool OAIDServiceClient::LoadService(int8_t waitTime)
 {
     if (loadServiceReady_) {
         return true;
@@ -125,10 +122,10 @@ bool OAIDServiceClient::LoadService()
             OAID_MODULE_CLIENT, "LoadSystemAbility %{public}d failed, result: %{public}d.", OAID_SYSTME_ID, result);
         return false;
     }
-
+    OAID_HILOGI(OAID_MODULE_CLIENT, "waitTime = %{public}d.", waitTime);
     std::unique_lock<std::mutex> conditionLock(loadServiceConditionLock_);
     auto waitStatus = loadServiceCondition_.wait_for(
-        conditionLock, std::chrono::seconds(LOAD_TIME_OUT), [this]() { return loadServiceReady_; });
+        conditionLock, std::chrono::seconds(waitTime), [this]() { return loadServiceReady_; });
     if (!waitStatus) {
         OAID_HILOGE(OAID_MODULE_CLIENT, "LoadSystemAbility timeout.");
         return false;
@@ -224,9 +221,8 @@ int32_t OAIDServiceClient::RegisterObserver(const sptr<IRemoteConfigObserver>& o
 bool OAIDServiceClient::SetAncoSwitchStatus(int32_t userId, const std::string& bundleName,
     const std::string& uid, int32_t status)
 {
-    if (!LoadService()) {
+    if (!LoadService(BROKER_LOAD_TIME_OUT)) {
         OAID_HILOGW(OAID_MODULE_CLIENT, "Redo load oaid service.");
-        LoadService();
     }
 
     std::lock_guard<std::mutex> lock(getOaidProxyMutex_);
@@ -246,9 +242,8 @@ std::vector<AncoSwitchStatusInfo> OAIDServiceClient::GetAncoSwitchStatus(int32_t
 {
     OAID_HILOGI(OAID_MODULE_SERVICE, "QuerySwitchStatus userId =%{public}d packageName= %{public}s uid = %{public}s",
         userId, bundleName.c_str(), uid.c_str());
-    if (!LoadService()) {
+    if (!LoadService(BROKER_LOAD_TIME_OUT)) {
         OAID_HILOGW(OAID_MODULE_CLIENT, "Redo load oaid service.");
-        LoadService();
     }
 
     std::lock_guard<std::mutex> lock(getOaidProxyMutex_);
@@ -334,9 +329,8 @@ void OAIDSaDeathRecipient::OnRemoteDied(const wptr<IRemoteObject>& object)
 
 std::string OAIDServiceClient::GetAncoOAID()
 {
-    if (!LoadService()) {
+    if (!LoadService(BROKER_LOAD_TIME_OUT)) {
         OAID_HILOGW(OAID_MODULE_CLIENT, "Redo load oaid service.");
-        LoadService();
     }
     std::lock_guard<std::mutex> lock(getOaidProxyMutex_);
     if (oaidServiceProxy_ == nullptr) {
