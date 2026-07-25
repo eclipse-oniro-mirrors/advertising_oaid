@@ -31,7 +31,7 @@ OAIDServiceProxy::OAIDServiceProxy(const sptr<IRemoteObject> &object) : IRemoteP
 
 std::string OAIDServiceProxy::GetOAID()
 {
-    OAID_HILOGI(OAID_MODULE_CLIENT, "GetOAID Begin.");
+    OAID_HILOGD(OAID_MODULE_CLIENT, "GetOAID Begin.");
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -123,7 +123,7 @@ int32_t OAIDServiceProxy::RegisterObserver(const sptr<IRemoteConfigObserver> &ob
 bool OAIDServiceProxy::SetAncoSwitchStatus(int32_t userId, const std::string& bundleName,
     const std::string& uid, int32_t status)
 {
-    OAID_HILOGI(OAID_MODULE_CLIENT, "SetAncoSwitchStatus Begin.");
+    OAID_HILOGD(OAID_MODULE_CLIENT, "SetAncoSwitchStatus Begin.");
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -308,7 +308,7 @@ std::vector<AncoSwitchStatusInfo> OAIDServiceProxy::GetAncoSwitchStatus(int32_t 
 std::vector<AncoAccessRecordInfo> OAIDServiceProxy::GetAncoAccessRecords(int32_t userId,
     const std::string& bundleName, const std::string& uid)
 {
-    OAID_HILOGI(OAID_MODULE_CLIENT, "GetAncoAccessRecords Begin.");
+    OAID_HILOGD(OAID_MODULE_CLIENT, "GetAncoAccessRecords Begin.");
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -380,7 +380,7 @@ std::string OAIDServiceProxy::GetAncoOAID()
 
 int32_t OAIDServiceProxy::InsertAccessRecord(const int32_t userId, const std::string bundleName, const std::string uid)
 {
-    OAID_HILOGI(OAID_MODULE_CLIENT, "InsertAccessRecord Begin.");
+    OAID_HILOGD(OAID_MODULE_CLIENT, "InsertAccessRecord Begin.");
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
