@@ -244,7 +244,6 @@ std::vector<AncoSwitchStatusInfo> OAIDServiceClient::GetAncoSwitchStatus(int32_t
         userId, bundleName.c_str(), uid.c_str());
     if (!LoadService(BROKER_LOAD_TIME_OUT)) {
         OAID_HILOGW(OAID_MODULE_CLIENT, "Redo load oaid service.");
-
     }
 
     std::lock_guard<std::mutex> lock(getOaidProxyMutex_);
