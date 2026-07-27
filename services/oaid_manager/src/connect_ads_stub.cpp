@@ -92,7 +92,7 @@ void ConnectAdsStub::AddMessageToQueue(int32_t code)
     if (messageSet_.find(code) == messageSet_.end()) {
         messageQueue_.push(code);
         messageSet_.insert(code);
-        OAID_HILOGI(OAID_MODULE_SERVICE, "Add message %{public}d to queue", code);
+        OAID_HILOGD(OAID_MODULE_SERVICE, "Add message %{public}d to queue", code);
     }
 }
 
@@ -101,7 +101,7 @@ void ConnectAdsStub::ProcessMessageQueue()
     std::queue<int32_t> tempQueue;
     {
         std::lock_guard<std::mutex> lock(queueMutex_);
-        OAID_HILOGI(OAID_MODULE_SERVICE, "Processing message queue");
+        OAID_HILOGD(OAID_MODULE_SERVICE, "Processing message queue");
         if (messageQueue_.empty()) {
             OAID_HILOGI(OAID_MODULE_SERVICE, "Message queue is empty");
             return;
@@ -129,7 +129,7 @@ void ConnectAdsStub::ProcessMessageQueue()
     while (!tempQueue.empty()) {
         int32_t code = tempQueue.front();
         tempQueue.pop();
-        OAID_HILOGI(OAID_MODULE_SERVICE, "Processing message code=%{public}d", code);
+        OAID_HILOGD(OAID_MODULE_SERVICE, "Processing message code=%{public}d", code);
         SendMessage(code);
     }
 }
@@ -269,10 +269,15 @@ bool ConnectAdsManager::checkAllowGetOaid()
 {
     DistributedKv::Value allowGetOaid;
     DistributedKv::Value updateTime;
-    OAIDService::GetInstance()->ReadValueFromUnderAgeKvStore(ALLOW_GET_OAID_KEY, allowGetOaid);
-    OAIDService::GetInstance()->ReadValueFromUnderAgeKvStore(LAST_UPDATE_TIME_KEY, updateTime);
-    if (allowGetOaid == nullptr || updateTime == nullptr) {
+    bool readAllowResult = OAIDService::GetInstance()->ReadValueFromUnderAgeKvStore(ALLOW_GET_OAID_KEY, allowGetOaid);
+    bool readTimeResult = OAIDService::GetInstance()->ReadValueFromUnderAgeKvStore(LAST_UPDATE_TIME_KEY, updateTime);
+    if (!readAllowResult || !readTimeResult) {
         OAID_HILOGI(OAID_MODULE_SERVICE, "checkAllowGetOaid get kvData failed");
+        ConnectAdsManager::GetInstance()->notifyKit(GET_ALLOW_OAID_CODE);
+        return true;
+    }
+    if (allowGetOaid.Empty() || updateTime.Empty()) {
+        OAID_HILOGI(OAID_MODULE_SERVICE, "checkAllowGetOaid kvData is empty");
         ConnectAdsManager::GetInstance()->notifyKit(GET_ALLOW_OAID_CODE);
         return true;
     }
