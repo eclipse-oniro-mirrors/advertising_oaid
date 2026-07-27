@@ -53,7 +53,7 @@ public:
             OAID_HILOGE(OAID_MODULE_SERVICE, "Start systemAbility is not oaid service: %{public}d.", systemAbilityId);
             return;
         }
-
+        OAID_HILOGI(OAID_MODULE_SERVICE, "Enter OnLoadSystemAbilitySuccess");
         OAIDServiceClient::GetInstance()->LoadServerSuccess(remoteObject);
     }
 
@@ -63,7 +63,7 @@ public:
             OAID_HILOGE(OAID_MODULE_SERVICE, "Start systemAbility is not oaid service: %{public}d.", systemAbilityId);
             return;
         }
-
+        OAID_HILOGI(OAID_MODULE_SERVICE, "Enter OnLoadSystemAbilityFail");
         OAIDServiceClient::GetInstance()->LoadServerFail();
     }
 };
@@ -187,7 +187,7 @@ bool OAIDServiceClient::CheckPermission(const std::string &permissionName)
     // Verify the invoker's permission.
     AccessTokenID callingToken = IPCSkeleton::GetCallingTokenID();
     ATokenTypeEnum callingType = AccessTokenKit::GetTokenTypeFlag(callingToken);
-    OAID_HILOGI(OAID_MODULE_SERVICE, "callingToken = %{public}u", callingToken);
+    OAID_HILOGD(OAID_MODULE_SERVICE, "callingToken = %{public}u", callingToken);
     ErrCode result = TypePermissionState::PERMISSION_DENIED;
     if (callingType == TOKEN_INVALID) {
         OAID_HILOGE(OAID_MODULE_SERVICE, "callingToken is invalid");
