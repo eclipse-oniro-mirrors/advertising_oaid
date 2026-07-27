@@ -53,7 +53,7 @@ public:
             OAID_HILOGE(OAID_MODULE_SERVICE, "Start systemAbility is not oaid service: %{public}d.", systemAbilityId);
             return;
         }
-
+        OAID_HILOGI(OAID_MODULE_SERVICE, "Enter OnLoadSystemAbilitySuccess");
         OAIDServiceClient::GetInstance()->LoadServerSuccess(remoteObject);
     }
 
@@ -63,7 +63,7 @@ public:
             OAID_HILOGE(OAID_MODULE_SERVICE, "Start systemAbility is not oaid service: %{public}d.", systemAbilityId);
             return;
         }
-
+        OAID_HILOGI(OAID_MODULE_SERVICE, "Enter OnLoadSystemAbilityFail");
         OAIDServiceClient::GetInstance()->LoadServerFail();
     }
 };
