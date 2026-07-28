@@ -40,7 +40,8 @@
         "libuv",
         "openssl",
         "relational_store",
-        "node"
+        "node",
+        "bounds_checking_function"
       ],
       "third_party": [
 
