@@ -163,8 +163,8 @@ int32_t OaidRdbManager::Init()
         rdbStore_ = nullptr;
         rdbStore_ = NativeRdb::RdbHelper::GetRdbStore(config, DATABASE_VERSION, callback, errCode);
         if (errCode != NativeRdb::E_OK || rdbStore_ == nullptr) {
-            OAID_HILOGE(OAID_MODULE_SERVICE, "Failed to recreate RdbStore after corruption recovery, "
-                "errCode=%{public}d", errCode);
+            OAID_HILOGE(OAID_MODULE_SERVICE, "Failed to recreate RdbStore after corruption recovery,errCode=%{public}d",
+                errCode);
             return ERR_DB_CONNECT_FAILED;
         }
     }
@@ -341,7 +341,7 @@ std::vector<AncoAccessRecordInfo> OaidRdbManager::QueryAccessRecords(int32_t use
         return result;
     }
     int64_t currentTime = std::chrono::duration_cast<std::chrono::milliseconds>(
-            std::chrono::system_clock::now().time_since_epoch()).count();
+        std::chrono::system_clock::now().time_since_epoch()).count();
     int64_t sevenDaysAgo = currentTime - SEVEN_DAYS_MS;
     // Query records from the database
     std::vector<AncoAccessRecordInfo> records = QueryAccessRecordsFromDatabase(userId, bundleName, uid, sevenDaysAgo);
@@ -350,6 +350,7 @@ std::vector<AncoAccessRecordInfo> OaidRdbManager::QueryAccessRecords(int32_t use
     OAID_HILOGI(OAID_MODULE_SERVICE, "QueryAccessRecords success, count=%{public}zu", result.size());
     return result;
 }
+
 int32_t OaidRdbManager::InsertAccessRecord(const int32_t userId, const std::string bundleName, const std::string uid)
 {
     std::unique_lock<std::shared_mutex> lock(mutex_);
@@ -381,7 +382,6 @@ std::vector<std::string> OaidRdbManager::QueryAllBundleNames(int32_t userId)
     if (rdbStore_ == nullptr) {
         return bundleNames;
     }
-    // UNION 查询两个表，返回去重的 bundleName
     std::string sql = "SELECT DISTINCT bn FROM " + SWITCH_STATUS_TABLE +
                       " WHERE user_id = ? UNION SELECT DISTINCT bn FROM " +
                       ACCESS_RECORD_TABLE + " WHERE user_id = ?";
@@ -411,15 +411,14 @@ int32_t OaidRdbManager::CleanUninstalledAppRecords(int32_t userId)
     std::vector<std::string> uninstalledBundles;
     for (const auto& bundleName : allBundleNames) {
         AppExecFwk::BundleInfo bundleInfo;
-            if (uninstalledBundles.size() < MAX_DELETE_COUNT &&
-                !BundleMgrHelper::GetInstance()->GetBundleInfo(bundleName, bundleInfo, userId)) {
-                uninstalledBundles.push_back(bundleName);
-            }
+        if (uninstalledBundles.size() < MAX_DELETE_COUNT &&
+            !BundleMgrHelper::GetInstance()->GetBundleInfo(bundleName, bundleInfo, userId)) {
+            uninstalledBundles.push_back(bundleName);
+        }
     }
     if (uninstalledBundles.empty()) {
         return ERR_OK;
     }
-    std::unique_lock<std::shared_mutex> lock(mutex_);
     auto [switchDeleteSql, switchArgs] = BuildBatchDeleteSql(userId, SWITCH_STATUS_TABLE, uninstalledBundles);
     int32_t ret = rdbStore_->ExecuteSql(switchDeleteSql, switchArgs);
     if (ret != NativeRdb::E_OK) {
