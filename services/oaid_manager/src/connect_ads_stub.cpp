@@ -38,6 +38,66 @@ std::mutex ConnectAdsStub::proxyMutex_;
 std::mutex ConnectAdsManager::connectMutex_;
 std::int32_t ConnectAdsStub::CODE_OAID = GET_ALLOW_OAID_CODE;
 
+namespace {
+struct OaidProviderConfig {
+    std::string bundleName;
+    std::string abilityName;
+    std::string tokenName;
+};
+
+bool LoadOaidProviderConfig(OaidProviderConfig &config)
+{
+    char pathBuff[PATH_MAX] = {0};
+    GetOneCfgFile(OAID_TRUSTLIST_EXTENSION_CONFIG_PATH.c_str(), pathBuff, PATH_MAX);
+    char realPath[PATH_MAX] = {0};
+    if (realpath(pathBuff, realPath) == nullptr) {
+        GetOneCfgFile(OAID_TRUSTLIST_CONFIG_PATH.c_str(), pathBuff, PATH_MAX);
+        if (realpath(pathBuff, realPath) == nullptr) {
+            OAID_HILOGE(OAID_MODULE_SERVICE, "Parse realpath fail");
+            return false;
+        }
+    }
+    std::ifstream inFile(realPath, std::ios::in);
+    if (!inFile.is_open()) {
+        OAID_HILOGE(OAID_MODULE_SERVICE, "Open file error.");
+        return false;
+    }
+    std::string fileContent((std::istreambuf_iterator<char>{inFile}), std::istreambuf_iterator<char>{});
+    cJSON *root = cJSON_Parse(fileContent.c_str());
+    inFile.close();
+    if (root == nullptr) {
+        OAID_HILOGE(OAID_MODULE_SERVICE, "ParseJsonFromFile is not in JSON format.");
+        return false;
+    }
+    cJSON *oaidProviderBundleNameConfig = cJSON_GetObjectItem(root, "providerBundleName");
+    if (oaidProviderBundleNameConfig == nullptr || oaidProviderBundleNameConfig->type != cJSON_String
+        || oaidProviderBundleNameConfig->valuestring == nullptr) {
+        OAID_HILOGE(OAID_MODULE_SERVICE, "not contain providerBundleName node.");
+        cJSON_Delete(root);
+        return false;
+    }
+    cJSON *oaidProviderAbilityNameConfig = cJSON_GetObjectItem(root, "providerAbilityName");
+    if (oaidProviderAbilityNameConfig == nullptr || oaidProviderAbilityNameConfig->type != cJSON_String
+        || oaidProviderAbilityNameConfig->valuestring == nullptr) {
+        OAID_HILOGE(OAID_MODULE_SERVICE, "not contain providerAbilityName node.");
+        cJSON_Delete(root);
+        return false;
+    }
+    cJSON *oaidProviderTokenNameConfig = cJSON_GetObjectItem(root, "providerTokenName");
+    if (oaidProviderTokenNameConfig == nullptr || oaidProviderTokenNameConfig->type != cJSON_String
+        || oaidProviderTokenNameConfig->valuestring == nullptr) {
+        OAID_HILOGE(OAID_MODULE_SERVICE, "not contain providerTokenName node.");
+        cJSON_Delete(root);
+        return false;
+    }
+    config.bundleName = oaidProviderBundleNameConfig->valuestring;
+    config.abilityName = oaidProviderAbilityNameConfig->valuestring;
+    config.tokenName = oaidProviderTokenNameConfig->valuestring;
+    cJSON_Delete(root);
+    return true;
+}
+}  // namespace
+
 // ConnectAdsStub 实现
 void ConnectAdsStub::OnAbilityConnectDone(const ElementName &element,
     const sptr<IRemoteObject> &remoteObject, int resultCode)
@@ -217,51 +277,12 @@ Want ConnectAdsManager::getWantInfo()
 {
     OAID_HILOGI(OAID_MODULE_SERVICE, "enter getWantInfo ");
     Want connectionWant;
-    char pathBuff[PATH_MAX] = {0};
-    GetOneCfgFile(OAID_TRUSTLIST_EXTENSION_CONFIG_PATH.c_str(), pathBuff, PATH_MAX);
-    char realPath[PATH_MAX] = {0};
-    if (realpath(pathBuff, realPath) == nullptr) {
-        GetOneCfgFile(OAID_TRUSTLIST_CONFIG_PATH.c_str(), pathBuff, PATH_MAX);
-        if (realpath(pathBuff, realPath) == nullptr) {
-            OAID_HILOGE(OAID_MODULE_SERVICE, "Parse realpath fail");
-            return connectionWant;
-        }
-    }
-    std::ifstream inFile(realPath, std::ios::in);
-    if (!inFile.is_open()) {
-        OAID_HILOGE(OAID_MODULE_SERVICE, "Open file error.");
+    OaidProviderConfig config;
+    if (!LoadOaidProviderConfig(config)) {
         return connectionWant;
     }
-    std::string fileContent((std::istreambuf_iterator<char>{inFile}), std::istreambuf_iterator<char>{});
-    cJSON *root = cJSON_Parse(fileContent.c_str());
-    inFile.close();
-    if (root == nullptr) {
-        OAID_HILOGE(OAID_MODULE_SERVICE, "ParseJsonFromFile is not in JSON format.");
-        return connectionWant;
-    }
-    cJSON *oaidProviderBundleNameConfig = cJSON_GetObjectItem(root, "providerBundleName");
-    if (oaidProviderBundleNameConfig == nullptr || oaidProviderBundleNameConfig->type != cJSON_String) {
-        OAID_HILOGE(OAID_MODULE_SERVICE, "not contain providerBundleName node.");
-        cJSON_Delete(root);
-        return connectionWant;
-    }
-    cJSON *oaidProviderAbilityNameConfig = cJSON_GetObjectItem(root, "providerAbilityName");
-    if (oaidProviderAbilityNameConfig == nullptr || oaidProviderAbilityNameConfig->type != cJSON_String) {
-        OAID_HILOGE(OAID_MODULE_SERVICE, "not contain providerAbilityName node.");
-        cJSON_Delete(root);
-        return connectionWant;
-    }
-    cJSON *oaidProviderTokenNameConfig = cJSON_GetObjectItem(root, "providerTokenName");
-    if (oaidProviderTokenNameConfig == nullptr || oaidProviderTokenNameConfig->type != cJSON_String
-        || oaidProviderTokenNameConfig->valuestring == nullptr) {
-        OAID_HILOGE(OAID_MODULE_SERVICE, "not contain providerTokenName node.");
-        cJSON_Delete(root);
-        return connectionWant;
-    }
-    ConnectAdsStub::setToken(Str8ToStr16(oaidProviderTokenNameConfig->valuestring));
-    connectionWant.SetElementName(oaidProviderBundleNameConfig->valuestring,
-        oaidProviderAbilityNameConfig->valuestring);
-    cJSON_Delete(root);
+    ConnectAdsStub::setToken(Str8ToStr16(config.tokenName));
+    connectionWant.SetElementName(config.bundleName, config.abilityName);
     return connectionWant;
 }
 
