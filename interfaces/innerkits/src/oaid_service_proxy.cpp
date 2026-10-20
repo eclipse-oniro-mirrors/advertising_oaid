@@ -53,7 +53,7 @@ std::string OAIDServiceProxy::GetOAID()
             result = curErrorCode;
             OAID_HILOGE(OAID_MODULE_CLIENT, "Get OAID failed of No permission, error code is: %{public}d", result);
         } else {
-            OAIDError curError = ERR_SYSYTEM_ERROR;
+            OAIDError curError = ERR_SYSTEM_ERROR;
             result = curError;
             OAID_HILOGE(OAID_MODULE_CLIENT, "Get OAID failed of System error, error code is: %{public}d", result);
         }
@@ -77,7 +77,7 @@ int32_t OAIDServiceProxy::ResetOAID()
     sptr<IRemoteObject> remote = Remote();
     if (remote == nullptr) {
         OAID_HILOGE(OAID_MODULE_CLIENT, "resetoaid get remote failed");
-        return ERR_SYSYTEM_ERROR;
+        return ERR_SYSTEM_ERROR;
     }
     int32_t result = remote->SendRequest(static_cast<uint32_t>(OAIDInterfaceCode::RESET_OAID), data, reply, option);
     if (result != ERR_NONE) {
@@ -411,7 +411,7 @@ int32_t OAIDServiceProxy::InsertAccessRecord(const int32_t userId, const std::st
         static_cast<uint32_t>(OAIDInterfaceCode::SET_ANCO_ACCESS_RECORDS), data, reply, option);
     if (result != ERR_NONE) {
         OAID_HILOGE(OAID_MODULE_CLIENT, "InsertAccessRecord failed, error code is: %{public}d", result);
-        return ERR_SYSYTEM_ERROR;
+        return ERR_SYSTEM_ERROR;
     }
 
     int32_t errorCode = reply.ReadInt32();

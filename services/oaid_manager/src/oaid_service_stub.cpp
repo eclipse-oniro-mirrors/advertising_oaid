@@ -208,7 +208,7 @@ int32_t OAIDServiceStub::SendCode(uint32_t code, MessageParcel &data, MessagePar
             break;
         }
     }
-    return ERR_SYSYTEM_ERROR;
+    return ERR_SYSTEM_ERROR;
 }
 
 int32_t OAIDServiceStub::OnRemoteRequest(
@@ -228,8 +228,8 @@ int32_t OAIDServiceStub::OnRemoteRequest(
     }
     if (code == static_cast<uint32_t>(OAIDInterfaceCode::RESET_OAID)) {
         int32_t validateResult = ValidateResetOAIDPermission(bundleName, reply);
-        if (validateResult == ERR_SYSYTEM_ERROR) {
-            return ERR_SYSYTEM_ERROR;
+        if (validateResult == ERR_SYSTEM_ERROR) {
+            return ERR_SYSTEM_ERROR;
         }
         if (validateResult == ERR_PERMISSION_ERROR) {
             return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
@@ -239,7 +239,7 @@ int32_t OAIDServiceStub::OnRemoteRequest(
     std::u16string remoteDescripter = data.ReadInterfaceToken();
     if (myDescripter != remoteDescripter) {
         OAID_HILOGE(OAID_MODULE_SERVICE, "Descriptor checked fail.");
-        return ERR_SYSYTEM_ERROR;
+        return ERR_SYSTEM_ERROR;
     }
     return SendCode(code, data, reply);
 }
@@ -251,7 +251,7 @@ int32_t OAIDServiceStub::ValidateResetOAIDPermission(std::string bundleName, Mes
             OAID_MODULE_SERVICE, "CheckOaidTrustList fail.errorCode = %{public}d", OAID_ERROR_NOT_IN_TRUST_LIST);
         if (!reply.WriteInt32(OAID_ERROR_NOT_IN_TRUST_LIST)) {
             OAID_HILOGE(OAID_MODULE_SERVICE, "write errorCode to reply failed.");
-            return ERR_SYSYTEM_ERROR;
+            return ERR_SYSTEM_ERROR;
         }
         return ERR_PERMISSION_ERROR;
     }
@@ -260,7 +260,7 @@ int32_t OAIDServiceStub::ValidateResetOAIDPermission(std::string bundleName, Mes
         OAID_HILOGW(OAID_MODULE_SERVICE, "CheckSystemApp fail.errorCode = %{public}d", OAID_ERROR_CODE_NOT_SYSTEM_APP);
         if (!reply.WriteInt32(OAID_ERROR_CODE_NOT_SYSTEM_APP)) {
             OAID_HILOGE(OAID_MODULE_SERVICE, "write errorCode to reply failed.");
-            return ERR_SYSYTEM_ERROR;
+            return ERR_SYSTEM_ERROR;
         }
         return ERR_PERMISSION_ERROR;
     }
@@ -272,12 +272,12 @@ int32_t OAIDServiceStub::OnGetOAID(MessageParcel &data, MessageParcel &reply)
     auto oaid = GetOAID();
     if (oaid == "") {
         OAID_HILOGE(OAID_MODULE_SERVICE, "Get OAID failed.");
-        return ERR_SYSYTEM_ERROR;
+        return ERR_SYSTEM_ERROR;
     }
 
     if (!reply.WriteString(oaid)) {
         OAID_HILOGE(OAID_MODULE_SERVICE, "Failed to write parcelable.");
-        return ERR_SYSYTEM_ERROR;
+        return ERR_SYSTEM_ERROR;
     }
     checkProviderBundleName();
     return ERR_OK;
@@ -308,7 +308,8 @@ void OAIDServiceStub::checkProviderBundleName()
         return;
     }
     cJSON *oaidProviderBundleNameConfig = cJSON_GetObjectItem(root, "providerBundleName");
-    if (oaidProviderBundleNameConfig == nullptr || oaidProviderBundleNameConfig->type != cJSON_String) {
+    if (oaidProviderBundleNameConfig == nullptr || oaidProviderBundleNameConfig->type != cJSON_String
+        || oaidProviderBundleNameConfig->valuestring == nullptr) {
         OAID_HILOGE(OAID_MODULE_SERVICE, "not contain providerBundleName node.");
         cJSON_Delete(root);
         return;
@@ -545,11 +546,11 @@ int32_t OAIDServiceStub::OnGetAncoOAID(MessageParcel &data, MessageParcel &reply
     std::string oaid = GetAncoOAID();
     if (oaid == "") {
         OAID_HILOGE(OAID_MODULE_SERVICE, "Get AncoOAID failed.");
-        return ERR_SYSYTEM_ERROR;
+        return ERR_SYSTEM_ERROR;
     }
     if (!reply.WriteString(oaid)) {
         OAID_HILOGE(OAID_MODULE_SERVICE, "Failed to write parcelable.");
-        return ERR_SYSYTEM_ERROR;
+        return ERR_SYSTEM_ERROR;
     }
     return ERR_OK;
 }

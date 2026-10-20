@@ -148,7 +148,7 @@ int32_t OAIDService::Init()
     bool ret = Publish(this);
     if (!ret) {
         OAID_HILOGE(OAID_MODULE_SERVICE, "OAID service init failed.");
-        return ERR_SYSYTEM_ERROR;
+        return ERR_SYSTEM_ERROR;
     }
 
     OAID_HILOGI(OAID_MODULE_SERVICE, "OAID service init Success.");
@@ -268,7 +268,6 @@ std::string OAIDService::GainOAID()
 std::string OAIDService::GetOAID()
 {
     std::string oaid = GainOAID();
-    std::string target = oaid.substr(0, 9).append(OAID_VIRTUAL_STR);
     OAID_HILOGI(OAID_MODULE_SERVICE, "getOaid success");
     return oaid;
 }
@@ -279,7 +278,7 @@ int32_t OAIDService::ResetOAID()
     // GetUUID的RAND_bytes可能为空，新增判空保护
     if (resetOaid.empty()) {
         OAID_HILOGE(OAID_MODULE_SERVICE, "ResetOAID GetUUID failed!");
-        return ERR_SYSYTEM_ERROR;
+        return ERR_SYSTEM_ERROR;
     }
     {
         std::lock_guard<std::mutex> autoLock(updateMutex_);

@@ -50,7 +50,7 @@ public:
             OAID_HILOGE(OAID_MODULE_SERVICE, "Start systemAbility is not oaid service: %{public}d.", systemAbilityId);
             return;
         }
-
+        
         OAIDServiceClient::GetInstance()->LoadServerSuccess(remoteObject);
     }
 
@@ -60,7 +60,7 @@ public:
             OAID_HILOGE(OAID_MODULE_SERVICE, "Start systemAbility is not oaid service: %{public}d.", systemAbilityId);
             return;
         }
-
+        
         OAIDServiceClient::GetInstance()->LoadServerFail();
     }
 };
@@ -355,7 +355,7 @@ int32_t OAIDServiceClient::InsertAccessRecord(const int32_t userId, const std::s
     std::lock_guard<std::mutex> lock(getOaidProxyMutex_);
     if (oaidServiceProxy_ == nullptr) {
         OAID_HILOGE(OAID_MODULE_CLIENT, "Quit because redoing load oaid service failed.");
-        return ERR_SYSYTEM_ERROR;
+        return ERR_SYSTEM_ERROR;
     }
     return oaidServiceProxy_->InsertAccessRecord(userId, bundleName, uid);
 }
